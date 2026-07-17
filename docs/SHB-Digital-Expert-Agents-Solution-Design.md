@@ -4,6 +4,7 @@
 **Đơn vị ra đề:** SHB Bank — Ngân hàng & Tài chính
 **Sự kiện:** Hack CX Together 2026 (48 giờ)
 **Tài liệu:** Thiết kế giải pháp + kế hoạch thực thi
+**Đọc [`00-START-HERE.md`](./00-START-HERE.md) trước.** File này là chi tiết tra cứu, 1100+ dòng, không đọc một lần. Trang kia là kết luận: tập trung vào đâu, không làm gì, cờ đỏ nào đang treo.
 **Phiên bản:** 1.4 — 2026-07-17
 **Trạng thái:** Draft để team review, chưa chốt
 
@@ -334,9 +335,13 @@ Rủi ro còn lại: nếu BTC phát rubric mà rubric chấm nặng **chiều s
 
 ## 4. Nghiệp vụ
 
-### 4.1 Use case demo
+### 4.1 Use case demo &nbsp;·&nbsp; 📌 ĐÃ CHỐT 2026-07-17
 
 > **"Công ty ABC đề nghị vay 20 tỷ đồng, thế chấp bất động sản, yêu cầu giải ngân trong 5 ngày."**
+
+Chốt sau khi chấm 5 ứng viên theo 6 tiêu chí (`00-START-HERE.md`), log ở `TEAM_RULES.md` → *Decisions*. **Đừng mở lại tranh luận này** — đổi kịch bản ở giờ 0 tốn 0 đồng, đổi ở giờ 20 là mất cả bài.
+
+**Chú ý cách đọc:** đề đã chọn *lĩnh vực* thay mình rồi — *"credit, legal and compliance, products, or operations"*. Mình không chọn lĩnh vực. Mình chọn **kịch bản bắt các lĩnh vực đó đâm vào nhau**. Chọn sai kịch bản thì bốn agent ngồi cạnh nhau mà không ai nói với ai, và đó là fan-out chứ không phải multi-agent.
 
 Lý do chọn case này:
 

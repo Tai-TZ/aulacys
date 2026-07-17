@@ -28,8 +28,10 @@ Everything tagged 🔒 below is a standing rule — leave it alone.
 
 ## 0. Mission &nbsp;·&nbsp; 📌 DECIDED
 
-> Full solution design: [`docs/SHB-Digital-Expert-Agents-Solution-Design.md`](./docs/SHB-Digital-Expert-Agents-Solution-Design.md).
-> Read it once before your first task. This section is the short version — it wins if the two ever disagree.
+> **Read [`docs/00-START-HERE.md`](./docs/00-START-HERE.md) before your first task.** Five minutes. It is the conclusion of all the analysis: what to focus on, what not to build, which red flags are still open.
+> Detail lives in [`docs/SHB-Digital-Expert-Agents-Solution-Design.md`](./docs/SHB-Digital-Expert-Agents-Solution-Design.md) (1100+ lines — reference, not a read-through).
+> The problem statement verbatim: [`docs/reference/problem-statement.txt`](./docs/reference/problem-statement.txt) — the only source for quoting the brief.
+> This section is the short version. If §0 and the design doc ever disagree, §0 wins.
 
 - **Product:** Digital Expert Agents for SHB — a team of specialist agents (Credit, Compliance, Operations) that plan, call tools, retrieve regulatory knowledge via RAG, and **execute real actions in banking systems instead of only returning text**.
 - **The one "wow" flow:** a 20bn VND corporate loan request → Planner splits the work → Credit and Compliance run **in parallel** → Compliance **vetoes** on a hard legal limit → Planner replans → Critic verifies every number has a tool call and every claim has a citation → a human approves → a ticket is **actually written**.
