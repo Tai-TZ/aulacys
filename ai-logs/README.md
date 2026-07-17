@@ -1,7 +1,7 @@
 # AI Logs — hackathon submission
 
-Normalized JSONL event logs grouped by member and tool. The enabled Cursor
-project hook appends prompt and stop events automatically.
+Normalized event indexes and raw desktop transcripts, grouped by member and
+tool. Each teammate enables only the tools they actually use.
 
 ## Folder ↔ member
 
@@ -19,9 +19,10 @@ Each member folder has one subfolder per tool:
 
 ```
 ai-logs/<member>/
-  cursor/ai-log.jsonl
-  codex/ai-log.jsonl
-  claude/ai-log.jsonl
+  <tool>/
+    ai-log.jsonl                   # normalized event index (when available)
+    sessions/<session-id>.jsonl    # raw desktop transcripts
+    screenshots/                   # screenshots requested by organizers
 ```
 
 Each line is one JSON object:
@@ -32,26 +33,46 @@ Each line is one JSON object:
 
 ## One-time setup (Windows / PowerShell)
 
-After cloning, each teammate runs this once with their own slug:
+After cloning, each teammate runs one command with their own slug and tools:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/setup-ai-logs.ps1 -Member nguyen-thanh-tai
+# Cursor only
+powershell -ExecutionPolicy Bypass -File scripts/setup-ai-logs.ps1 `
+  -Member nguyen-thanh-tai -Tools cursor
+
+# Multiple tools (comma-separated, no spaces)
+powershell -ExecutionPolicy Bypass -File scripts/setup-ai-logs.ps1 `
+  -Member nguyen-thanh-toan -Tools cursor,claude,codex,antigravity
 ```
 
-The selected member is stored locally in `.git/ai-log-member`; it is never
-committed. Restart the AI tools after setup so their project hooks reload.
+Valid tools: `cursor`, `claude`, `codex`, `antigravity`.
 
-Cursor logging is enabled via `.cursor/hooks.json` → `scripts/log_ai_event.py`
-(repo, branch, commit, and student email come from Git).
+The selection is stored locally in `.git/ai-log-member` and `.git/ai-log-tools`;
+neither file is committed. Hooks for non-selected tools exit without writing.
+Setup creates the member folders and exports existing raw sessions for this repo.
+Restart the selected desktop tools afterward so project hooks reload.
 
-Codex / Claude hooks are not enabled in this repo by default. Add them later
-only if a teammate actually uses those tools.
+| Tool | Hook / source |
+|------|---------------|
+| Cursor | `.cursor/hooks.json`; `~/.cursor/projects/<project>/agent-transcripts/` |
+| Claude Code | `.claude/settings.json`; `~/.claude/projects/<project>/` |
+| Codex | `.codex/hooks.json`; `~/.codex/sessions/` |
+| Antigravity | `.gemini/settings.json` plus transcript scan under `~/.gemini/antigravity-ide/brain/` |
+
+Before submitting, rerun the same setup command to refresh every raw session.
+Alternatively run the exporter directly:
+
+```powershell
+py -3 scripts/export-ai-sessions.py
+```
+
+The direct exporter reads the member and selected tools from `.git/`.
 
 ## Online tools & screenshots
 
 - **Online/web AI tools:** paste the shared chat-session link in your folder's
   `LINKS.md` (create it) instead of a session file.
-- **Screenshots:** drop them under your folder (e.g. `screenshots/`).
+- **Screenshots:** add them under `ai-logs/<member>/<tool>/screenshots/`.
 
 > Prompts can contain sensitive values. Never paste secrets into an AI prompt,
-> and review JSONL files before pushing.
+> and review normalized logs, raw transcripts, and screenshots before pushing.
