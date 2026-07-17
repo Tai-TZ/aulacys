@@ -24,6 +24,9 @@ env/
 *.swo
 *~
 
+# Codegraph local index
+.codegraph/
+
 # OS
 .DS_Store
 Thumbs.db
