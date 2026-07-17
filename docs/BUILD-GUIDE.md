@@ -4,7 +4,7 @@
 > Nền: [`SHB-Digital-Expert-Agents-Solution-Design-v2.md`](./SHB-Digital-Expert-Agents-Solution-Design-v2.md) (**vì sao**) · [`AGENTS.md`](../AGENTS.md) (luật repo) · file này (**làm thế nào**).
 > Mâu thuẫn thì: `AGENTS.md` > v2 > file này.
 
-✅ **`AGENTS.md` §0 đã chốt: bán lẻ / cá nhân. Kịch bản DN 20 tỷ đã chết — không build.** Veto → replan là bài (`AGENTS.md` §0). Đọc §0 trước giờ 0 để khớp scope.
+⚠️ **`AGENTS.md` §0 vẫn khoá kịch bản DN 20 tỷ và tự tuyên bố "§0 wins".** Chưa sửa thì mọi agent đọc §0 sẽ build sai kịch bản. **Sửa §0 trước giờ 0.**
 
 ---
 
@@ -173,17 +173,17 @@ Build **một lần**, dùng chung 5 agent. Mỗi agent có harness riêng = 5 c
 
 Vai trong bài **không phải ta nghĩ ra**. Ảnh tham chiếu ghi quy trình tín dụng bán lẻ theo giai đoạn, actor, việc cụ thể và SLA. Dùng như quy trình chung của NHTM Việt Nam; **không gọi đây là quy trình nội bộ SHB**.
 
-| #           | Giai đoạn                        | Actor chính                    | Việc                                                                                                        | SLA tham chiếu |
-| ----------- | --------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------ |
-| 1           | Tiếp thị & tư vấn sơ bộ     | CV QHKH (RM)                    | Làm rõ mục đích vay, số tiền, kỳ hạn, hình thức (tín chấp/thế chấp), sàng lọc sơ bộ thu nhập & TSBĐ | 0–1 ngày    |
-| 2           | Tiếp nhận hồ sơ               | RM                              | Nhận hồ sơ pháp lý (CCCD, hộ khẩu), chứng minh thu nhập (HĐLĐ, sao kê 3 tháng), hồ sơ TSBĐ, đơn đề nghị vay. Check tính đầy đủ/hợp lệ | 1 ngày      |
-| **3** | **Thẩm định**             | CV Thẩm định + đơn vị định giá | **3 nhánh song song**: (a) thẩm định khách hàng — CIC, xác minh thu nhập, thực địa nơi ở/nơi làm; (b) thẩm định phương án vay & khả năng trả nợ; (c) định giá + kiểm tra pháp lý TSBĐ. Output: Báo cáo thẩm định | **2–7 ngày** |
-| **4** | **Phê duyệt**             | Cấp thẩm quyền / Hội đồng tín dụng | Ra quyết định theo hạn mức phân quyền; vượt thẩm quyền → trình cấp cao hơn. Output: Thông báo cho vay (hạn mức, lãi suất, kỳ hạn, điều kiện trước giải ngân) | **1–3 ngày** |
-| 5           | Ký kết hợp đồng & hoàn thiện TSBĐ | RM + HTTD + Công chứng/VPĐK    | Ký HĐ tín dụng + HĐ thế chấp → công chứng → đăng ký giao dịch bảo đảm → nhập kho TSBĐ | 1–3 ngày    |
-| 6           | Giải ngân                        | HTTD + Kế toán                 | Kiểm soát điều kiện giải ngân, ký Giấy nhận nợ, hạch toán chuyển tiền (1 lần hoặc nhiều đợt) | 1–2 ngày    |
-| 7           | Kiểm tra sau vay & giám sát | RM                              | Kiểm tra mục đích sử dụng vốn, tình hình tài chính KH, tình trạng TSBĐ định kỳ        | Định kỳ   |
-| 8           | Thu nợ & xử lý phát sinh     | RM + Kế toán + Xử lý nợ      | Thu gốc/lãi theo lịch; xử lý cơ cấu nợ, trả trước hạn, nợ có vấn đề                | Suốt vòng đời |
-| 9           | Thanh lý & lưu hồ sơ         | HTTD                            | Biên bản thanh lý, giải chấp TSBĐ, xóa đăng ký GĐBĐ, lưu hồ sơ                          | 1–2 ngày    |
+| #           | Giai đoạn                               | Actor chính                               | Việc                                                                                                                                                                                                                                                        | SLA tham chiếu      |
+| ----------- | ----------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
+| 1           | Tiếp thị & tư vấn sơ bộ             | CV QHKH (RM)                               | Làm rõ mục đích vay, số tiền, kỳ hạn, hình thức (tín chấp/thế chấp), sàng lọc sơ bộ thu nhập & TSBĐ                                                                                                                                     | 0–1 ngày           |
+| 2           | Tiếp nhận hồ sơ                       | RM                                         | Nhận hồ sơ pháp lý (CCCD, hộ khẩu), chứng minh thu nhập (HĐLĐ, sao kê 3 tháng), hồ sơ TSBĐ, đơn đề nghị vay. Check tính đầy đủ/hợp lệ                                                                                            | 1 ngày              |
+| **3** | **Thẩm định**                    | CV Thẩm định + đơn vị định giá    | **3 nhánh song song**: (a) thẩm định khách hàng — CIC, xác minh thu nhập, thực địa nơi ở/nơi làm; (b) thẩm định phương án vay & khả năng trả nợ; (c) định giá + kiểm tra pháp lý TSBĐ. Output: Báo cáo thẩm định | **2–7 ngày** |
+| **4** | **Phê duyệt**                     | Cấp thẩm quyền / Hội đồng tín dụng | Ra quyết định theo hạn mức phân quyền; vượt thẩm quyền → trình cấp cao hơn. Output: Thông báo cho vay (hạn mức, lãi suất, kỳ hạn, điều kiện trước giải ngân)                                                                   | **1–3 ngày** |
+| 5           | Ký kết hợp đồng & hoàn thiện TSBĐ | RM + HTTD + Công chứng/VPĐK             | Ký HĐ tín dụng + HĐ thế chấp → công chứng → đăng ký giao dịch bảo đảm → nhập kho TSBĐ                                                                                                                                                   | 1–3 ngày           |
+| 6           | Giải ngân                               | HTTD + Kế toán                           | Kiểm soát điều kiện giải ngân, ký Giấy nhận nợ, hạch toán chuyển tiền (1 lần hoặc nhiều đợt)                                                                                                                                             | 1–2 ngày           |
+| 7           | Kiểm tra sau vay & giám sát            | RM                                         | Kiểm tra mục đích sử dụng vốn, tình hình tài chính KH, tình trạng TSBĐ định kỳ                                                                                                                                                              | Định kỳ           |
+| 8           | Thu nợ & xử lý phát sinh              | RM + Kế toán + Xử lý nợ               | Thu gốc/lãi theo lịch; xử lý cơ cấu nợ, trả trước hạn, nợ có vấn đề                                                                                                                                                                         | Suốt vòng đời    |
+| 9           | Thanh lý & lưu hồ sơ                  | HTTD                                       | Biên bản thanh lý, giải chấp TSBĐ, xóa đăng ký GĐBĐ, lưu hồ sơ                                                                                                                                                                                | 1–2 ngày           |
 
 **Ba điều rút ra — không phải trang trí:**
 
@@ -195,13 +195,13 @@ Vai trong bài **không phải ta nghĩ ra**. Ảnh tham chiếu ghi quy trình 
 
 ### 5.1 Năm agent
 
-|                | Vai thật                            | Nhiệm vụ (một câu)                                            | Tuyến      | Tools                                                             | KB                                             | Policy                       | Model                                |
-| -------------- | ------------------------------------ | ----------------------------------------------------------------- | ----------- | ----------------------------------------------------------------- | ---------------------------------------------- | ---------------------------- | ------------------------------------ |
+|                | Vai thật                              | Nhiệm vụ (một câu)                                            | Tuyến      | Tools                                                             | KB                                             | Policy                       | Model                                |
+| -------------- | -------------------------------------- | ----------------------------------------------------------------- | ----------- | ----------------------------------------------------------------- | ---------------------------------------------- | ---------------------------- | ------------------------------------ |
 | `Planner`    | quy trình GĐ3 (không phải người) | Config → DAG. Veto → replan                                     | —          | không                                                            | không                                         | không                       | **mạnh nhất**                |
-| `Credit`     | CV Thẩm định — nhánh (a)+(b)     | Người này trả được nợ không?                             | 1           | `cic_lookup` `income_verify` `compute_dti` `sao_ke_parse` | quy định cho vay                             | chỉ đọc`warning`        | rẻ→vừa                            |
-| `Operations` | Đơn vị định giá — nhánh (c)     | Hồ sơ đủ chưa · TSBĐ đáng bao nhiêu · có sạch không | 1           | `property_valuation` `land_registry` `doc_checklist`        | quy định TSBĐ                               | —                           | rẻ                                  |
-| `Compliance` | Cấp thẩm quyền / HĐTD (GĐ4)      | Có**được phép** cho vay không?                        | **2** | `aml_screen` `related_party` `policy.evaluate`              | thông tư, luật (**namespace riêng**) | **blocking + warning** | **mạnh**                      |
-| `Critic`     | Kiểm toán nội bộ (tuyến 3)       | Số nào không có tool? Claim nào không có điều khoản?    | —          | **read-only**                                               | —                                             | —                           | mạnh,**chỉ bật đường 3** |
+| `Credit`     | CV Thẩm định — nhánh (a)+(b)      | Người này trả được nợ không?                             | 1           | `cic_lookup` `income_verify` `compute_dti` `sao_ke_parse` | quy định cho vay                             | chỉ đọc`warning`        | rẻ→vừa                            |
+| `Operations` | Đơn vị định giá — nhánh (c)    | Hồ sơ đủ chưa · TSBĐ đáng bao nhiêu · có sạch không | 1           | `property_valuation` `land_registry` `doc_checklist`        | quy định TSBĐ                               | —                           | rẻ                                  |
+| `Compliance` | Cấp thẩm quyền / HĐTD (GĐ4)       | Có**được phép** cho vay không?                        | **2** | `aml_screen` `related_party` `policy.evaluate`              | thông tư, luật (**namespace riêng**) | **blocking + warning** | **mạnh**                      |
+| `Critic`     | Kiểm toán nội bộ (tuyến 3)        | Số nào không có tool? Claim nào không có điều khoản?    | —          | **read-only**                                               | —                                             | —                           | mạnh,**chỉ bật đường 3** |
 
 ### 5.2 Guardrail — phần này quan trọng hơn prompt
 
@@ -266,17 +266,17 @@ flowchart TD
 
 > `Compliance --veto--> Planner` (đỏ) = vòng replan, xương sống (§5.5). Cap replan / Critic fail / gate fail đều rơi về HITL. Một `LoanApplication` vào, đi qua 8 bước:
 
-| Bước | Việc trong hệ                                                                                                | Ứng với GĐ thật (§5.0)         | Chạm gì                                    |
-| ---- | ------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------- |
-| 0    | **Seed hồ sơ.** `declared` + `documents` vào state. Mỗi doc gắn `tier` 1/2/3.               | GĐ1–2 (ngoài lát cắt, seed)   | `state.py`                                |
-| 1    | **Định tuyến đường.** Product config + `amount` + tier chứng từ + pre-check policy → đường 1/2/3. | — (định tuyến, không có ngoài đời) | `route()` → `RunTrace.lane` (§8.1) |
-| 2    | **Đường 1 dừng sớm.** Chuẩn + trong ngưỡng → tool tất định tính metric → `policy.evaluate` → gate. **0 LLM.** | GĐ3+4 rút gọn (STP)          | tool + `loader.py`                        |
-| 3    | **Planner → DAG.** Đường 2/3: Planner đọc `products/*.yaml` → nodes + edges + **veto edge.**   | GĐ3 "3 nhánh song song"       | `PlannerSpec` → `plan`                  |
-| 4    | **Chạy DAG.** Node theo thứ tự topo. `Credit`=nhánh (a)+(b), `Operations`=nhánh (c) — **song song.** Mỗi node: `context.assemble` (chỉ `reads`) → LLM → `dispatch` (whitelist) → tool tất định → parse Pydantic → `meter`+`trace`. | GĐ3 thẩm định          | `runner` + specs + tools             |
-| 5    | **Compliance.** Đọc output Credit+Operations + policy YAML → `policy.evaluate(metrics, as_of)` → `violations`. `veto=true` → **veto edge nổ.** | GĐ4 phê duyệt (tuyến 2)       | `ComplianceSpec` + `loader.py`        |
-| 6    | **Veto → replan.** Edge quay về Planner. `replan_count++`. **Quá cap → đẩy người (HITL)** (§5.2). Dưới cap → DAG mới → lặp bước 4. | GĐ4: đề xuất ≠ tự duyệt      | `graph.py` + `PlannerSpec`            |
-| 7    | **Critic (chỉ đường 3).** Read-only audit: số nào không có tool trace? claim nào thiếu `rule_id`? → `passed`/`rejections[]`. Không sửa. | Tuyến 3 — **không có trong 9 GĐ**, là lớp phủ nội bộ | `CriticSpec`                        |
-| 8    | **Gate.** Config `stp_when`: `all_rules_pass AND amount <= stp_ceiling` → STP, else HITL. Output = *Thông báo cho vay*. | GĐ4 output                     | config §6                                 |
+| Bước | Việc trong hệ                                                                                                                                                                                                                                                              | Ứng với GĐ thật (§5.0)                                         | Chạm gì                                |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------- |
+| 0      | **Seed hồ sơ.** `declared` + `documents` vào state. Mỗi doc gắn `tier` 1/2/3.                                                                                                                                                                               | GĐ1–2 (ngoài lát cắt, seed)                                    | `state.py`                             |
+| 1      | **Định tuyến đường.** Product config + `amount` + tier chứng từ + pre-check policy → đường 1/2/3.                                                                                                                                                        | — (định tuyến, không có ngoài đời)                         | `route()` → `RunTrace.lane` (§8.1) |
+| 2      | **Đường 1 dừng sớm.** Chuẩn + trong ngưỡng → tool tất định tính metric → `policy.evaluate` → gate. **0 LLM.**                                                                                                                                   | GĐ3+4 rút gọn (STP)                                              | tool +`loader.py`                      |
+| 3      | **Planner → DAG.** Đường 2/3: Planner đọc `products/*.yaml` → nodes + edges + **veto edge.**                                                                                                                                                            | GĐ3 "3 nhánh song song"                                           | `PlannerSpec` → `plan`              |
+| 4      | **Chạy DAG.** Node theo thứ tự topo. `Credit`=nhánh (a)+(b), `Operations`=nhánh (c) — **song song.** Mỗi node: `context.assemble` (chỉ `reads`) → LLM → `dispatch` (whitelist) → tool tất định → parse Pydantic → `meter`+`trace`. | GĐ3 thẩm định                                                   | `runner` + specs + tools               |
+| 5      | **Compliance.** Đọc output Credit+Operations + policy YAML → `policy.evaluate(metrics, as_of)` → `violations`. `veto=true` → **veto edge nổ.**                                                                                                       | GĐ4 phê duyệt (tuyến 2)                                         | `ComplianceSpec` + `loader.py`       |
+| 6      | **Veto → replan.** Edge quay về Planner. `replan_count++`. **Quá cap → đẩy người (HITL)** (§5.2). Dưới cap → DAG mới → lặp bước 4.                                                                                                            | GĐ4: đề xuất ≠ tự duyệt                                      | `graph.py` + `PlannerSpec`           |
+| 7      | **Critic (chỉ đường 3).** Read-only audit: số nào không có tool trace? claim nào thiếu `rule_id`? → `passed`/`rejections[]`. Không sửa.                                                                                                             | Tuyến 3 —**không có trong 9 GĐ**, là lớp phủ nội bộ | `CriticSpec`                           |
+| 8      | **Gate.** Config `stp_when`: `all_rules_pass AND amount <= stp_ceiling` → STP, else HITL. Output = *Thông báo cho vay*.                                                                                                                                       | GĐ4 output                                                         | config §6                               |
 
 > ★ **Xương sống = bước 3→4→5→6.** Planner sinh DAG, DAG chạy node, Compliance veto, veto replan. Đường 1 (bước 2) và Critic (bước 7) là **nhánh rẽ**, không phải xương sống. Build xương trước (§5.5).
 
@@ -341,6 +341,7 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
 ```
 
 > ⚠️ **Ba bất biến khi code hai hàm này:**
+>
 > 1. `context.assemble` **chỉ** lấy `spec.reads` — không bao giờ cả state (§8 mục 1).
 > 2. `dispatch` là **nơi duy nhất** chặn tool — prompt không dặn (luật 4).
 > 3. Veto/replan là **cạnh trong `graph.run`** — không phải câu trong prompt (luật 3).
@@ -349,15 +350,15 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
 
 Thứ tự build **bám luồng §5.3**, không bám danh sách agent. Xong xương sống (bước 3→6) thì đã có bài; node đắp sau. Ánh xạ sang giờ ở §9.
 
-| Thứ tự | Build gì (theo luồng)                                                              | File                                                       | Giờ §9 | Xong = |
-| ------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------- | ------- |
-| 1      | **Xương ráp:** `graph.run` khung + `runner.run` + `route()` stub          | `graph.py` `harness/*`                                 | 0–6    | Luồng gọi được, 1 node giả chạy hết |
-| 2      | **Một node thật end-to-end:** `Credit` + `compute_dti` + config case 1   | `credit.py` `tools/` `retail_unsecured_salary.yaml` | 6–10   | ★ Config điều khiển graph (đường 1 STP) |
-| 3      | **Nở DAG:** `Operations` + `Compliance` + cạnh `depends` + policy         | `operations.py` `compliance.py` `retail_lending.yaml`| 10–20  | Nhánh (a)+(b)+(c) chạy song song |
-| 4      | **Veto edge + replan + cap** — bước 6                                          | `graph.py` `PlannerSpec`                               | 20–28  | ⚠️ **Đây là bài** |
-| 5      | **Critic + audit chain** — bước 7, chỉ đường 3                             | `critic.py` `trace.py`                                | 28–34  | Cái mình bán |
-| 6      | **Config case 2 chạy, 0 code mới** — chứng minh flow-as-config             | `retail_mortgage.yaml`                                  | 34–40  | Ng.tắc 1 thật |
-| 7      | **`evaluate(as_of)` (§7.1) + đo `meter` → cắt**                          | `loader.py`                                              | 40–44  | Đột phá B, có số |
+| Thứ tự | Build gì (theo luồng)                                                            | File                                                        | Giờ §9 | Xong =                                         |
+| -------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------- | -------- | ---------------------------------------------- |
+| 1        | **Xương ráp:** `graph.run` khung + `runner.run` + `route()` stub    | `graph.py` `harness/*`                                  | 0–6     | Luồng gọi được, 1 node giả chạy hết    |
+| 2        | **Một node thật end-to-end:** `Credit` + `compute_dti` + config case 1 | `credit.py` `tools/` `retail_unsecured_salary.yaml`   | 6–10    | ★ Config điều khiển graph (đường 1 STP) |
+| 3        | **Nở DAG:** `Operations` + `Compliance` + cạnh `depends` + policy    | `operations.py` `compliance.py` `retail_lending.yaml` | 10–20   | Nhánh (a)+(b)+(c) chạy song song             |
+| 4        | **Veto edge + replan + cap** — bước 6                                     | `graph.py` `PlannerSpec`                                | 20–28   | ⚠️**Đây là bài**                   |
+| 5        | **Critic + audit chain** — bước 7, chỉ đường 3                        | `critic.py` `trace.py`                                  | 28–34   | Cái mình bán                                |
+| 6        | **Config case 2 chạy, 0 code mới** — chứng minh flow-as-config           | `retail_mortgage.yaml`                                    | 34–40   | Ng.tắc 1 thật                                |
+| 7        | **`evaluate(as_of)` (§7.1) + đo `meter` → cắt**                      | `loader.py`                                               | 40–44   | Đột phá B, có số                          |
 
 > ★ **Bước 1–4 là xương sống — đừng làm 5–7 khi 4 chưa chạy.** Veto (bước 4) chưa xanh mà đã đi Critic là **đảo thứ tự luồng** — §9 chốt chặn giờ 36 nói y hệt.
 
@@ -403,7 +404,7 @@ Thiếu chứng từ → `Operations` báo (`missing[]`).
 
 | File                                                         | Trạng thái                     | Việc                                                                                                                                            |
 | ------------------------------------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `policy/loader.py`                                         | ✅ Chạy, 27 test xanh           | ⚠️**`evaluate()` bỏ qua `effective_from`** — rule đề 2099 vẫn nổ. Xem dưới                                                   |
+| `policy/loader.py`                                         | ✅ Chạy, 27 test xanh           | ⚠️**`evaluate()` bỏ qua `effective_from`** — rule đề 2099 vẫn nổ. Xem dưới                                                         |
 | `policy/rules/credit_limits.yaml`                          | ⚠️**Của kịch bản DN** | `single_customer_credit_limit`, `related_party` là bài DN. Bán lẻ cần `retail_lending.yaml` mới                                      |
 | `tools/loan_calculator.py`                                 | ✅ Mẫu đúng                   | `compute_ltv` **dùng lại được**. `compute_dscr`/`compute_exposure_ratio` là **của DN** — bán lẻ cần `compute_dti` |
 | `agents/graph.py`, `state.py`, `nodes/example_node.py` | Khung rỗng                      | Viết đè                                                                                                                                       |
@@ -513,8 +514,8 @@ Cùng phát từ harness, **lưu hai chỗ**. Gộp làm một là hỏng cả h
 | *"Hãy từ chối nếu vi phạm"* trong prompt | Luật 3. Veto là**cạnh**                                                          |
 | Critic sửa nội dung                           | Ai kiểm Critic? Audit đứt                                                              |
 | Critic có tool ghi                             | Read-only, cứng                                                                          |
-| Nhét cả hồ sơ vào mọi agent               | §8 mục 1 — trả tiền 5 lần                                                        |
-| Agent đọc text thô sao kê                   | §8 mục 2 — trích một lần                                                         |
+| Nhét cả hồ sơ vào mọi agent               | §8 mục 1 — trả tiền 5 lần                                                           |
+| Agent đọc text thô sao kê                   | §8 mục 2 — trích một lần                                                            |
 | `eval()` trong policy                         | `loader.py` table-driven. Giữ vậy                                                     |
 | Nút upload giả (kéo-thả nhưng chạy seed)  | Giám khảo hỏi một câu là lộ, mất niềm tin phần còn lại                        |
 | Tối ưu prompt/model trước giờ 40           | Đoán. Chi phí lớn nhất không phải token — là**8 giờ tối ưu nhầm chỗ** |
