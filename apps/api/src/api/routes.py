@@ -2,7 +2,15 @@ from fastapi import APIRouter, HTTPException
 
 from src.agents.graph import agent, load_product_config
 from src.agents.state import LoanApplication, RunTrace
-from src.models.schemas import AssessApplicationRequest, AssessResponse, ChatRequest, ChatResponse
+from src.agents.tools.workflow import write_approval_ticket
+from src.models.schemas import (
+    ApprovalRequest,
+    ApprovalResponse,
+    AssessApplicationRequest,
+    AssessResponse,
+    ChatRequest,
+    ChatResponse,
+)
 
 router = APIRouter()
 
@@ -68,6 +76,37 @@ async def assess_application(request: AssessApplicationRequest) -> AssessRespons
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
     return _to_assess_response(state)
+
+
+@router.post("/approvals", response_model=ApprovalResponse)
+async def create_approval(request: ApprovalRequest) -> ApprovalResponse:
+    """HITL: human approves or rejects after the graph wrote a pending ticket."""
+    status = f"human_{request.decision}"
+    summary_parts = [
+        f"HITL {request.decision} by {request.signed_by}",
+        f"prior={request.prior_outcome or 'n/a'}",
+    ]
+    if request.prior_ticket_id:
+        summary_parts.append(f"prior_ticket={request.prior_ticket_id}")
+    if request.note.strip():
+        summary_parts.append(f"note={request.note.strip()}")
+    try:
+        ticket = write_approval_ticket.invoke(
+            {
+                "application_id": request.application_id,
+                "status": status,
+                "summary": "; ".join(summary_parts),
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    return ApprovalResponse(
+        decision=request.decision,
+        signed_by=request.signed_by,
+        note=request.note,
+        prior_outcome=request.prior_outcome,
+        ticket=ticket if isinstance(ticket, dict) else {"result": ticket},
+    )
 
 
 @router.get("/status")

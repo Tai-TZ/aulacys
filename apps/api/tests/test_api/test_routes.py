@@ -99,3 +99,34 @@ async def test_assess_application_unknown_product(client):
         },
     )
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_approval_writes_human_ticket(client):
+    response = await client.post(
+        "/api/v1/approvals",
+        json={
+            "application_id": "retail-demo",
+            "decision": "approved",
+            "signed_by": "officer-a",
+            "note": "ok after review",
+            "prior_outcome": "ready_for_human_approval",
+            "prior_ticket_id": "DEMO-RETAIL-DEMO",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["decision"] == "approved"
+    assert data["signed_by"] == "officer-a"
+    assert data["ticket"]["status"] == "human_approved"
+    assert "HITL approved" in data["ticket"]["summary"]
+
+
+@pytest.mark.asyncio
+async def test_approval_rejects(client):
+    response = await client.post(
+        "/api/v1/approvals",
+        json={"application_id": "retail-demo", "decision": "rejected"},
+    )
+    assert response.status_code == 200
+    assert response.json()["ticket"]["status"] == "human_rejected"

@@ -1,58 +1,53 @@
-# Handoff — Plan: polish assess + HITL approver page
+# Handoff — Assess polish + HITL approver page
 
 - **Date:** 2026-07-18
 - **Author:** Cursor agent
 - **Branch / PR:** `feat/admin-assess-polish-hitl` → `develop`
-- **Status:** 🔄 WIP (plan committed first per team process; implementation follows)
+- **Status:** ✅ Done
 
 ## What changed & why
 
-Pre-implementation plan for the user ask: (2) polish **Chạy thẩm định**, (3) one real admin page. After reading `AGENTS.md` §0, `BUILD-GUIDE.md` §5/§8, and `CODING-PLAN.md`, the wow-flow tail is **human approves → ticket written**. So page (3) = **Người phê duyệt** (`/admin/approvals`), not hồ sơ/agent/cấu hình (those stay stub-badged).
+Wow-flow tail: after assess, a human must decide. Polished **Chạy thẩm định** (errors, unverified badge, tín chấp preset, CTA) and shipped **Người phê duyệt** (`/admin/approvals`) wired to `POST /api/v1/approvals` → `write_approval_ticket`. Other sidebar items marked **Sắp có**. Plan was committed before code (see first commit on branch).
 
-## Flow (source of truth)
+## Files touched
 
-```
-Loan form → POST /assess/application → Planner → Credit∥Ops → Compliance
-  → veto? → replan (cap 2) → Critic (lane 3) → outcome + ticket
-  → HITL (this slice) → POST /approvals → write_approval_ticket (human signed)
-```
+- `apps/api/src/models/schemas.py` — `ApprovalRequest` / `ApprovalResponse`
+- `apps/api/src/api/routes.py` — `POST /approvals`
+- `apps/api/tests/test_api/test_routes.py` — approve/reject tests
+- `apps/web/lib/api.ts` — typed violations + `submitApproval`
+- `apps/web/lib/hitl-queue.ts` — sessionStorage queue
+- `apps/web/components/admin/admin-shell.tsx` — nav live vs stub
+- `apps/web/components/admin/assess-dashboard.tsx` — polish
+- `apps/web/app/admin/page.tsx`, `app/admin/approvals/page.tsx`
 
-Monitor is the product (`BUILD-GUIDE` §8.1). Sidebar stubs must not look live.
-
-## Slice plan (3–5 steps)
-
-1. **Polish assess UI:** clearer API errors; badge `unverified` on violations; CTA → `/admin/approvals`; push case into `sessionStorage` queue after each run.
-2. **Contract:** `ApprovalRequest` / `ApprovalResponse` in `schemas.py` + `api.ts`.
-3. **Route:** `POST /api/v1/approvals` → `write_approval_ticket` with `approved`/`rejected` + `signed_by` (demo-proof; no DB required).
-4. **Page:** `/admin/approvals` — list pending from session queue; Approve/Reject; show new ticket.
-5. **Nav:** wire Người phê duyệt; mark other sidebar items "Sắp có".
-
-## Out of scope
-
-- Full case CRM / agent admin / settings pages
-- Production RBAC / real LOS
-- RAG (P1.4)
-
-## Files (intended)
-
-- `apps/api/src/models/schemas.py`, `apps/api/src/api/routes.py`, tests
-- `apps/web/lib/api.ts`, `components/admin/*`, `app/admin/page.tsx`, `app/admin/approvals/page.tsx`
-- This handoff (updated to Done after impl)
-
-## How to verify (after impl)
+## How to run / verify
 
 ```bash
-cd apps/api && pytest -q
-cd apps/web && npm run build
-# /admin → Chạy thẩm định → open /admin/approvals → Approve
+# API (empty DATABASE_URL if local .env has placeholder pooler URL)
+cd apps/api
+$env:DATABASE_URL=""; $env:DIRECT_URL=""
+pytest tests/test_api/test_routes.py -q
+
+cd ../web && npm run build
+
+# Manual
+# :8000 API + :3000 web
+# /admin → Nạp tín chấp → Chạy thẩm định → Mở Người phê duyệt → Phê duyệt
+# /admin → mortgage → veto + unverified badge on prohibited_purpose
 ```
 
 ## Contract impact
 
-Will add `ApprovalRequest` / `ApprovalResponse` (announced when coded).
+**Changed.** Added `ApprovalRequest` / `ApprovalResponse`. Mirrored in `apps/web/lib/api.ts`.
+
+## Follow-ups / TODO
+
+- [ ] Persist HITL queue in DB instead of sessionStorage
+- [ ] Wire `signed_by` into audit ledger
+- [ ] Hồ sơ / agent / cấu hình pages still out of slice
 
 ## Gotchas
 
-- Mortgage default still vetoes; approver can still decide (escalate path).
-- Unsecured seed → `ready_for_human_approval` is the clean HITL demo.
-- Queue is browser `sessionStorage` — demo-only, not multi-user.
+- Queue is per-browser tab session — refresh keeps it; new browser = empty.
+- Local `apps/api/.env` copied from example can set a fake `DATABASE_URL` and break `test_db` (reports `down` not `disabled`). Unrelated to this slice.
+- Stub nav items are non-links with "Sắp có" — intentional.

@@ -64,10 +64,27 @@ export interface NodeTrace {
   fallback_fired: boolean;
 }
 
+export interface PolicyViolation {
+  rule_id: string;
+  description: string;
+  legal_basis: string;
+  metric: string;
+  actual: number;
+  threshold: number;
+  operator: string;
+  unit: string;
+  severity: string;
+  raised_by: string;
+  effective_from: string;
+  effective_to?: string | null;
+  version?: string;
+  unverified?: boolean;
+}
+
 export interface ComplianceVerdict {
   veto: boolean;
   rule_ids: string[];
-  violations: unknown[];
+  violations: PolicyViolation[];
   citations: unknown[];
   tool_results: Record<string, unknown>;
 }
@@ -142,18 +159,6 @@ export async function sendChat(message: string): Promise<ChatResponse> {
   return (await res.json()) as ChatResponse;
 }
 
-export async function assess(message: string): Promise<AssessResponse> {
-  const res = await fetch(`${API_URL}/api/v1/assess`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message } satisfies ChatRequest),
-  });
-  if (!res.ok) {
-    throw new Error(`API error ${res.status}`);
-  }
-  return (await res.json()) as AssessResponse;
-}
-
 export async function assessApplication(
   body: AssessApplicationRequest,
 ): Promise<AssessResponse> {
@@ -163,9 +168,55 @@ export async function assessApplication(
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    throw new Error(`API error ${res.status}`);
+    const detail = await res.text().catch(() => "");
+    throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
   }
   return (await res.json()) as AssessResponse;
+}
+
+export async function assess(message: string): Promise<AssessResponse> {
+  const res = await fetch(`${API_URL}/api/v1/assess`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message } satisfies ChatRequest),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
+  }
+  return (await res.json()) as AssessResponse;
+}
+
+// --- HITL (POST /api/v1/approvals) ---
+
+export interface ApprovalRequest {
+  application_id: string;
+  decision: "approved" | "rejected";
+  signed_by?: string;
+  note?: string;
+  prior_outcome?: string;
+  prior_ticket_id?: string | null;
+}
+
+export interface ApprovalResponse {
+  decision: string;
+  signed_by: string;
+  note: string;
+  prior_outcome: string;
+  ticket: Record<string, unknown>;
+}
+
+export async function submitApproval(body: ApprovalRequest): Promise<ApprovalResponse> {
+  const res = await fetch(`${API_URL}/api/v1/approvals`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
+  }
+  return (await res.json()) as ApprovalResponse;
 }
 
 export async function getServiceStatus(): Promise<ServiceStatusResponse> {
