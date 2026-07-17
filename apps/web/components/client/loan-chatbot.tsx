@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import {
   Bot,
   Clock3,
@@ -19,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { Button, Textarea } from "@/components/ui";
+import { BrandMark } from "@/components/client/brand-mark";
 import { sendChat } from "@/lib/api";
 import { cn } from "@/lib/cn";
 
@@ -63,7 +63,7 @@ export function LoanChatbot() {
     } catch {
       setMessages((items) => [
         ...items,
-        { role: "assistant", content: "Hệ thống đang chạy chế độ dự phòng. Yêu cầu của bạn đã được ghi nhận để chuyên gia SHB hỗ trợ." },
+        { role: "assistant", content: "Hệ thống đang chạy chế độ dự phòng. Yêu cầu của bạn đã được ghi nhận để chuyên gia Aulacys hỗ trợ." },
       ]);
     } finally {
       setLoading(false);
@@ -81,33 +81,33 @@ export function LoanChatbot() {
         type="button"
         onClick={() => setOpen(true)}
         className="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-full bg-brand p-3 text-on-primary shadow-chat-launcher transition hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/25 sm:bottom-7 sm:right-7 sm:px-5"
-        aria-label="Mở trợ lý khoản vay SHB"
+        aria-label="Mở trợ lý khoản vay Aulacys"
       >
         <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-on-primary/15"><MessageCircle size={22}/><span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full border-2 border-brand bg-chat-online"/></span>
-        <span className="hidden text-left sm:block"><span className="block text-sm font-semibold">Trợ lý khoản vay</span><span className="block text-xs text-on-primary/75">Hỏi SHB ngay</span></span>
+        <span className="hidden text-left sm:block"><span className="block text-sm font-semibold">Trợ lý khoản vay</span><span className="block text-xs text-on-primary/75">Hỏi Aulacys ngay</span></span>
       </button>
     );
   }
 
   return (
-    <div className={cn("fixed z-50", expanded ? "inset-0 bg-chat-backdrop p-0 sm:p-5" : "bottom-0 left-0 right-0 top-0 sm:inset-auto sm:bottom-6 sm:right-6")} role="dialog" aria-modal="true" aria-label="Trợ lý khoản vay SHB">
+    <div className={cn("fixed z-50", expanded ? "inset-0 bg-chat-backdrop p-0 sm:p-5" : "inset-0 sm:inset-auto sm:bottom-6 sm:right-6")} role="dialog" aria-modal="true" aria-label="Trợ lý khoản vay Aulacys">
       <div className={cn(
         "grid h-full overflow-hidden border border-chat-border bg-chat-canvas shadow-chat transition-all",
         expanded ? "mx-auto max-w-[1440px] rounded-none sm:h-[calc(100vh-2.5rem)] sm:rounded-[28px] lg:grid-cols-[260px_1fr]" : "rounded-none sm:h-[min(580px,calc(100vh-3rem))] sm:w-[400px] sm:rounded-[24px]",
       )}>
         {expanded && (
           <aside className="hidden flex-col border-r border-chat-border bg-chat-sidebar p-4 lg:flex">
-            <div className="flex items-center justify-between px-2 py-1"><Image src="/shb/logo.svg" alt="SHB" width={74} height={34}/><PanelLeft size={18} className="text-muted-foreground"/></div>
+            <div className="flex items-center justify-between px-2 py-1"><BrandMark href={null} size="sm" /><PanelLeft size={18} className="text-muted-foreground"/></div>
             <Button className="mt-5 w-full justify-start rounded-xl bg-card text-navy shadow-sm" variant="outline"><Plus size={18}/> Cuộc trò chuyện mới</Button>
             <div className="mt-7 flex items-center gap-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><History size={14}/> Gần đây</div>
             <nav className="mt-3 space-y-1 text-sm">{["Tư vấn vay mua nhà", "Tính khả năng trả nợ", "Điều kiện vay mua ô tô"].map((title, index) => <button key={title} className={cn("w-full truncate rounded-xl px-3 py-2.5 text-left", index === 0 ? "bg-card font-medium text-navy shadow-sm" : "text-muted-foreground hover:bg-card")}>{title}</button>)}</nav>
-            <div className="mt-auto rounded-2xl border border-chat-border bg-card p-3"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-on-primary"><UserRound size={17}/></span><div><p className="text-sm font-semibold text-navy">Khách hàng SHB</p><p className="text-xs text-muted-foreground">Tài khoản cá nhân</p></div><MoreHorizontal className="ml-auto text-muted-foreground" size={18}/></div></div>
+            <div className="mt-auto rounded-2xl border border-chat-border bg-card p-3"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-on-primary"><UserRound size={17}/></span><div><p className="text-sm font-semibold text-navy">Khách hàng Aulacys</p><p className="text-xs text-muted-foreground">Tài khoản cá nhân</p></div><MoreHorizontal className="ml-auto text-muted-foreground" size={18}/></div></div>
           </aside>
         )}
 
         <div className="flex min-h-0 min-w-0 flex-col">
           <header className="flex h-14 shrink-0 items-center justify-between border-b border-chat-border bg-card px-4">
-            <div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-on-primary"><Sparkles size={19}/></span><div><p className="text-sm font-semibold text-navy">Trợ lý khoản vay SHB</p><p className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-chat-online"/> Sẵn sàng hỗ trợ</p></div></div>
+            <div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-on-primary"><Sparkles size={19}/></span><div><p className="text-sm font-semibold text-navy">Trợ lý khoản vay Aulacys</p><p className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-chat-online"/> Sẵn sàng hỗ trợ</p></div></div>
             <div className="flex items-center gap-1">
               <Button type="button" variant="ghost" size="icon" onClick={() => setExpanded((value) => !value)} aria-label={expanded ? "Thu nhỏ chatbot" : "Mở rộng chatbot"}>{expanded ? <Minimize2 size={18}/> : <Maximize2 size={18}/>}</Button>
               <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Đóng chatbot"><X size={20}/></Button>
@@ -126,7 +126,7 @@ export function LoanChatbot() {
               </div>
             ) : (
               <div className="mx-auto max-w-3xl space-y-6 py-6">
-                {messages.map((message, index) => message.role === "user" ? <div key={index} className="flex justify-end"><div className="max-w-[88%] rounded-[20px] rounded-br-md bg-chat-user px-4 py-3 text-sm leading-6 text-navy">{message.content}</div></div> : <div key={index} className="flex gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand text-on-primary"><Sparkles size={15}/></span><div><p className="mb-1 text-xs font-semibold text-navy">SHB Digital Expert</p><p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{message.content}</p></div></div>)}
+                {messages.map((message, index) => message.role === "user" ? <div key={index} className="flex justify-end"><div className="max-w-[88%] rounded-[20px] rounded-br-md bg-chat-user px-4 py-3 text-sm leading-6 text-navy">{message.content}</div></div> : <div key={index} className="flex gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand text-on-primary"><Sparkles size={15}/></span><div><p className="mb-1 text-xs font-semibold text-navy">Aulacys Digital Expert</p><p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{message.content}</p></div></div>)}
                 {loading && <div className="flex gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand text-on-primary"><Sparkles size={15}/></span><div><p className="text-xs font-semibold text-navy">Đang phân tích yêu cầu</p><div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 animate-pulse rounded-full bg-brand"/> Các chuyên gia đang phối hợp...</div></div></div>}
               </div>
             )}
