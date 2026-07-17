@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button, Card } from "@/components/ui";
 import { LoanChatbot } from "@/components/client/loan-chatbot";
+import { ServiceMonitor } from "@/components/client/service-monitor";
 
 const needs = [
   { label: "Vay mua nhà", icon: Landmark },
@@ -100,6 +101,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <ServiceMonitor />
 
       <section className="mx-auto max-w-7xl px-5 py-20 lg:px-12">
         <div className="grid gap-5 md:grid-cols-3">

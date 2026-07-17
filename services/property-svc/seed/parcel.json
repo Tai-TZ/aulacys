@@ -1,0 +1,5 @@
+{
+  "_default": { "valuation": null, "has_dispute": false, "zoning_flag": false },
+  "HCMC-Q7-001": { "valuation": 5000000000, "has_dispute": false, "zoning_flag": false },
+  "HCMC-RISK-001": { "valuation": 3000000000, "has_dispute": true, "zoning_flag": false }
+}

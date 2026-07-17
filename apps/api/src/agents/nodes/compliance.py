@@ -6,7 +6,7 @@ from src.agents.harness.dispatch import dispatch
 from src.agents.specs import AgentSpec
 from src.agents.state import AgentState, Citation, ComplianceVerdict
 from src.agents.tools.loan_calculator import compute_ltv
-from src.policy.loader import evaluate
+from src.policy.client import evaluate_policy
 
 
 def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceVerdict, list[str]]:
@@ -41,7 +41,7 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
     elif "refinance" in declared_purpose:
         metrics["prohibited_purpose_refinance_other_bank"] = 1
 
-    violations = evaluate(metrics, as_of=date.today())
+    violations = evaluate_policy(metrics, as_of=date.today())
     return (
         ComplianceVerdict(
             violations=violations,

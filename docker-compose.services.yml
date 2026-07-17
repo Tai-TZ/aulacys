@@ -1,0 +1,105 @@
+# Microservice split — added incrementally alongside the monolith.
+# The monolith (apps/api) keeps working; each extracted service is one block here.
+# Run: docker compose -f docker-compose.services.yml up --build
+#
+# Phase 1: policy-svc (done). Phases 2-6 (audit, tool/external, gateway, agents,
+# orchestrator wiring) get added as blocks below. See docs/ARCHITECTURE-services.md.
+
+services:
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      MONOLITH_URL: http://host.docker.internal:8000
+      POLICY_SVC_URL: http://policy-svc:8100
+      AUDIT_SVC_URL: http://audit-svc:8200
+      CIC_SVC_URL: http://cic-svc:8300
+      LOS_SVC_URL: http://los-svc:8310
+      AML_SVC_URL: http://aml-svc:8320
+      PROPERTY_SVC_URL: http://property-svc:8330
+      INCOME_SVC_URL: http://income-svc:8340
+      CORS_ORIGINS: http://localhost:3000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  policy-svc:
+    build: ./services/policy-svc
+    ports:
+      - "8100:8100"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8100/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  audit-svc:
+    build: ./services/audit-svc
+    ports:
+      - "8200:8200"
+    volumes:
+      - audit-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8200/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  cic-svc:
+    build: ./services/cic-svc
+    ports:
+      - "8300:8300"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8300/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  los-svc:
+    build: ./services/los-svc
+    ports:
+      - "8310:8310"
+    volumes:
+      - los-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8310/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  aml-svc:
+    build: ./services/aml-svc
+    ports:
+      - "8320:8320"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8320/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  property-svc:
+    build: ./services/property-svc
+    ports:
+      - "8330:8330"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8330/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  income-svc:
+    build: ./services/income-svc
+    ports:
+      - "8340:8340"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8340/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  audit-data:
+  los-data:
