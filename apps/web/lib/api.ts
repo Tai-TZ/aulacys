@@ -4,6 +4,7 @@
 // If the backend schema changes, update these to match (see AGENTS.md §1 "One contract").
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:8080";
 
 export interface ChatRequest {
   message: string;
@@ -49,6 +50,30 @@ export interface AssessResponse {
   compliance: ComplianceVerdict | null;
   trace: NodeTrace[];
   ticket: Record<string, unknown> | null;
+  audit: Record<string, unknown> | null; // { record_id, seq, content_hash, prev_hash, decided_at } when AUDIT_SVC_URL set
+}
+
+// --- Service monitor (GET api-gateway /status) ---
+
+export interface ServiceStatusItem {
+  name: string;
+  url: string;
+  status: "up" | "down";
+  latency_ms: number | null;
+  critical: boolean;
+  detail: Record<string, unknown>;
+  error: string | null;
+}
+
+export interface ServiceStatusResponse {
+  status: "ok" | "degraded";
+  checked_at: string;
+  summary: {
+    total: number;
+    up: number;
+    down: number;
+  };
+  services: ServiceStatusItem[];
 }
 
 export async function sendChat(message: string): Promise<ChatResponse> {
@@ -71,6 +96,26 @@ export async function assess(message: string): Promise<AssessResponse> {
   });
   if (!res.ok) {
     throw new Error(`API error ${res.status}`);
+  }
+  return (await res.json()) as AssessResponse;
+}
+
+export async function getServiceStatus(): Promise<ServiceStatusResponse> {
+  const res = await fetch(`${GATEWAY_URL}/status`, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Gateway status error ${res.status}`);
+  }
+  return (await res.json()) as ServiceStatusResponse;
+}
+
+export async function assessViaGateway(message: string): Promise<AssessResponse> {
+  const res = await fetch(`${GATEWAY_URL}/assess`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message } satisfies ChatRequest),
+  });
+  if (!res.ok) {
+    throw new Error(`Gateway assess error ${res.status}`);
   }
   return (await res.json()) as AssessResponse;
 }
