@@ -25,6 +25,13 @@
   --success-foreground: #147a4b;
   --active-soft: #eef0ff;
   --active-foreground: #343a8a;
+  --chat-surface: #f3f0e9;
+  --chat-canvas: #fbfaf7;
+  --chat-sidebar: #eeeae2;
+  --chat-border: #ded9cf;
+  --chat-user: #f0ebe2;
+  --chat-online: #20a464;
+  --chat-backdrop: rgba(20, 22, 48, 0.58);
   --radius: 1rem;
 }
 
@@ -52,7 +59,18 @@
   --color-success-foreground: var(--success-foreground);
   --color-active-soft: var(--active-soft);
   --color-active-foreground: var(--active-foreground);
+  --color-chat-surface: var(--chat-surface);
+  --color-chat-canvas: var(--chat-canvas);
+  --color-chat-sidebar: var(--chat-sidebar);
+  --color-chat-border: var(--chat-border);
+  --color-chat-user: var(--chat-user);
+  --color-chat-online: var(--chat-online);
+  --color-chat-backdrop: var(--chat-backdrop);
   --background-image-hero-overlay: var(--hero-overlay);
+  --shadow-chat: 0 24px 80px rgba(34, 36, 91, 0.12);
+  --shadow-composer: 0 8px 30px rgba(34, 36, 91, 0.08);
+  --shadow-brand: 0 10px 24px rgba(243, 112, 33, 0.24);
+  --shadow-chat-launcher: 0 16px 36px rgba(34, 36, 91, 0.24);
   --radius-lg: var(--radius);
   --font-sans: Arial, "Helvetica Neue", sans-serif;
 }
