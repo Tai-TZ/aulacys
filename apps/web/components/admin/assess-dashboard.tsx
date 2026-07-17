@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Activity,
   ArrowRight,
@@ -17,6 +18,7 @@ import {
   type AssessResponse,
   type DocumentInput,
 } from "@/lib/api";
+import { enqueueAssessResult } from "@/lib/hitl-queue";
 import { cn } from "@/lib/cn";
 
 const MORTGAGE_DEMO: AssessApplicationRequest = {
@@ -45,6 +47,24 @@ const MORTGAGE_DEMO: AssessApplicationRequest = {
   ],
 };
 
+const UNSECURED_DEMO: AssessApplicationRequest = {
+  product: "retail_unsecured_salary",
+  declared: {
+    customer_name: "Nguyen Van A",
+    amount: 250_000_000,
+    term_months: 36,
+    annual_rate: 0.13,
+    monthly_income: 35_000_000,
+    existing_monthly_debt: 3_000_000,
+    declared_purpose: "tiêu dùng cá nhân",
+  },
+  documents: [
+    { kind: "cccd", tier: 1, extracted: { verified: true } },
+    { kind: "sao_ke_luong", tier: 1, extracted: { monthly_income: 35_000_000 } },
+    { kind: "cic", tier: 1, extracted: { score_band: "A" } },
+  ],
+};
+
 function laneLabel(lane: number): string {
   if (lane === 1) return "Lane 1 · STP / rule-only";
   if (lane === 2) return "Lane 2 · Cheap model";
@@ -65,19 +85,22 @@ function StatusBadge({ tone, children }: { tone: string; children: React.ReactNo
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5 text-sm">
       <span className="font-medium text-navy">{label}</span>
       {children}
     </label>
   );
+}
+
+function rememberResult(result: AssessResponse, form: AssessApplicationRequest) {
+  enqueueAssessResult(result, {
+    customer_name: form.declared.customer_name,
+    product: form.product,
+    amount: form.declared.amount,
+    application_id: "retail-demo",
+  });
 }
 
 export function AssessDashboard() {
@@ -122,9 +145,15 @@ export function AssessDashboard() {
             : doc,
         ),
       };
-      setResult(await assessApplication(body));
-    } catch {
-      setError("Không gọi được API. Kiểm tra backend :8000 hoặc dùng seed demo.");
+      const next = await assessApplication(body);
+      setResult(next);
+      rememberResult(next, body);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Không gọi được API. Kiểm tra backend :8000 (NEXT_PUBLIC_API_URL).",
+      );
     } finally {
       setLoading(false);
     }
@@ -134,9 +163,11 @@ export function AssessDashboard() {
     setLoading(true);
     setError(null);
     try {
-      setResult(await assess("retail mortgage"));
-    } catch {
-      setError("Không gọi được API seed. Kiểm tra backend :8000.");
+      const next = await assess("retail mortgage");
+      setResult(next);
+      rememberResult(next, MORTGAGE_DEMO);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không gọi được API seed.");
     } finally {
       setLoading(false);
     }
@@ -145,6 +176,7 @@ export function AssessDashboard() {
   const run = result?.run_trace;
   const compliance = result?.compliance;
   const veto = Boolean(compliance?.veto);
+  const unverified = (compliance?.violations ?? []).filter((v) => v.unverified);
   const stats = [
     {
       label: "Lane",
@@ -181,9 +213,7 @@ export function AssessDashboard() {
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-active-soft text-brand">
                 <Icon size={20} />
               </span>
-              <span className="max-w-[9rem] truncate text-right text-xs text-muted-foreground">
-                {change}
-              </span>
+              <span className="max-w-[9rem] truncate text-right text-xs text-muted-foreground">{change}</span>
             </div>
             <p className="mt-5 text-2xl font-semibold text-navy">{value}</p>
             <p className="mt-1 text-sm text-muted-foreground">{label}</p>
@@ -198,11 +228,35 @@ export function AssessDashboard() {
             <p className="font-semibold text-warning-foreground">
               Hard limit: {(compliance?.rule_ids ?? []).join(", ") || "unknown rule"}
             </p>
+            {unverified.length > 0 && <StatusBadge tone="pending">unverified</StatusBadge>}
           </div>
           <p className="mt-2 text-sm text-warning-foreground/90">
-            Planner đã replan {run?.replan_count ?? 0} lần. Timeline bên dưới lặp node{" "}
-            <code className="rounded bg-card px-1">compliance</code> — đó là money shot của demo.
+            Planner đã replan {run?.replan_count ?? 0} lần. Timeline lặp node{" "}
+            <code className="rounded bg-card px-1">compliance</code> — money shot.
           </p>
+          {unverified.length > 0 && (
+            <ul className="mt-3 space-y-1 text-sm text-warning-foreground">
+              {unverified.map((v) => (
+                <li key={v.rule_id}>
+                  <strong>{v.rule_id}</strong> · v{v.version ?? "?"} — ngưỡng chưa verify, không trích dẫn ra ngoài.
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
+
+      {result && (
+        <Card className="flex flex-wrap items-center justify-between gap-3 border-0 bg-active-soft p-4 shadow-sm">
+          <p className="text-sm text-active-foreground">
+            Hồ sơ đã vào hàng đợi HITL. Tiếp theo: người phê duyệt ghi ticket.
+          </p>
+          <Link
+            href="/admin/approvals"
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-on-primary hover:opacity-90"
+          >
+            Mở Người phê duyệt <ArrowRight size={16} />
+          </Link>
         </Card>
       )}
 
@@ -212,7 +266,8 @@ export function AssessDashboard() {
             <div>
               <h2 className="font-semibold text-navy">Hồ sơ vay bán lẻ</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Gửi JSON thật qua <code className="text-xs">POST /assess/application</code> — không seed.
+                <code className="text-xs">POST /assess/application</code> — API{" "}
+                <code className="text-xs">{process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}</code>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -225,7 +280,18 @@ export function AssessDashboard() {
                   setTier3Confirmed(false);
                 }}
               >
-                Nạp mortgage demo
+                Nạp mortgage (veto)
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setForm(UNSECURED_DEMO);
+                  setTier3Confirmed(false);
+                }}
+              >
+                Nạp tín chấp (HITL)
               </Button>
               <Button type="button" variant="outline" size="sm" disabled={loading} onClick={runSeedDemo}>
                 Seed /assess
@@ -347,7 +413,9 @@ export function AssessDashboard() {
               </label>
             </div>
 
-            {error && <p className="text-sm text-warning-foreground">{error}</p>}
+            {error && (
+              <p className="rounded-lg bg-warning-soft p-3 text-sm text-warning-foreground">{error}</p>
+            )}
 
             <Button type="submit" disabled={loading} className="w-full sm:w-auto">
               {loading ? "Đang chạy graph…" : "Chạy thẩm định"}
@@ -364,7 +432,9 @@ export function AssessDashboard() {
                 {result ? `${result.trace.length} bước` : "Chưa có trace"}
               </p>
             </div>
-            {run && <StatusBadge tone={run.veto_fired ? "warning" : "success"}>lane {run.lane}</StatusBadge>}
+            {run && (
+              <StatusBadge tone={run.veto_fired ? "warning" : "success"}>lane {run.lane}</StatusBadge>
+            )}
           </div>
           <div className="mt-6 max-h-[28rem] space-y-4 overflow-y-auto">
             {(result?.trace ?? []).length === 0 && (

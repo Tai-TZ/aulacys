@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -49,6 +49,25 @@ class AssessResponse(BaseModel):
     trace: list[NodeTrace] = Field(default_factory=list)
     ticket: dict[str, Any] | None = None
     audit: dict[str, Any] | None = None
+
+
+class ApprovalRequest(BaseModel):
+    """Human decision after graph outcome (HITL tail of the wow flow)."""
+
+    application_id: str = Field(..., min_length=1, max_length=128)
+    decision: Literal["approved", "rejected"]
+    signed_by: str = Field(default="approver-demo", min_length=1, max_length=128)
+    note: str = Field(default="", max_length=2000)
+    prior_outcome: str = Field(default="", max_length=128)
+    prior_ticket_id: str | None = Field(default=None, max_length=128)
+
+
+class ApprovalResponse(BaseModel):
+    decision: str
+    signed_by: str
+    note: str = ""
+    prior_outcome: str = ""
+    ticket: dict[str, Any]
 
 
 class ServiceStatusItem(BaseModel):
