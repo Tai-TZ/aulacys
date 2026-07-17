@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -21,6 +22,7 @@ MEMBERS = {
     "nguyen-minh-anh",
     "vu-huyen-dieu",
 }
+TOOLS = {"cursor", "claude", "codex", "antigravity"}
 USER_QUERY = re.compile(r"<user_query>\s*(.*?)\s*</user_query>", re.DOTALL)
 
 
@@ -49,6 +51,15 @@ def configured_member(root: Path) -> str:
     if not member and config.is_file():
         member = config.read_text(encoding="utf-8").strip()
     return member if member in MEMBERS else ""
+
+
+def configured_tools(root: Path) -> set[str]:
+    raw = os.environ.get("AI_LOG_TOOLS", "").strip()
+    config = root / ".git" / "ai-log-tools"
+    if not raw and config.is_file():
+        raw = config.read_text(encoding="utf-8").strip()
+    selected = {item.strip().lower() for item in raw.split(",") if item.strip()}
+    return selected & TOOLS
 
 
 def repo_name(root: Path) -> str:
@@ -138,9 +149,36 @@ def normalize(
     }
 
 
+def copy_raw_transcript(
+    root: Path,
+    member: str,
+    tool: str,
+    data: dict[str, Any],
+) -> str:
+    """Refresh a raw desktop transcript when the hook exposes its path."""
+    source_raw = str(data.get("transcript_path") or "").strip()
+    if tool == "cursor":
+        source_raw = os.environ.get("CURSOR_TRANSCRIPT_PATH", "").strip() or source_raw
+    if not source_raw:
+        return ""
+
+    source = Path(source_raw)
+    if not source.is_file():
+        return ""
+
+    session_id = source.stem
+    destination = root / "ai-logs" / member / tool / "sessions" / f"{session_id}.jsonl"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        shutil.copy2(source, destination)
+    except OSError:
+        return ""
+    return str(destination.relative_to(root))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--tool", required=True, choices=("cursor", "codex", "claude"))
+    parser.add_argument("--tool", required=True, choices=sorted(TOOLS))
     parser.add_argument("--event", default="")
     args = parser.parse_args()
 
@@ -154,13 +192,23 @@ def main() -> int:
         print('{"status":"skipped","reason":"AI log member is not configured"}')
         return 0
 
-    entry = normalize(read_payload(), tool=args.tool, event_override=args.event, root=root)
+    if args.tool not in configured_tools(root):
+        print('{"status":"skipped","reason":"tool is not enabled for this member"}')
+        return 0
+
+    payload = read_payload()
+    entry = normalize(payload, tool=args.tool, event_override=args.event, root=root)
+    if not entry["event"] and not entry["session_id"] and not entry["prompt"]:
+        print('{"status":"skipped","reason":"empty hook payload"}')
+        return 0
+
     output_dir = root / "ai-logs" / member / args.tool
     output_dir.mkdir(parents=True, exist_ok=True)
     with (output_dir / "ai-log.jsonl").open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
-    print(json.dumps({"status": "logged", "tool": args.tool}))
+    session_file = copy_raw_transcript(root, member, args.tool, payload)
+    print(json.dumps({"status": "logged", "tool": args.tool, "session_file": session_file}))
     return 0
 
 
