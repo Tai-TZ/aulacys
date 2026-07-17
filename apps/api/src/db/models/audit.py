@@ -39,9 +39,7 @@ class AuditRecord(Base):
     content_hash: Mapped[str] = mapped_column(String)
     prev_hash: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    violations: Mapped[list[AuditViolation]] = relationship(
-        back_populates="record", cascade="all, delete-orphan"
-    )
+    violations: Mapped[list[AuditViolation]] = relationship(back_populates="record", cascade="all, delete-orphan")
 
 
 class AuditViolation(Base):

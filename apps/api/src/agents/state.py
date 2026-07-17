@@ -116,3 +116,4 @@ class AgentState(TypedDict, total=False):
     run_trace: RunTrace
     outcome: str
     ticket: dict[str, Any] | None
+    audit: dict[str, Any] | None

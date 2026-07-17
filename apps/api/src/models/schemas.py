@@ -25,3 +25,29 @@ class AssessResponse(BaseModel):
     compliance: ComplianceVerdict | None = None
     trace: list[NodeTrace] = Field(default_factory=list)
     ticket: dict[str, Any] | None = None
+    audit: dict[str, Any] | None = None
+
+
+class ServiceStatusItem(BaseModel):
+    name: str
+    url: str
+    status: str = Field(..., description="up | down")
+    latency_ms: int | None = None
+    critical: bool = False
+    detail: dict[str, Any] = Field(default_factory=dict)
+    error: str | None = None
+
+
+class ServiceStatusSummary(BaseModel):
+    total: int
+    up: int
+    down: int
+
+
+class ServiceStatusResponse(BaseModel):
+    """Gateway service monitor result."""
+
+    status: str = Field(..., description="ok | degraded")
+    checked_at: str
+    summary: ServiceStatusSummary
+    services: list[ServiceStatusItem]

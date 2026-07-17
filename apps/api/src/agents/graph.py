@@ -6,6 +6,7 @@ from typing import Any
 import yaml
 from langgraph.graph import END, StateGraph
 
+from src.agents.audit_client import post_audit
 from src.agents.harness.runner import run
 from src.agents.nodes.compliance import ComplianceSpec
 from src.agents.nodes.credit import CreditSpec
@@ -146,8 +147,7 @@ def _summarize(state: AgentState, outcome: str, escalated: bool) -> str:
             f"Critic passed={critic_status}; ticket={ticket.get('ticket_id')}."
         )
     return (
-        f"{app.product}: no blocking veto ({outcome}). "
-        f"Critic passed={critic_status}; ticket={ticket.get('ticket_id')}."
+        f"{app.product}: no blocking veto ({outcome}). Critic passed={critic_status}; ticket={ticket.get('ticket_id')}."
     )
 
 
@@ -195,6 +195,8 @@ async def process_application(state: AgentState) -> dict[str, Any]:
         replan_count=next_state["replan_count"],
         veto_fired=veto_fired,
     )
+    # Best-effort append to audit-svc (no-op unless AUDIT_SVC_URL is set).
+    next_state["audit"] = post_audit(next_state)
     next_state["response"] = _summarize(next_state, outcome, escalated)
     return dict(next_state)
 

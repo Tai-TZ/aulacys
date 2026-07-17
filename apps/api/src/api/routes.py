@@ -31,6 +31,7 @@ async def assess(request: ChatRequest) -> AssessResponse:
         compliance=state.get("compliance"),
         trace=state.get("trace", []),
         ticket=state.get("ticket"),
+        audit=state.get("audit"),
     )
 
 
