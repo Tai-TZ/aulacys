@@ -1,61 +1,33 @@
 @import "tailwindcss";
 
-/* Dark mode by a `.dark` class on <html> (toggled in-app, NOT by the OS). */
-@custom-variant dark (&:where(.dark, .dark *));
-
-/* ============================================================
-   DESIGN TOKENS — the ONE place to change the look.
-   Components reference token classes (bg-primary, text-foreground…),
-   never raw hex. Dark mode = override the SAME tokens under .dark.
-   ============================================================ */
-
 :root {
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.22 0.02 260);
-
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 260);
-
-  --muted: oklch(0.96 0.005 260);
-  --muted-foreground: oklch(0.55 0.02 260);
-
-  --primary: oklch(0.58 0.17 262);
-  --on-primary: oklch(0.99 0 0);
-
-  --secondary: oklch(0.95 0.01 260);
-  --secondary-foreground: oklch(0.28 0.02 260);
-
-  --border: oklch(0.9 0.01 260);
-  --ring: oklch(0.58 0.17 262);
-
-  --success: oklch(0.62 0.15 150);
-  --error: oklch(0.58 0.2 25);
-  --warning: oklch(0.75 0.15 80);
-
-  --radius: 0.625rem;
+  --background: #ffffff;
+  --foreground: #171c3f;
+  --card: #ffffff;
+  --card-foreground: #171c3f;
+  --muted: #f3f3f0;
+  --muted-foreground: #6f7180;
+  --primary: #f36f21;
+  --on-primary: #ffffff;
+  --secondary: #f6f6f3;
+  --secondary-foreground: #171c3f;
+  --border: #e5e3df;
+  --ring: #f36f21;
+  --brand: #f37021;
+  --brand-soft: #ff9a58;
+  --navy: #22245b;
+  --hero-overlay: linear-gradient(90deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,.05) 62%, transparent 100%);
+  --warning-soft: #fff1e7;
+  --warning-foreground: #b54708;
+  --pending-soft: #fff7d6;
+  --pending-foreground: #8a6100;
+  --success-soft: #e8f7ef;
+  --success-foreground: #147a4b;
+  --active-soft: #eef0ff;
+  --active-foreground: #343a8a;
+  --radius: 1rem;
 }
 
-.dark {
-  --background: oklch(0.2 0.02 260);
-  --foreground: oklch(0.95 0.01 260);
-
-  --card: oklch(0.24 0.02 260);
-  --card-foreground: oklch(0.95 0.01 260);
-
-  --muted: oklch(0.28 0.02 260);
-  --muted-foreground: oklch(0.7 0.02 260);
-
-  --primary: oklch(0.68 0.16 262);
-  --on-primary: oklch(0.16 0.02 260);
-
-  --secondary: oklch(0.3 0.02 260);
-  --secondary-foreground: oklch(0.92 0.01 260);
-
-  --border: oklch(0.32 0.02 260);
-  --ring: oklch(0.68 0.16 262);
-}
-
-/* Map the runtime vars onto Tailwind color utilities (bg-*, text-*, border-*). */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -69,19 +41,28 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
-  --color-success: var(--success);
-  --color-error: var(--error);
-  --color-warning: var(--warning);
-
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-navy: var(--navy);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-pending-soft: var(--pending-soft);
+  --color-pending-foreground: var(--pending-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-success-foreground: var(--success-foreground);
+  --color-active-soft: var(--active-soft);
+  --color-active-foreground: var(--active-foreground);
+  --background-image-hero-overlay: var(--hero-overlay);
   --radius-lg: var(--radius);
+  --font-sans: Arial, "Helvetica Neue", sans-serif;
 }
 
-/* Respect reduced-motion globally. */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; }
+
+button, a { cursor: pointer; }
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
-  }
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 }
