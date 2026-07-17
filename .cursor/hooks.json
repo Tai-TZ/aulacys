@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "C:/Windows/py.exe -3 scripts/log_ai_event.py --tool=cursor --event=beforeSubmitPrompt",
+        "timeout": 10
+      }
+    ],
+    "stop": [
+      {
+        "command": "C:/Windows/py.exe -3 scripts/log_ai_event.py --tool=cursor --event=stop",
+        "timeout": 10
+      }
+    ]
+  }
+}
