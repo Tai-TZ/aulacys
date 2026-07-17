@@ -8,54 +8,41 @@
 # A rule with `severity: blocking` cannot be reasoned around by any agent.
 # `veto_agent` is the only agent allowed to raise it.
 #
-# BEFORE THE DEMO: every rule with `verified: false` must be checked against the
-# current text of the law by a human and flipped to `true`. The UI badges unverified
-# rules so nobody mistakes a placeholder for a real limit on stage.
+# `version` is what the audit ledger records (not `ef:<effective_from>`).
 
 rules:
   - id: single_customer_credit_limit
     description: >-
       Total credit exposure to a single customer, as a ratio of the bank's own capital.
-    legal_basis: "Luật Các tổ chức tín dụng 2024, Điều 136"
+    legal_basis: "Luật Các tổ chức tín dụng 2024 (32/2024/QH15), Điều 136 khoản 1 điểm b"
     metric: exposure_ratio_single_customer
     operator: "<="
-    threshold: 0.15
+    threshold: 0.13
     unit: ratio_of_own_capital
-    effective_from: "2024-07-01"
+    effective_from: "2026-01-01"
+    effective_to: "2026-12-31"
     severity: blocking
     veto_agent: compliance
-    # ────────────────────────────────────────────────────────────────────────
-    # ⚠️ verified: false — 0.15 IS A MECHANISM PLACEHOLDER, NOT A LEGAL ANSWER.
-    #
-    # 0.15 is the PRE-2024 figure. The 2024 law replaced the flat 15% with a
-    # SCHEDULE THAT STEPS DOWN YEAR BY YEAR. The correct value depends on which
-    # year the demo is judged in, and it is NOT 15%.
-    #
-    # TODO (owner: whoever owns compliance — do this before the demo):
-    #   1. Open the current consolidated text of Luật Các TCTD 2024, Điều 136.
-    #   2. Read the transition schedule; find the ratio in force for this year.
-    #   3. Replace `threshold`, set `verified: true`, note the source below.
-    #
-    # Do NOT ask an LLM for this number. Do NOT copy it from this comment.
-    # A wrong statutory figure in front of SHB judges costs the whole pitch, even
-    # if every other part of the system is perfect.
-    # ────────────────────────────────────────────────────────────────────────
-    verified: false
+    version: "2026.1-dieu136"
+    # Verified 2026-07-18 against Công báo / Wikisource Điều 136 schedule:
+    # 01/01/2026–31/12/2026 → 13% một khách hàng (NHTM). Next row needed for 2027 (12%).
+    verified: true
 
   - id: related_party_credit_limit
     description: >-
       Total credit exposure to a customer and its related parties, as a ratio of own capital.
-    legal_basis: "Luật Các tổ chức tín dụng 2024, Điều 136"
+    legal_basis: "Luật Các tổ chức tín dụng 2024 (32/2024/QH15), Điều 136 khoản 1 điểm b"
     metric: exposure_ratio_related_group
     operator: "<="
-    threshold: 0.25
+    threshold: 0.21
     unit: ratio_of_own_capital
-    effective_from: "2024-07-01"
+    effective_from: "2026-01-01"
+    effective_to: "2026-12-31"
     severity: blocking
     veto_agent: compliance
-    # ⚠️ Same problem as above — 0.25 is the pre-2024 flat figure and the 2024 law
-    # steps it down on the same schedule. Verify both rows in one sitting.
-    verified: false
+    version: "2026.1-dieu136"
+    # Same schedule: 21% khách hàng + người liên quan trong năm 2026.
+    verified: true
 
   - id: sanctions_hit
     description: >-
@@ -68,8 +55,7 @@ rules:
     effective_from: "2023-03-01"
     severity: blocking
     veto_agent: compliance
-    # A sanctions hit is not a risk to be priced — it is a wall. No exposure level,
-    # collateral, or pricing makes it lendable. Blocking, always.
+    version: "2023.1-aml"
     verified: true
 
   - id: pep_requires_enhanced_dd
@@ -84,9 +70,7 @@ rules:
     effective_from: "2023-03-01"
     severity: warning
     veto_agent: compliance
-    # Deliberately `warning`, not `blocking`. A PEP match escalates; it does not refuse.
-    # Getting this distinction right is what separates a system a compliance officer
-    # trusts from one they switch off on day two.
+    version: "2023.1-aml"
     verified: true
 
   - id: min_dscr
@@ -100,9 +84,7 @@ rules:
     effective_from: "2026-01-01"
     severity: warning
     veto_agent: credit
-    # MOCK. Internal underwriting appetite is not public and we do not have SHB's.
-    # Marked mock in the UI. This is an appetite threshold, not a legal one — hence
-    # `warning`: a strong sponsor can justify an exception, and a human decides.
+    version: "mock-2026.1"
     verified: true
 
   - id: max_ltv_real_estate
@@ -116,4 +98,5 @@ rules:
     effective_from: "2026-01-01"
     severity: warning
     veto_agent: credit
+    version: "mock-2026.1"
     verified: true

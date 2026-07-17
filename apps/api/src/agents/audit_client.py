@@ -34,15 +34,14 @@ def post_audit(state: AgentState) -> dict[str, Any] | None:
             violations.append(
                 {
                     "rule_id": v.rule_id,
-                    # PolicyViolation has no explicit version yet; stand in with the
-                    # effective date until loader.py adds a real `version` (TODO).
-                    "rule_version": f"ef:{v.effective_from}",
+                    "rule_version": v.version or f"ef:{v.effective_from}",
                     "effective_from": v.effective_from,
                     "legal_basis": v.legal_basis,
                     "metric_name": v.metric,
                     "metric_value": float(v.actual),
                     "threshold": float(v.threshold),
                     "is_blocking": v.is_blocking,
+                    "unverified": v.unverified,
                 }
             )
     payload = {
