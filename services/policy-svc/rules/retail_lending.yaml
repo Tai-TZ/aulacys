@@ -1,13 +1,11 @@
-# Retail lending demo policy — copy owned by policy-svc.
-# Keep in sync with apps/api/src/policy/rules/retail_lending.yaml until the
-# monolith calls this service as the single source.
+# Retail lending demo policy — keep in sync with apps/api/src/policy/rules/retail_lending.yaml.
 
 rules:
   - id: prohibited_purpose_refinance_other_bank
     description: >-
       Loan purpose evidence indicates repayment/refinancing of a loan at another
-      credit institution, which is a prohibited capital need in the demo scenario.
-    legal_basis: "Retail lending prohibited-purpose policy (DEMO - verify legal article before pitch)"
+      credit institution, which is a protected demo hard-limit (policy-as-code veto).
+    legal_basis: "Retail lending prohibited-purpose policy (DEMO — badge unverified until legal article cited)"
     metric: prohibited_purpose_refinance_other_bank
     operator: "=="
     threshold: 0
@@ -15,6 +13,7 @@ rules:
     effective_from: "2024-07-01"
     severity: blocking
     veto_agent: compliance
+    version: "demo-1.0"
     verified: false
 
   - id: max_retail_dti
@@ -28,4 +27,5 @@ rules:
     effective_from: "2026-01-01"
     severity: warning
     veto_agent: credit
+    version: "mock-2026.1"
     verified: true

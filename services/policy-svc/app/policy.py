@@ -47,6 +47,7 @@ class PolicyRule(BaseModel):
     effective_to: str | None = None
     severity: Severity
     veto_agent: str
+    version: str = ""
     verified: bool = Field(default=False)
 
     def check(self, actual: float) -> bool:
@@ -66,6 +67,7 @@ class PolicyViolation(BaseModel):
     raised_by: str
     effective_from: str
     effective_to: str | None = None
+    version: str = ""
     unverified: bool = False
 
     @property
@@ -127,6 +129,7 @@ def evaluate(metrics: dict[str, float], as_of: date | None = None) -> list[Polic
                 raised_by=rule.veto_agent,
                 effective_from=rule.effective_from,
                 effective_to=rule.effective_to,
+                version=rule.version,
                 unverified=not rule.verified,
             )
         )

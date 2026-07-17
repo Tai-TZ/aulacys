@@ -31,19 +31,22 @@ class TestLoadRules:
         for rule in load_rules():
             assert rule.legal_basis.strip()
 
-    def test_the_statutory_limits_are_still_flagged_unverified(self):
-        """Guards the biggest own-goal available to us: shipping the pre-2024 figure.
+    def test_dieu136_2026_thresholds_are_verified(self):
+        """2026 schedule from Luật 32/2024/QH15 Điều 136 khoản 1 điểm b: 13% / 21%."""
+        by_id = {r.id: r for r in load_rules()}
+        single = by_id["single_customer_credit_limit"]
+        related = by_id["related_party_credit_limit"]
+        assert single.verified is True
+        assert related.verified is True
+        assert single.threshold == 0.13
+        assert related.threshold == 0.21
+        assert single.version == "2026.1-dieu136"
+        assert related.version == "2026.1-dieu136"
 
-        This test is SUPPOSED to fail once a human verifies the thresholds against
-        Luật Các TCTD 2024 Điều 136 and flips `verified: true`. When it fails, delete it
-        — that failure is the good news. Until then it keeps the placeholder visible.
-        """
+    def test_demo_prohibited_purpose_stays_unverified_until_article_cited(self):
         unverified = {r.id for r in unverified_rules()}
-        assert "single_customer_credit_limit" in unverified, (
-            "If someone flipped this to verified: confirm the threshold really came from "
-            "the current law's step-down schedule and not from an LLM's memory, then "
-            "delete this test."
-        )
+        assert "prohibited_purpose_refinance_other_bank" in unverified
+        assert "single_customer_credit_limit" not in unverified
 
 
 class TestEvaluate:
@@ -52,7 +55,7 @@ class TestEvaluate:
         assert violations == []
 
     def test_exposure_over_limit_is_blocking(self):
-        # THE demo moment: 17.5% of own capital against a 15% ceiling → Compliance vetoes.
+        # THE demo moment (corporate path): over 2026 13% ceiling → Compliance vetoes.
         violations = evaluate({"exposure_ratio_single_customer": 0.175})
         assert len(violations) == 1
         v = violations[0]
@@ -60,11 +63,15 @@ class TestEvaluate:
         assert v.is_blocking
         assert v.raised_by == "compliance"
         assert v.actual == 0.175
+        assert v.threshold == 0.13
+        assert v.version == "2026.1-dieu136"
+        assert v.unverified is False
 
     def test_unverified_threshold_is_marked_in_the_violation(self):
-        # A violation raised on an unchecked number must say so, all the way to the UI.
-        v = evaluate({"exposure_ratio_single_customer": 0.175})[0]
+        # Demo prohibited-purpose rule stays unverified until a real article is cited.
+        v = evaluate({"prohibited_purpose_refinance_other_bank": 1})[0]
         assert v.unverified is True
+        assert v.version == "demo-1.0"
         assert "CHƯA ĐƯỢC VERIFY" in v.to_message()
 
     def test_sanctions_hit_is_blocking(self):

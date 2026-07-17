@@ -53,6 +53,7 @@ class PolicyRule(BaseModel):
     effective_to: str | None = None
     severity: Severity
     veto_agent: str
+    version: str = Field(description="Rule revision recorded on the audit ledger (not a stand-in date).")
     verified: bool = Field(
         description="False = the figure is a placeholder a human has not checked against the law yet."
     )
@@ -75,6 +76,7 @@ class PolicyViolation(BaseModel):
     raised_by: str
     effective_from: str
     effective_to: str | None = None
+    version: str = Field(default="", description="Copied from PolicyRule.version for the audit ledger.")
     unverified: bool = Field(
         default=False,
         description="True = this fired on a threshold nobody has verified. Say so in the UI.",
@@ -167,6 +169,7 @@ def evaluate(metrics: dict[str, float], as_of: date | None = None) -> list[Polic
                 raised_by=rule.veto_agent,
                 effective_from=rule.effective_from,
                 effective_to=rule.effective_to,
+                version=rule.version,
                 unverified=not rule.verified,
             )
         )
