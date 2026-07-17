@@ -1,0 +1,461 @@
+erDiagram
+  %% ═══════════════════════════════════════════════════════
+  %% ONLINE LENDING SYSTEM — Entity Relationship Diagram
+  %% 34 entities · 7 layers · Vietnam online consumer lending
+  %% ═══════════════════════════════════════════════════════
+
+  %% ── Layer 1: Product & Configuration ───────────────────
+  LOAN_PRODUCT ||--o{ INTEREST_RATE_TIER : "has"
+  LOAN_PRODUCT ||--o{ ELIGIBILITY_RULE : "defines"
+  LOAN_PRODUCT }o--o{ LOAN_PURPOSE_CATEGORY : "allows"
+
+  %% ── Layer 2: Customer & eKYC ────────────────────────────
+  CUSTOMER ||--o{ KYC_SESSION : "undergoes"
+  CUSTOMER ||--o{ DEVICE_SESSION : "uses"
+  CUSTOMER ||--o{ BANK_ACCOUNT : "owns"
+  KYC_SESSION ||--o{ ID_DOCUMENT : "captures"
+  KYC_SESSION ||--o| LIVENESS_CHECK : "includes"
+  KYC_SESSION ||--o| FACE_MATCH_RESULT : "includes"
+
+  %% ── Layer 3: Application ────────────────────────────────
+  CUSTOMER ||--o{ LOAN_APPLICATION : "submits"
+  LOAN_APPLICATION }o--|| LOAN_PRODUCT : "for"
+  LOAN_APPLICATION }o--|| KYC_SESSION : "linked to"
+  LOAN_APPLICATION }o--o| LOAN_PURPOSE_CATEGORY : "categorised as"
+  LOAN_APPLICATION }o--|| BANK_ACCOUNT : "disburse to"
+  LOAN_APPLICATION ||--o{ APPLICATION_FORM_STEP : "tracks progress"
+  LOAN_APPLICATION ||--o| INCOME_STATEMENT : "has"
+  LOAN_APPLICATION ||--o| EMPLOYMENT_INFO : "has"
+  LOAN_APPLICATION ||--o| COLLATERAL : "secured by"
+
+  %% ── Layer 4: Credit Scoring & Decisioning ───────────────
+  LOAN_APPLICATION ||--o| CIC_INQUIRY : "triggers"
+  LOAN_APPLICATION ||--o| CREDIT_SCORE : "produces"
+  LOAN_APPLICATION ||--o| FRAUD_CHECK : "undergoes"
+  LOAN_APPLICATION ||--o| SANCTIONS_CHECK : "undergoes"
+  LOAN_APPLICATION ||--o| DECISIONING_RUN : "evaluated by"
+  DECISIONING_RUN ||--o{ DECISIONING_RULE_RESULT : "produces"
+
+  %% ── Layer 5: Contract & Disbursement ────────────────────
+  LOAN_APPLICATION ||--o| LOAN_OFFER : "generates"
+  LOAN_OFFER ||--o| LOAN_CONTRACT : "accepted into"
+  LOAN_CONTRACT ||--o{ ESIGN_EVENT : "signed via"
+  LOAN_CONTRACT ||--o| DISBURSEMENT : "triggers"
+  DISBURSEMENT }o--|| BANK_ACCOUNT : "credited to"
+
+  %% ── Layer 6: Repayment ──────────────────────────────────
+  LOAN_CONTRACT ||--o{ REPAYMENT_SCHEDULE : "amortises into"
+  LOAN_CONTRACT ||--o{ REPAYMENT_TRANSACTION : "receives payment"
+  LOAN_CONTRACT ||--o{ DEBT_CLASSIFICATION : "classified as"
+  REPAYMENT_SCHEDULE ||--o{ OVERDUE_RECORD : "may trigger"
+  REPAYMENT_TRANSACTION }o--o| REPAYMENT_SCHEDULE : "covers"
+
+  %% ── Layer 7: Communication & Audit ─────────────────────
+  CUSTOMER ||--o{ NOTIFICATION : "receives"
+  CUSTOMER ||--o{ CUSTOMER_CONSENT : "gives"
+  CUSTOMER ||--o{ SUPPORT_TICKET : "raises"
+  LOAN_APPLICATION ||--o{ AUDIT_LOG : "traced in"
+  SUPPORT_TICKET }o--o| LOAN_APPLICATION : "references"
+
+  %% ═══════════════════════════════════════════════════════
+  %% Entity definitions
+  %% ═══════════════════════════════════════════════════════
+
+  %% ── Layer 1 ─────────────────────────────────────────────
+
+  LOAN_PRODUCT {
+    uuid    id              PK
+    string  code
+    string  name
+    string  loan_type
+    numeric min_amount
+    numeric max_amount
+    int     min_term_months
+    int     max_term_months
+    boolean is_secured
+    string  channel
+    boolean is_active
+    timestamp created_at
+  }
+
+  INTEREST_RATE_TIER {
+    uuid    id              PK
+    uuid    product_id      FK
+    string  tier_code
+    numeric min_credit_score
+    numeric max_credit_score
+    string  income_band
+    numeric annual_rate_pct
+    date    effective_from
+    date    effective_until
+  }
+
+  LOAN_PURPOSE_CATEGORY {
+    string  code            PK
+    string  name_vi
+    string  name_en
+    boolean is_active
+  }
+
+  ELIGIBILITY_RULE {
+    uuid    id              PK
+    uuid    product_id      FK
+    string  rule_code
+    string  attribute
+    string  operator
+    text    threshold_value
+    boolean is_hard_block
+    string  decline_reason_code
+  }
+
+  %% ── Layer 2 ─────────────────────────────────────────────
+
+  CUSTOMER {
+    uuid      id              PK
+    string    cccd_number
+    string    phone
+    string    full_name
+    date      dob
+    string    gender
+    string    nationality
+    string    status
+    timestamp registered_at
+    timestamp updated_at
+  }
+
+  KYC_SESSION {
+    uuid      id              PK
+    uuid      customer_id     FK
+    string    provider
+    string    method
+    string    status
+    string    failure_reason
+    int       attempt_count
+    timestamp started_at
+    timestamp completed_at
+  }
+
+  ID_DOCUMENT {
+    uuid      id              PK
+    uuid      kyc_session_id  FK
+    string    doc_type
+    string    doc_number
+    string    front_image_url
+    string    back_image_url
+    date      issue_date
+    date      expiry_date
+    string    issuing_authority
+    jsonb     ocr_fields
+    boolean   is_valid
+  }
+
+  LIVENESS_CHECK {
+    uuid      id              PK
+    uuid      kyc_session_id  FK
+    float     liveness_score
+    boolean   passed
+    string    video_url
+    string    provider_ref
+    timestamp checked_at
+  }
+
+  FACE_MATCH_RESULT {
+    uuid      id              PK
+    uuid      kyc_session_id  FK
+    float     similarity_score
+    boolean   passed
+    string    provider_ref
+    timestamp checked_at
+  }
+
+  DEVICE_SESSION {
+    uuid      id              PK
+    uuid      customer_id     FK
+    string    device_fingerprint
+    string    platform
+    string    os_version
+    string    app_version
+    string    ip_address
+    string    latitude
+    string    longitude
+    timestamp created_at
+  }
+
+  %% ── Layer 3 ─────────────────────────────────────────────
+
+  LOAN_APPLICATION {
+    uuid      id              PK
+    uuid      customer_id     FK
+    uuid      product_id      FK
+    uuid      kyc_session_id  FK
+    uuid      purpose_code    FK
+    uuid      bank_account_id FK
+    numeric   requested_amount
+    int       requested_term_months
+    string    channel
+    string    status
+    timestamp submitted_at
+    timestamp updated_at
+  }
+
+  APPLICATION_FORM_STEP {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    step_name
+    int       step_order
+    string    status
+    jsonb     form_data
+    timestamp started_at
+    timestamp completed_at
+  }
+
+  INCOME_STATEMENT {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    income_type
+    numeric   monthly_income
+    string    currency
+    string    payroll_bank_code
+    string    payroll_account_number
+    string    statement_url
+    boolean   is_verified
+  }
+
+  EMPLOYMENT_INFO {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    employer_name
+    string    employer_tax_id
+    string    contract_type
+    date      employment_start_date
+    string    position
+    string    industry_code
+  }
+
+  COLLATERAL {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    collateral_type
+    string    savings_account_id
+    numeric   pledged_amount
+    date      maturity_date
+    string    holding_bank_code
+    boolean   is_released
+  }
+
+  BANK_ACCOUNT {
+    uuid      id              PK
+    uuid      customer_id     FK
+    string    bank_code
+    string    account_number
+    string    account_name
+    boolean   is_verified
+    boolean   is_active
+    timestamp verified_at
+  }
+
+  %% ── Layer 4 ─────────────────────────────────────────────
+
+  CIC_INQUIRY {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    inquiry_ref
+    int       cic_group
+    int       total_outstanding_vnd
+    int       num_active_loans
+    boolean   has_bad_debt
+    jsonb     response_raw
+    timestamp queried_at
+  }
+
+  CREDIT_SCORE {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    scorecard_version
+    numeric   score
+    string    grade
+    numeric   max_eligible_amount
+    float     dti_ratio
+    timestamp scored_at
+  }
+
+  DECISIONING_RUN {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    engine_version
+    string    decision
+    string    decline_reason_code
+    text      decline_reason_detail
+    timestamp decided_at
+  }
+
+  DECISIONING_RULE_RESULT {
+    uuid      id              PK
+    uuid      decisioning_run_id FK
+    string    rule_code
+    string    attribute
+    text      evaluated_value
+    text      threshold_value
+    boolean   passed
+    boolean   is_hard_block
+  }
+
+  FRAUD_CHECK {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    provider
+    string    result
+    float     risk_score
+    jsonb     flags
+    timestamp checked_at
+  }
+
+  SANCTIONS_CHECK {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    provider
+    string    result
+    boolean   is_hit
+    text      hit_detail
+    timestamp checked_at
+  }
+
+  %% ── Layer 5 ─────────────────────────────────────────────
+
+  LOAN_OFFER {
+    uuid      id              PK
+    uuid      application_id  FK
+    numeric   approved_amount
+    int       approved_term_months
+    numeric   annual_rate_pct
+    numeric   monthly_instalment
+    numeric   processing_fee
+    numeric   insurance_fee
+    timestamp valid_until
+    boolean   accepted
+    timestamp accepted_at
+  }
+
+  LOAN_CONTRACT {
+    uuid      id              PK
+    uuid      offer_id        FK
+    string    contract_number
+    string    status
+    string    pdf_url
+    date      effective_date
+    date      maturity_date
+    timestamp signed_at
+  }
+
+  ESIGN_EVENT {
+    uuid      id              PK
+    uuid      contract_id     FK
+    string    method
+    string    otp_ref
+    timestamp otp_sent_at
+    timestamp confirmed_at
+    boolean   success
+    string    failure_reason
+  }
+
+  DISBURSEMENT {
+    uuid      id              PK
+    uuid      contract_id     FK
+    uuid      bank_account_id FK
+    numeric   amount
+    string    transfer_ref
+    string    status
+    timestamp initiated_at
+    timestamp disbursed_at
+  }
+
+  %% ── Layer 6 ─────────────────────────────────────────────
+
+  REPAYMENT_SCHEDULE {
+    uuid      id              PK
+    uuid      contract_id     FK
+    int       instalment_no
+    date      due_date
+    numeric   principal
+    numeric   interest
+    numeric   total_due
+    numeric   balance_after
+    string    status
+  }
+
+  REPAYMENT_TRANSACTION {
+    uuid      id              PK
+    uuid      contract_id     FK
+    uuid      schedule_id     FK
+    numeric   amount_paid
+    string    channel
+    string    transaction_ref
+    string    status
+    timestamp paid_at
+  }
+
+  OVERDUE_RECORD {
+    uuid      id              PK
+    uuid      schedule_id     FK
+    int       dpd
+    numeric   penalty_fee_accrued
+    boolean   resolved
+    timestamp resolved_at
+  }
+
+  DEBT_CLASSIFICATION {
+    uuid      id              PK
+    uuid      contract_id     FK
+    int       cic_group
+    string    classification
+    date      effective_date
+    boolean   reported_to_cic
+    timestamp reported_at
+  }
+
+  %% ── Layer 7 ─────────────────────────────────────────────
+
+  NOTIFICATION {
+    uuid      id              PK
+    uuid      customer_id     FK
+    uuid      application_id  FK
+    string    event_type
+    string    channel
+    string    template_code
+    text      content
+    string    status
+    timestamp sent_at
+    timestamp read_at
+  }
+
+  CUSTOMER_CONSENT {
+    uuid      id              PK
+    uuid      customer_id     FK
+    string    consent_type
+    boolean   granted
+    string    granted_via
+    timestamp granted_at
+    timestamp revoked_at
+  }
+
+  AUDIT_LOG {
+    uuid      id              PK
+    uuid      application_id  FK
+    string    event_type
+    string    actor
+    jsonb     payload
+    timestamp occurred_at
+    boolean   immutable
+  }
+
+  SUPPORT_TICKET {
+    uuid      id              PK
+    uuid      customer_id     FK
+    uuid      application_id  FK
+    string    category
+    text      description
+    string    status
+    string    resolution
+    timestamp opened_at
+    timestamp resolved_at
+  }
