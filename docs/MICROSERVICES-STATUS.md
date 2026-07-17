@@ -6,11 +6,11 @@
 
 ## TL;DR
 
-The monolith (`apps/api`) still runs the whole flow. **6 seams plus one gateway are extracted into
-real services** (api-gateway, policy, audit, cic, los, aml, property, income = 8 services + monolith = 9 processes). Each
-is called over HTTP **with an in-process fallback** — unset the env var and the
-monolith runs alone (demo-proof). Full veto flow verified across all 9. `52 tests
-green, ruff clean` (fallback mode).
+The monolith (`apps/api`) still owns the graph. **11 seams plus one gateway are extracted into
+real services** (api-gateway, policy, audit, cic, los, aml, property, income,
+credit, operations, compliance, critic = 12 services + monolith = 13 processes).
+Each network seam is called over HTTP **with an in-process fallback** — unset the
+env var and the monolith runs alone (demo-proof). Full veto flow remains protected.
 
 ## Services now
 
@@ -25,6 +25,10 @@ green, ruff clean` (fallback mode).
 | aml-svc | 8320 | sanctions/PEP seed (JSON) | `AML_SVC_URL` | ✅ wired |
 | property-svc | 8330 | parcel seed (JSON) | `PROPERTY_SVC_URL` | ✅ wired |
 | income-svc | 8340 | statement verification mock | `INCOME_SVC_URL` | ✅ wired |
+| credit-svc | 8401 | credit worker execution | `CREDIT_AGENT_URL` | ✅ wired |
+| operations-svc | 8402 | operations worker execution | `OPERATIONS_AGENT_URL` | ✅ wired |
+| compliance-svc | 8403 | compliance worker execution | `COMPLIANCE_AGENT_URL` | ✅ wired |
+| critic-svc | 8404 | critic worker execution | `CRITIC_AGENT_URL` | ✅ wired |
 
 Wiring pattern (every seam): `apps/api/.../{policy/client.py, agents/audit_client.py,
 tools/cic.py, tools/workflow.py, tools/aml.py, tools/property.py, tools/income.py}` → if env URL set, HTTP call; else in-process fallback
@@ -49,6 +53,10 @@ cd services/aml-svc    && uvicorn app.main:app --port 8320
 cd services/property-svc && uvicorn app.main:app --port 8330
 cd services/income-svc && uvicorn app.main:app --port 8340
 cd services/api-gateway && uvicorn app.main:app --port 8080
+cd services/agent-worker-svc && $env:AGENT_NAME="credit"; python -m uvicorn app.main:app --port 8401
+cd services/agent-worker-svc && $env:AGENT_NAME="operations"; python -m uvicorn app.main:app --port 8402
+cd services/agent-worker-svc && $env:AGENT_NAME="compliance"; python -m uvicorn app.main:app --port 8403
+cd services/agent-worker-svc && $env:AGENT_NAME="critic"; python -m uvicorn app.main:app --port 8404
 ```
 **Monolith wired to all services (PowerShell):**
 ```powershell
@@ -59,6 +67,10 @@ $env:LOS_SVC_URL   ="http://127.0.0.1:8310"
 $env:AML_SVC_URL   ="http://127.0.0.1:8320"
 $env:PROPERTY_SVC_URL="http://127.0.0.1:8330"
 $env:INCOME_SVC_URL="http://127.0.0.1:8340"
+$env:CREDIT_AGENT_URL="http://127.0.0.1:8401"
+$env:OPERATIONS_AGENT_URL="http://127.0.0.1:8402"
+$env:COMPLIANCE_AGENT_URL="http://127.0.0.1:8403"
+$env:CRITIC_AGENT_URL="http://127.0.0.1:8404"
 cd apps/api; python -m uvicorn src.main:app --port 8000
 ```
 **Gateway env (PowerShell):**
@@ -71,12 +83,16 @@ $env:LOS_SVC_URL   ="http://127.0.0.1:8310"
 $env:AML_SVC_URL   ="http://127.0.0.1:8320"
 $env:PROPERTY_SVC_URL="http://127.0.0.1:8330"
 $env:INCOME_SVC_URL="http://127.0.0.1:8340"
+$env:CREDIT_AGENT_URL="http://127.0.0.1:8401"
+$env:OPERATIONS_AGENT_URL="http://127.0.0.1:8402"
+$env:COMPLIANCE_AGENT_URL="http://127.0.0.1:8403"
+$env:CRITIC_AGENT_URL="http://127.0.0.1:8404"
 cd services/api-gateway; python -m uvicorn app.main:app --port 8080
 ```
 **Smoke test:**
 ```bash
 curl -s localhost:8080/assess -H "content-type: application/json" -d "{\"message\":\"retail mortgage\"}"
-# outcome=vetoed, ticket.source=los-svc, audit.seq=N
+# outcome=vetoed, ticket.source=los-svc, audit.seq=N, trace model=http-worker:* when agent workers are enabled
 curl -s localhost:8080/status        # service board
 curl -s localhost:8200/verify        # {"intact": true, ...}
 curl -s localhost:8310/tickets/retail-demo
@@ -103,16 +119,20 @@ env-gated HTTP call in the tool (same shape as `tools/cic.py`).
   This is the "service monitor" — the cheap answer instead of Prometheus/Jaeger.
 - [x] Dashboard tile in `apps/web` reading `/status` + the `/assess` `trace[]`.
 
-### Phase 5 — agent workers over network (⚠️ HIGH RISK — decide first)
-- [ ] `credit-svc`, `operations-svc`, `compliance-svc`, `critic-svc` (8400s).
-- [ ] Orchestrator calls them over HTTP instead of `run(spec, state)`.
-> This puts the **veto→replan loop across the network** — slower, more failure points,
-> can break the demo. Do NOT start before the demo is otherwise locked (`AGENTS.md`:43,
-> hour-36 stop). Keep the in-process worker as fallback.
+### Phase 5 — agent workers over network
+- [x] `credit-svc`, `operations-svc`, `compliance-svc`, `critic-svc` (8401-8404).
+- [x] Orchestrator calls them over HTTP instead of `run(spec, state)` when the
+  matching `*_AGENT_URL` env var is set.
+- [x] Every worker call keeps the in-process harness as fallback. If a worker is
+  down or returns a bad shape, the graph still runs locally and the demo survives.
 
 ### Phase 6 — full distributed orchestrator
-- [ ] Orchestrator becomes pure coordination; every node is a service call with
-  request_id propagation for distributed tracing.
+- [x] Orchestrator is coordination-first for specialist nodes: planner remains
+  in-process, while credit/operations/compliance/critic can run as network workers.
+- [x] `request_id` is created in graph metadata, sent as `X-Request-ID`, and echoed
+  by workers for distributed tracing.
+- [ ] Planner as its own service is intentionally deferred; moving it out adds risk
+  without improving the veto/replan demo.
 
 ## Known gaps (unrelated to the split)
 - [ ] Frontend dashboard rendering `/assess` (lane badge, veto banner, replan counter, node timeline).

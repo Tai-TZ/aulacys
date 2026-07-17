@@ -19,6 +19,10 @@ services:
       AML_SVC_URL: http://aml-svc:8320
       PROPERTY_SVC_URL: http://property-svc:8330
       INCOME_SVC_URL: http://income-svc:8340
+      CREDIT_AGENT_URL: http://credit-svc:8400
+      OPERATIONS_AGENT_URL: http://operations-svc:8400
+      COMPLIANCE_AGENT_URL: http://compliance-svc:8400
+      CRITIC_AGENT_URL: http://critic-svc:8400
       CORS_ORIGINS: http://localhost:3000
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
@@ -96,6 +100,67 @@ services:
       - "8340:8340"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8340/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  credit-svc:
+    build:
+      context: .
+      dockerfile: services/agent-worker-svc/Dockerfile
+    ports:
+      - "8401:8400"
+    environment:
+      AGENT_NAME: credit
+      CIC_SVC_URL: http://cic-svc:8300
+      INCOME_SVC_URL: http://income-svc:8340
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8400/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  operations-svc:
+    build:
+      context: .
+      dockerfile: services/agent-worker-svc/Dockerfile
+    ports:
+      - "8402:8400"
+    environment:
+      AGENT_NAME: operations
+      PROPERTY_SVC_URL: http://property-svc:8330
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8400/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  compliance-svc:
+    build:
+      context: .
+      dockerfile: services/agent-worker-svc/Dockerfile
+    ports:
+      - "8403:8400"
+    environment:
+      AGENT_NAME: compliance
+      AML_SVC_URL: http://aml-svc:8320
+      POLICY_SVC_URL: http://policy-svc:8100
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8400/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  critic-svc:
+    build:
+      context: .
+      dockerfile: services/agent-worker-svc/Dockerfile
+    ports:
+      - "8404:8400"
+    environment:
+      AGENT_NAME: critic
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8400/health')"]
       interval: 10s
       timeout: 3s
       retries: 3

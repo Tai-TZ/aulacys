@@ -5,7 +5,7 @@ This is the pickup note for the next human or agent after Phase 4.
 ## Current Baseline
 
 - Branch: `feat/services-gateway-monitor`
-- Last completed slice: Phase 4, api-gateway plus service monitor.
+- Last completed slice: Phase 6, distributed agent-worker transport.
 - Green checks from the last run:
   - `ruff check src/ tests/`
   - `ruff format --check src/ tests/`
@@ -49,7 +49,8 @@ Open:
 
 ## Priority Order
 
-Do these in order. Do not start Phase 5 until the demo is otherwise stable.
+Do these in order. Phase 5/6 now exist behind env-gated fallbacks; keep the
+default demo path stable before enabling every worker live.
 
 ### 1. Lock the demo board
 
@@ -151,21 +152,30 @@ curl.exe -s http://localhost:8080/status
 curl.exe -s http://localhost:8080/assess -H "content-type: application/json" -d "{\"message\":\"retail mortgage\"}"
 ```
 
-## Do Not Start Yet
+## Distributed Worker Notes
 
 ### Phase 5 agent workers
 
-Do not split `credit-svc`, `operations-svc`, `compliance-svc`, or `critic-svc`
-until the demo is locked.
+`credit-svc`, `operations-svc`, `compliance-svc`, and `critic-svc` now run from
+the shared `services/agent-worker-svc` image. The monolith calls them only when
+these env vars are set:
 
-Why:
+```powershell
+$env:CREDIT_AGENT_URL="http://127.0.0.1:8401"
+$env:OPERATIONS_AGENT_URL="http://127.0.0.1:8402"
+$env:COMPLIANCE_AGENT_URL="http://127.0.0.1:8403"
+$env:CRITIC_AGENT_URL="http://127.0.0.1:8404"
+```
 
-- It moves the veto/replan loop across the network.
-- It adds latency and failure points.
-- It is easy to break the highest-value demo branch.
+If any worker is unavailable or returns an invalid shape, the orchestrator falls
+back to the in-process harness. Trace entries show `model: "http-worker:*"` when
+the network path is used.
 
-If the team explicitly chooses to start Phase 5 anyway, keep the in-process worker
-fallback and add one worker at a time.
+### Phase 6 orchestrator boundary
+
+The orchestrator now coordinates worker calls and propagates `metadata.request_id`
+as `X-Request-ID`. Planner remains in-process on purpose; it owns the graph edge
+and replan loop, so moving it out should wait until after demo lock.
 
 ## Commit Discipline
 
