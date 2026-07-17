@@ -8,11 +8,23 @@ import pytest
 from src.agents.tools.loan_calculator import (
     compute_annual_debt_service,
     compute_dscr,
+    compute_dti,
     compute_exposure_ratio,
     compute_ltv,
 )
 
 BN = 1_000_000_000  # tỷ VND, for readability
+
+
+class TestComputeDti:
+    def test_known_value(self):
+        result = compute_dti.invoke({"monthly_debt": 20_000_000, "monthly_income": 50_000_000})
+        assert result["dti"] == 0.4
+        assert result["formula"] == "dti = monthly_debt / monthly_income"
+
+    def test_zero_income_errors_not_raises(self):
+        result = compute_dti.invoke({"monthly_debt": 20_000_000, "monthly_income": 0})
+        assert "error" in result
 
 
 class TestComputeDscr:

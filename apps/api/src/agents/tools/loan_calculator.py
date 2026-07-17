@@ -31,6 +31,33 @@ def _fail(msg: str) -> CalcError:
 
 
 @tool
+def compute_dti(monthly_debt: float, monthly_income: float) -> dict:
+    """Debt-to-income for a retail borrower.
+
+    DTI = monthly debt obligations / verified monthly income. The tool measures; it
+    does not decide whether the borrower is acceptable.
+
+    Args:
+        monthly_debt: Existing debt plus proposed monthly payment, VND/month.
+        monthly_income: Verified borrower income, VND/month.
+
+    Returns:
+        {dti, inputs, formula, computed_at} or {error}.
+    """
+    if monthly_debt < 0:
+        return _fail("monthly_debt must not be negative")
+    if monthly_income <= 0:
+        return _fail("monthly_income must be positive to compute DTI")
+
+    return {
+        "dti": round(monthly_debt / monthly_income, 4),
+        "inputs": {"monthly_debt": monthly_debt, "monthly_income": monthly_income},
+        "formula": "dti = monthly_debt / monthly_income",
+        "computed_at": _now(),
+    }
+
+
+@tool
 def compute_dscr(
     ebitda: float,
     existing_annual_debt_service: float,
@@ -189,8 +216,15 @@ def compute_annual_debt_service(
 #: Tools `Credit` is allowed to call. Least privilege: it measures and prices, it does
 #: not screen sanctions and it cannot write anything.
 CREDIT_TOOLS = [
+    compute_dti,
     compute_dscr,
     compute_ltv,
     compute_exposure_ratio,
+    compute_annual_debt_service,
+]
+
+RETAIL_CREDIT_TOOLS = [
+    compute_dti,
+    compute_ltv,
     compute_annual_debt_service,
 ]

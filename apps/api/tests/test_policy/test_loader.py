@@ -4,6 +4,8 @@ The test that earns its keep is `test_exposure_over_limit_is_blocking` — that 
 veto in the wow flow, asserted.
 """
 
+from datetime import date
+
 from src.policy.loader import (
     PolicyRule,
     covered_metrics,
@@ -92,6 +94,15 @@ class TestEvaluate:
     def test_reports_every_breach_not_just_the_first(self):
         violations = evaluate({"exposure_ratio_single_customer": 0.175, "dscr": 0.9, "ltv": 0.95})
         assert len(violations) == 3
+
+    def test_future_rules_do_not_fire_before_effective_date(self):
+        violations = evaluate({"dti": 0.9}, as_of=date(2025, 12, 31))
+        assert violations == []
+
+    def test_retail_prohibited_purpose_blocks(self):
+        violations = evaluate({"prohibited_purpose_refinance_other_bank": 1})
+        assert violations[0].rule_id == "prohibited_purpose_refinance_other_bank"
+        assert violations[0].is_blocking
 
 
 def test_covered_metrics_names_what_policy_can_judge():

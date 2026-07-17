@@ -1,0 +1,8 @@
+agents: [credit, compliance]
+tools: [cic_lookup, salary_verify, compute_annual_debt_service, compute_dti, aml_screen, related_party]
+policy: retail_lending.yaml
+documents:
+  required: [cccd, sao_ke_luong, cic]
+gate:
+  stp_when: all_rules_pass
+  else: hitl
