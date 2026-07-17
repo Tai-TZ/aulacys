@@ -91,7 +91,7 @@ export function LoanChatbot() {
   }
 
   return (
-    <div className={cn("fixed z-50", expanded ? "inset-0 bg-chat-backdrop p-0 sm:p-5" : "inset-0 sm:inset-auto sm:bottom-6 sm:right-6")} role="dialog" aria-modal="true" aria-label="Trợ lý khoản vay SHB">
+    <div className={cn("fixed z-50", expanded ? "inset-0 bg-chat-backdrop p-0 sm:p-5" : "bottom-0 left-0 right-0 top-0 sm:inset-auto sm:bottom-6 sm:right-6")} role="dialog" aria-modal="true" aria-label="Trợ lý khoản vay SHB">
       <div className={cn(
         "grid h-full overflow-hidden border border-chat-border bg-chat-canvas shadow-chat transition-all",
         expanded ? "mx-auto max-w-[1440px] rounded-none sm:h-[calc(100vh-2.5rem)] sm:rounded-[28px] lg:grid-cols-[260px_1fr]" : "rounded-none sm:h-[680px] sm:w-[430px] sm:rounded-[24px]",
@@ -115,14 +115,14 @@ export function LoanChatbot() {
             </div>
           </header>
 
-          <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-6">
+          <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-4 sm:px-6">
             {messages.length === 0 ? (
-              <div className={cn("mx-auto flex min-h-full max-w-3xl flex-col justify-center py-8", !expanded && "justify-start pt-10")}>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand text-on-primary shadow-brand"><Bot size={21}/></div>
-                <h2 className={cn("mt-5 font-light tracking-tight text-navy", expanded ? "text-4xl" : "text-2xl")}>Xin chào, tôi có thể giúp gì?</h2>
+              <div className={cn("mx-auto flex min-h-full max-w-3xl flex-col py-8", expanded ? "justify-center" : "justify-start pt-6 sm:pt-10")}>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-on-primary shadow-brand"><Bot size={22}/></div>
+                <h2 className={cn("mt-5 font-light tracking-tight text-navy", expanded ? "text-4xl" : "text-[22px] leading-snug sm:text-2xl")}>Xin chào, tôi có thể giúp gì?</h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">Mô tả nhu cầu vay và kế hoạch tài chính của bạn để nhận tư vấn phù hợp.</p>
                 <div className={cn("mt-6 grid gap-2.5", expanded && "sm:grid-cols-2")}>
-                  {suggestions.map(([title, prompt]) => <button key={title} onClick={() => selectSuggestion(prompt)} className="group rounded-2xl border border-chat-border bg-card p-3.5 text-left transition hover:border-brand/40 hover:shadow-sm"><span className="text-sm font-semibold text-navy">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{prompt}</span><ArrowRight className="mt-2 text-brand opacity-0 transition group-hover:opacity-100" size={15}/></button>)}
+                  {suggestions.map(([title, prompt]) => <button key={title} onClick={() => selectSuggestion(prompt)} className="group rounded-2xl border border-chat-border bg-card p-3.5 text-left transition hover:border-brand/40 hover:shadow-sm active:scale-[0.98]"><span className="text-sm font-semibold text-navy">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{prompt}</span><ArrowRight className="mt-2 text-brand opacity-0 transition group-hover:opacity-100" size={15}/></button>)}
                 </div>
               </div>
             ) : (
