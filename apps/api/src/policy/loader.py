@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import operator
 from collections.abc import Callable
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -49,6 +50,7 @@ class PolicyRule(BaseModel):
     threshold: float
     unit: str
     effective_from: str
+    effective_to: str | None = None
     severity: Severity
     veto_agent: str
     verified: bool = Field(
@@ -71,6 +73,8 @@ class PolicyViolation(BaseModel):
     unit: str
     severity: Severity
     raised_by: str
+    effective_from: str
+    effective_to: str | None = None
     unverified: bool = Field(
         default=False,
         description="True = this fired on a threshold nobody has verified. Say so in the UI.",
@@ -127,16 +131,23 @@ def load_rules() -> tuple[PolicyRule, ...]:
     return tuple(rules)
 
 
-def evaluate(metrics: dict[str, float]) -> list[PolicyViolation]:
+def evaluate(metrics: dict[str, float], as_of: date | None = None) -> list[PolicyViolation]:
     """Check metrics against every rule whose metric is present.
 
     A metric that is absent is skipped, not assumed compliant — the caller decides
     whether a missing input is itself a problem. Silence here means "not measured",
     never "passed".
     """
+    active_on = as_of or date.today()
     violations: list[PolicyViolation] = []
 
     for rule in load_rules():
+        effective_from = date.fromisoformat(rule.effective_from)
+        effective_to = date.fromisoformat(rule.effective_to) if rule.effective_to else None
+        if effective_from > active_on:
+            continue
+        if effective_to is not None and effective_to < active_on:
+            continue
         if rule.metric not in metrics:
             continue
         actual = float(metrics[rule.metric])
@@ -154,6 +165,8 @@ def evaluate(metrics: dict[str, float]) -> list[PolicyViolation]:
                 unit=rule.unit,
                 severity=rule.severity,
                 raised_by=rule.veto_agent,
+                effective_from=rule.effective_from,
+                effective_to=rule.effective_to,
                 unverified=not rule.verified,
             )
         )

@@ -17,7 +17,7 @@ from src.config import get_settings
 from src.db.base import Base
 
 # Import model modules here so Base.metadata is fully populated for autogenerate:
-# from src.db import models  # noqa: F401  (uncomment once models exist)
+from src.db import models  # noqa: F401, E402
 
 config = context.config
 if config.config_file_name is not None:
