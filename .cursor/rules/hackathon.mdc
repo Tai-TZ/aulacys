@@ -1,0 +1,18 @@
+---
+description: Hackathon team rules — canonical source is AGENTS.md
+alwaysApply: true
+---
+
+# Cursor rules → defer to AGENTS.md
+
+`AGENTS.md` at the repo root is the single source of truth. Read it before acting.
+These bullets are a summary; on any conflict, `AGENTS.md` wins.
+
+- Monorepo: backend in `apps/api` (FastAPI), frontend in `apps/web` (Next.js App Router + TS + Tailwind).
+- Stay inside the current build slice (see `AGENTS.md` §0/§1). Ask the team before adding any feature, page, endpoint, or dependency.
+- The API contract lives ONLY in `apps/api/src/models/schemas.py`. The frontend mirrors it in `apps/web/lib/api.ts` — keep both in sync, never invent a second shape.
+- Follow existing patterns in the file you edit. No unrelated refactors.
+- Every external call (LLM, DB, network) must have a fallback so the demo path never crashes.
+- `apps/web` UI follows the `ui-ux-system` skill (`AGENTS.md` §8): token classes only (tokens in `apps/web/app/globals.css`, the one place to change the look), import primitives from `apps/web/components/ui`, dark mode by `.dark` class — no raw hex or per-element `dark:`.
+- Before commit: `cd apps/api && make check` and `cd apps/web && npm run build` must pass. Use Conventional Commits, small PRs, keep `main` deployable.
+- When unsure, stop and ask a human rather than guessing.

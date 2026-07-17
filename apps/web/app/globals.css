@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/* Dark mode by a `.dark` class on <html> (toggled in-app, NOT by the OS). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   DESIGN TOKENS — the ONE place to change the look.
+   Components reference token classes (bg-primary, text-foreground…),
+   never raw hex. Dark mode = override the SAME tokens under .dark.
+   ============================================================ */
+
+:root {
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.22 0.02 260);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.02 260);
+
+  --muted: oklch(0.96 0.005 260);
+  --muted-foreground: oklch(0.55 0.02 260);
+
+  --primary: oklch(0.58 0.17 262);
+  --on-primary: oklch(0.99 0 0);
+
+  --secondary: oklch(0.95 0.01 260);
+  --secondary-foreground: oklch(0.28 0.02 260);
+
+  --border: oklch(0.9 0.01 260);
+  --ring: oklch(0.58 0.17 262);
+
+  --success: oklch(0.62 0.15 150);
+  --error: oklch(0.58 0.2 25);
+  --warning: oklch(0.75 0.15 80);
+
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: oklch(0.2 0.02 260);
+  --foreground: oklch(0.95 0.01 260);
+
+  --card: oklch(0.24 0.02 260);
+  --card-foreground: oklch(0.95 0.01 260);
+
+  --muted: oklch(0.28 0.02 260);
+  --muted-foreground: oklch(0.7 0.02 260);
+
+  --primary: oklch(0.68 0.16 262);
+  --on-primary: oklch(0.16 0.02 260);
+
+  --secondary: oklch(0.3 0.02 260);
+  --secondary-foreground: oklch(0.92 0.01 260);
+
+  --border: oklch(0.32 0.02 260);
+  --ring: oklch(0.68 0.16 262);
+}
+
+/* Map the runtime vars onto Tailwind color utilities (bg-*, text-*, border-*). */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+
+  --radius-lg: var(--radius);
+}
+
+/* Respect reduced-motion globally. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

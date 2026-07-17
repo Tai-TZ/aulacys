@@ -1,0 +1,28 @@
+# Render Blueprint — deploys the FastAPI backend (apps/api).
+# The Next.js frontend (apps/web) deploys to Vercel — see docs/DEPLOY.md.
+#
+# Usage: Render Dashboard → New → Blueprint → pick this repo → apply.
+# Then set the secret env vars (OPENAI_API_KEY, CORS_ORIGINS) in the dashboard.
+
+services:
+  - type: web
+    name: app-api
+    runtime: docker
+    rootDir: apps/api
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_HOST
+        value: 0.0.0.0
+      # Secrets — set these in the Render dashboard (sync:false = not in git):
+      - key: OPENAI_API_KEY
+        sync: false
+      # MUST equal the deployed frontend origin, e.g. https://your-app.vercel.app
+      # (comma-separated for multiple). Without this, the browser blocks the API (CORS).
+      - key: CORS_ORIGINS
+        sync: false
