@@ -4,7 +4,7 @@
 **Đơn vị ra đề:** SHB Bank — Ngân hàng & Tài chính
 **Sự kiện:** Hack CX Together 2026 (48 giờ)
 **Tài liệu:** Thiết kế giải pháp + kế hoạch thực thi
-**Phiên bản:** 1.1 — 2026-07-17
+**Phiên bản:** 1.2 — 2026-07-17
 **Trạng thái:** Draft để team review, chưa chốt
 
 ---
@@ -101,17 +101,27 @@ Câu hỏi tự nhiên khi đọc §3.2: nếu ngân hàng có hàng trăm quy t
 
 Xếp theo (lead time × số lần bàn giao × mật độ tri thức):
 
-| # | Quy trình | Lead time | Vì sao chậm | Độ hợp AI |
-|---|---|---|---|---|
-| 1 | **Phê duyệt tín dụng doanh nghiệp** | 2–4 tuần | RM → thẩm định → pháp chế → định giá → HĐTD; ~70% là chờ | Cao |
-| 2 | **Trade finance — kiểm chứng từ LC** | UCP 600 cho ngân hàng tối đa **5 ngày làm việc** để kiểm | **65–80% bộ chứng từ bị từ chối ngay lần xuất trình đầu**; ICC báo 70–75% có lỗi | **Cao nhất** |
-| 3 | **KYC/UBO doanh nghiệp cấu trúc phức tạp** | tuần | Truy chuỗi sở hữu nhiều tầng, sanctions, PEP | Cao |
-| 4 | **Tái cơ cấu nợ / xử lý NPL** | tháng | Credit + Pháp chế + Thu hồi + Định giá | Trung bình |
-| 5 | **Tái thẩm định hạn mức hàng năm** | ngày, **khối lượng rất lớn** | Y hệt #1 nhưng lặp lại theo chu kỳ | Cao |
-| 6 | **Triển khai thông tư mới của NHNN** | tuần–tháng | Cập nhật sản phẩm, biểu mẫu, hệ thống, đào tạo | Cao |
-| 7 | **Báo cáo tuân thủ (CAR/TT41, báo cáo NHNN)** | theo chu kỳ | Data lineage | Trung bình |
+Nguồn đầy đủ từng dòng ở **Phụ lục F**, kèm cảnh báo về độ tin cậy — đọc trước khi trích lên slide.
+
+| # | Quy trình | Lead time | Vì sao chậm | Độ hợp AI | Nguồn |
+|---|---|---|---|---|---|
+| 1 | **Phê duyệt tín dụng doanh nghiệp** | **2–8 tuần**; BĐS thương mại 30–45 ngày; ngay cả lender gọn nhất cũng cần tối thiểu 2–3 tuần | RM → thẩm định → pháp chế → định giá → HĐTD; phần lớn là chờ | Cao | Ngành |
+| 2 | **Trade finance — kiểm chứng từ LC** | UCP 600 cho ngân hàng tối đa **5 ngày làm việc** để kiểm | **65–80% bộ chứng từ bị từ chối ngay lần xuất trình đầu**; ICC báo 70–75% có lỗi | **Cao nhất** | ICC / ngành |
+| 3 | **KYC/UBO doanh nghiệp cấu trúc phức tạp** | **95 ngày** trung bình toàn cầu cho một KYC review (2023) — **tăng từ 84 ngày (2022)**; 15–21 ngày cho KH chuẩn, tới 6 tuần cho cấu trúc nhiều UBO | Truy chuỗi sở hữu nhiều tầng, sanctions, PEP. **~51 giờ lao động thủ công** cho onboarding doanh nghiệp | Cao | Khảo sát (vendor) |
+| 4 | **Tái cơ cấu nợ / xử lý NPL** | tháng | Credit + Pháp chế + Thu hồi + Định giá | Trung bình | ⚠️ **Ước lượng của đội — chưa có nguồn** |
+| 5 | **Tái thẩm định hạn mức hàng năm** | **~8 giờ công/hồ sơ**, chi phí **>$1.000/khoản**; khối lượng rất lớn vì lặp hàng năm trên cả danh mục | Y hệt #1 nhưng lặp lại. **RM mất 50–60% thời gian cho việc hành chính** | Cao | Vendor |
+| 6 | **Triển khai thông tư mới của NHNN** | **19% tổ chức mất tới 1 năm** để triển khai một thay đổi pháp quy | Cập nhật sản phẩm, biểu mẫu, hệ thống, đào tạo | Cao | Khảo sát 123 chuyên gia tuân thủ |
+| 7 | **Báo cáo tuân thủ (CAR/TT41, báo cáo NHNN)** | theo chu kỳ | Data lineage | Trung bình | ⚠️ **Ước lượng của đội — chưa có nguồn** |
 
 **Chậm nhất không phải hợp AI nhất.** Kiểm chứng từ LC là bài khớp quy tắc trên văn bản — hợp AI hơn thẩm định tín dụng. Nhưng chỉ tín dụng doanh nghiệp mới có **xung đột liên phòng ban**, tức là mới có nhánh veto, tức là mới chứng minh được multi-agent. Demo cần xung đột, nên #1 vẫn là case chính. #2 là quy trình để chứng minh mở rộng (§3.3.4).
+
+**Ba con số đáng mang lên slide, và lý do:**
+
+1. **KYC review: 95 ngày (2023), tăng từ 84 ngày (2022).** Đây là con số mạnh nhất trong cả bảng — không phải vì nó lớn, mà vì nó **đang xấu đi**. Mọi ngân hàng đều đã đổ tiền vào tự động hoá KYC suốt 10 năm, và nó vẫn chậm thêm 11 ngày trong một năm. Nghĩa là cách tiếp cận cũ đã hết dư địa.
+2. **RM mất 50–60% thời gian cho việc hành chính.** Đây là bằng chứng ngoài đội cho luận điểm trung tâm của §4.2: cái chậm không phải do người dốt, mà do người giỏi bị chôn vào việc soạn thảo. Và nó là câu trả lời cho "AI có thay người không" — không, nó lấy lại 50% thời gian đang bị phí.
+3. **19% tổ chức mất tới một năm để triển khai một thay đổi pháp quy.** Dùng ở phần mở rộng: quy trình #6 trong ma trận §3.3.3 dùng đúng bộ agent của quy trình #1.
+
+**Con số KHÔNG nên mang lên slide:** "onboarding doanh nghiệp 90–120 ngày". Nguồn vendor, dải quá rộng, và gần như chắc chắn không đúng với NHTM Việt Nam. Xem cảnh báo Phụ lục F.
 
 #### 3.3.2 Ngân hàng có bao nhiêu quy trình
 
@@ -838,30 +848,100 @@ Số phải **nhất quán qua tất cả các bộ**. Giám khảo ngân hàng 
 
 ## Phụ lục F — Nguồn tham khảo
 
-Mọi số liệu ngành trích trong tài liệu này đều truy được về một trong các nguồn dưới. Số nào **không** có nguồn ở đây là **giả định của đội** và phải được gắn nhãn như vậy trên slide (xem §4.4).
+Mọi số liệu ngành trích trong tài liệu này truy được về một nguồn dưới đây. Số nào **không** có nguồn ở đây là **giả định của đội** và phải gắn nhãn như vậy trên slide (xem §4.4).
+
+### ⚠️ Đọc hai cảnh báo này trước khi dùng bất kỳ số nào
+
+**1. Phần lớn nguồn là vendor đang bán giải pháp cho chính vấn đề đó.**
+
+Encompass, nCino, Abrigo, Covaleyo, Fenergo, id-pal — họ sống bằng việc bán phần mềm KYC/loan-review. Số đau của họ **có động cơ để lớn**. Không có nghĩa là sai, có nghĩa là **cận trên**. Trong bảng dưới, cột "Loại nguồn" nói rõ cái nào trung lập, cái nào vendor.
+
+Xếp theo độ tin cậy: **ICC / APQC / FDIC** (tổ chức chuẩn, trung lập) > **McKinsey / OpsDog** (tư vấn & benchmark, bán dịch vụ nhưng có phương pháp) > **vendor** (bán đúng thuốc cho đúng bệnh họ mô tả).
+
+**2. Toàn bộ số là của Mỹ, Anh, EU và toàn cầu — không phải Việt Nam.**
+
+Không có nguồn nào trong đây đo NHTM Việt Nam. Quy trình tín dụng doanh nghiệp ở SHB có thể nhanh hơn (ít tầng phê duyệt hơn) hoặc chậm hơn (nhiều thủ tục giấy hơn) so với các số này. **Dùng chúng làm bằng chứng "vấn đề này có thật và phổ biến toàn ngành", không dùng làm "đây là số của SHB".**
+
+Cách nói đúng trên sân khấu: *"Khảo sát toàn cầu cho thấy KYC review mất 95 ngày và đang tăng. Chúng tôi không có số của SHB — đó là câu hỏi đầu tiên chúng tôi muốn hỏi phòng thẩm định."* Cách nói sai: *"SHB đang mất 95 ngày."*
 
 ### Phân loại quy trình ngân hàng (§3.3.2)
 
-| Khẳng định trong doc | Nguồn |
-|---|---|
-| Banking PCF có 13 Level-1 category, bóc xuống Level 5 (task) | [APQC Process Classification Framework — Banking PCF](https://www.apqc.org/resource-library/resource-listing/apqc-process-classification-framework-pcf-banking-pcf-pdf-1) |
-| Cấu trúc và ý nghĩa các cấp của PCF | [Understanding the PCF Elements — APQC](https://www.apqc.org/sites/default/files/files/PCF%20Collateral/Understanding%20the%20PCF%20Elements%20-%20FINAL.pdf) |
+| Khẳng định | Loại nguồn | Nguồn |
+|---|---|---|
+| Banking PCF có 13 Level-1 category, bóc xuống Level 5 (task) | Trung lập | [APQC Process Classification Framework — Banking PCF](https://www.apqc.org/resource-library/resource-listing/apqc-process-classification-framework-pcf-banking-pcf-pdf-1) |
+| Cấu trúc và ý nghĩa các cấp của PCF | Trung lập | [Understanding the PCF Elements — APQC](https://www.apqc.org/sites/default/files/files/PCF%20Collateral/Understanding%20the%20PCF%20Elements%20-%20FINAL.pdf) |
 
-> Con số "hàng trăm quy trình L3/L4 cho một NHTM" là **suy luận bậc độ lớn từ cấu trúc PCF, không phải số công bố**. Nói đúng như vậy nếu bị hỏi. APQC không công bố một con số tổng duy nhất — nó phụ thuộc độ mịn từng ngân hàng chọn.
+> "Hàng trăm quy trình L3/L4 cho một NHTM" là **suy luận bậc độ lớn từ cấu trúc PCF, không phải số công bố**. APQC không công bố một con số tổng duy nhất — nó phụ thuộc độ mịn từng ngân hàng chọn. Bị hỏi thì trả lời đúng câu này.
 
-### Trade finance / LC (§3.3.1, §11)
+### #1 — Phê duyệt tín dụng doanh nghiệp (§3.3.1, §4.2)
 
-| Khẳng định trong doc | Nguồn |
-|---|---|
-| 65–80% bộ chứng từ bị từ chối ngay lần xuất trình đầu | [Discrepancy rates under UCP 600 — Trade Finance Training](https://www.tradefinance.training/blog/articles/discrepancy-rates-under-ucp-600/) |
-| ICC báo 70–75% lần xuất trình đầu có lỗi | [Handling document discrepancies — Trade Finance Global](https://www.tradefinanceglobal.com/letters-of-credit/handling-document-discrepancies/) |
-| UCP 600 cho ngân hàng tối đa 5 ngày làm việc để kiểm chứng từ | [UCP 600 guide — Trade Finance Global](https://www.tradefinanceglobal.com/letters-of-credit/ucp-600/) |
+| Khẳng định | Loại nguồn | Nguồn |
+|---|---|---|
+| Cycle time 2–8 tuần từ nộp hồ sơ đến giải ngân | Benchmark | [Commercial Loan Application Cycle Time Benchmarks — OpsDog](https://opsdog.com/products/cycle-time-commercial-loan-application-processing) |
+| BĐS thương mại 30–45 ngày; xây dựng 60 ngày+ | Ngành | [Mission Valley Capital](https://www.missionvalleycapital.com/commercial-loan-approval-time/) |
+| Ngay cả lender gọn nhất cần tối thiểu 2–3 tuần | Ngành | [Citizens National Bank](https://www.cnbohio.com/how-long-will-it-take-to-find-out-if-im-approved-for-a-commercial-loan/) |
 
-> Các nguồn này chênh nhau (65–80% vs 60–75% vs 70–75%) tuỳ vùng và tuỳ khảo sát. **Trên slide dùng "khoảng 70%" và nói rõ là ước lượng ngành, đừng chọn con số cao nhất.** Giám khảo trade finance của SHB biết dải này, và chọn số đẹp nhất là cách nhanh nhất để mất tín nhiệm.
+> Con số **14–21 ngày** trong §4.2 và toàn bộ bảng KPI §4.4 là **giả định của đội cho bối cảnh Việt Nam**, nằm trong dải 2–8 tuần của ngành nhưng **không rút ra từ nguồn nào**. Giữ nhãn đó.
+
+### #2 — Trade finance / LC (§3.3.1, §11)
+
+| Khẳng định | Loại nguồn | Nguồn |
+|---|---|---|
+| 65–80% bộ chứng từ bị từ chối ngay lần xuất trình đầu | Ngành | [Discrepancy rates under UCP 600 — Trade Finance Training](https://www.tradefinance.training/blog/articles/discrepancy-rates-under-ucp-600/) |
+| ICC báo 70–75% lần xuất trình đầu có lỗi | Ngành / ICC | [Handling document discrepancies — Trade Finance Global](https://www.tradefinanceglobal.com/letters-of-credit/handling-document-discrepancies/) |
+| UCP 600 cho ngân hàng tối đa 5 ngày làm việc để kiểm | Chuẩn ICC | [UCP 600 guide — Trade Finance Global](https://www.tradefinanceglobal.com/letters-of-credit/ucp-600/) |
+| Bản sửa UCP năm 2007 không kéo được tỷ lệ discrepancy xuống | Ngành | [Discrepancy Rates Under UCP 600 — doccredit.world](https://www.doccredit.world/discrepancy-rates-under-ucp-600/) |
+
+> Nguồn chênh nhau: 65–80% / 60–75% / 70–75% tuỳ vùng và khảo sát. **Slide dùng "khoảng 70%", nói rõ là ước lượng ngành, đừng chọn số cao nhất.** Giám khảo trade finance của SHB biết dải này; chọn số đẹp nhất là cách nhanh nhất mất tín nhiệm.
+>
+> Chi tiết đáng dùng: sửa UCP năm 2007 **không** làm giảm tỷ lệ discrepancy. Nghĩa là viết lại quy tắc cho rõ hơn đã thất bại — vấn đề nằm ở **khâu kiểm**, không nằm ở quy tắc. Đó chính là chỗ agent vào.
+
+### #3 — KYC / onboarding doanh nghiệp (§3.3.1)
+
+| Khẳng định | Loại nguồn | Nguồn |
+|---|---|---|
+| Toàn cầu 95 ngày cho một KYC review (2023), tăng từ 84 ngày (2022) | **Vendor** | [KYC Reviews Cost $2,500+ Per Commercial Client — Corporate Compliance Insights](https://www.corporatecomplianceinsights.com/kyc-review-cost-survey-2023/) |
+| 15–21 ngày cho KH chuẩn, tới 6 tuần cho cấu trúc nhiều UBO | **Vendor** | [Encompass](https://www.encompasscorporation.com/blog/reduce-end-to-end-onboarding-processing-times-by-32/) |
+| Onboarding doanh nghiệp 90–120 ngày, ~51 giờ lao động thủ công | **Vendor** | [nCino](https://www.ncino.com/blog/how-to-transform-commercial-onboarding-from-a-cost-center-to-your-competitive-advantage) |
+| 70% ngân hàng mất khách vì onboarding chậm (2025), từ 67% (2024) và 48% (2023) | **Vendor** | [Fintech Global](https://fintech.global/2025/10/08/70-of-banks-lose-clients-due-to-slow-onboarding/) |
+| Onboarding doanh nghiệp là lợi thế cạnh tranh bị bỏ quên | Tư vấn | [Winning corporate clients with great onboarding — McKinsey](https://www.mckinsey.com/industries/financial-services/our-insights/winning-corporate-clients-with-great-onboarding) |
+
+> **Toàn bộ nhóm này là vendor.** Dùng được vì **hướng** nhất quán qua nhiều nguồn độc lập (KYC đang chậm thêm, không nhanh lên), nhưng đừng trích con số tuyệt đối như sự thật.
+>
+> Số đáng dùng nhất: **95 ngày, tăng từ 84**. Không phải vì lớn mà vì **đang xấu đi** — sau 10 năm cả ngành đổ tiền vào tự động hoá KYC. Đó là bằng chứng cách cũ hết dư địa. Số nên **bỏ**: "90–120 ngày" — dải quá rộng, vendor, gần như chắc chắn sai với Việt Nam.
+
+### #5 — Tái thẩm định hạn mức hàng năm (§3.3.1)
+
+| Khẳng định | Loại nguồn | Nguồn |
+|---|---|---|
+| RM mất 50–60% thời gian cho việc hành chính, ít tác động tới khách hàng hay doanh thu | **Vendor** | [How banks can transform credit reviews in the back book — Codat](https://codat.io/resources/how-banks-can-transform-credit-reviews-in-the-back-book/) |
+| Một review chuẩn tốn ~8 giờ công (credit + loan admin + management), chi phí >$1.000/khoản | **Vendor** | [Optimizing The Credit Review Process — SouthState Correspondent](https://southstatecorrespondent.com/banker-to-banker/how-to-better-optimize-the-credit-review-process/) |
+| Cách tiếp cận loan review theo rủi ro, phân tầng | **Vendor** | [A risk-based, time-saving approach to annual loan review — Abrigo](https://www.abrigo.com/blog/risk-based-time-saving-approach-to-annual-loan-review/) |
+| Loan review là cấu phần bắt buộc của quản trị rủi ro danh mục | Cơ quan quản lý | [FDIC RMS Manual — Loans, Section 3.2](https://www.fdic.gov/regulations/safety/manual/section3-2.pdf) |
+
+> **"RM mất 50–60% thời gian cho việc hành chính" là con số quan trọng thứ hai trong cả tài liệu** (sau 95-ngày-đang-tăng). Nó là bằng chứng **ngoài đội** cho luận điểm trung tâm §4.2 — chậm không phải vì người dốt, mà vì người giỏi bị chôn vào việc soạn thảo. Và nó trả lời thẳng câu "AI có thay người không": không, nó trả lại 50% thời gian đang bị phí.
+>
+> Vẫn là nguồn vendor. Nói "một khảo sát ngành cho thấy", không nói "50% là sự thật".
+
+### #6 — Triển khai thay đổi pháp quy (§3.3.1)
+
+| Khẳng định | Loại nguồn | Nguồn |
+|---|---|---|
+| 19% tổ chức mất tới 1 năm để triển khai một thay đổi pháp quy (khảo sát 123 chuyên gia tuân thủ, Bắc Mỹ + châu Âu) | Vendor GRC | [Top 5 Steps to Stay Ahead of Regulatory Change — MetricStream](https://www.metricstream.com/insights/five-steps-regulatory-change.htm) |
+| Ngân hàng lớn dành 5–10% chi phí vận hành cho tuân thủ | Vendor GRC | [Visbanking](https://visbanking.com/bank-regulatory-compliance-navigating-the-complex-maze) |
+| Quy trình phê duyệt thủ công làm chậm việc triển khai thay đổi pháp quy | Vendor GRC | [Adopting a Proactive Approach to Regulatory Change Management — Flagright](https://www.flagright.com/post/adopting-a-proactive-approach-to-regulatory-change-management) |
+
+> n=123, Bắc Mỹ + châu Âu. Mẫu nhỏ, vendor GRC. Dùng để minh hoạ quy trình #6 trong ma trận §3.3.3 là có thật và đắt, **không** dùng để suy ra bất cứ điều gì về NHNN hay SHB.
+
+### #4 và #7 — chưa có nguồn
+
+**Tái cơ cấu nợ / NPL** và **báo cáo tuân thủ** hiện là **ước lượng của đội, không có nguồn nào**. Đã đánh dấu ⚠️ trong bảng §3.3.1.
+
+Hai quy trình này không nằm trong đường demo nên không đáng bỏ giờ đi tra. Nhưng **nếu bị hỏi thì trả lời "chúng tôi chưa tra"** — đừng bịa. Một "chúng tôi chưa biết" thành thật giữa một bài pitch đầy số có nguồn làm tăng độ tin, không giảm.
 
 ### Văn bản pháp quy
 
-Xem Phụ lục B. Khác biệt quan trọng: các nguồn ở Phụ lục F là **số liệu ngành để pitch**; Phụ lục B là **văn bản luật mà agent trích dẫn**. Nhầm hai loại này là nhầm giữa "slide nói gì" và "hệ thống trả lời gì".
+Xem Phụ lục B. Khác biệt quan trọng: nguồn ở Phụ lục F là **số liệu ngành để pitch**; Phụ lục B là **văn bản luật mà agent trích dẫn trong sản phẩm**. Nhầm hai loại này là nhầm giữa "slide nói gì" và "hệ thống trả lời gì". Agent không bao giờ được trích dẫn một blog vendor như cơ sở pháp lý.
 
 ---
 
@@ -878,3 +958,4 @@ Xem Phụ lục B. Khác biệt quan trọng: các nguồn ở Phụ lục F là
 |---|---|---|
 | 1.0 | 2026-07-17 | Bản đầu — kiến trúc, as-is/to-be, eval, kế hoạch 48h |
 | 1.1 | 2026-07-17 | Thêm §3.3 (bản đồ quy trình ngân hàng, tách tầng chuyên gia/quy trình) + §5.8 (process-as-config) + Phụ lục F (nguồn). Sửa §3.2: cấm *build* quy trình #2, không cấm kiến trúc cho nó. Demo phút 4:30 đổi từ "thêm agent thứ tư" sang "thêm quy trình thứ hai" — cùng bộ agent, lập luận mạnh hơn. Thêm quy tắc #4 vào §9 (rào 0 giờ trước giờ 36). |
+| 1.2 | 2026-07-17 | Phụ lục F mở rộng: nguồn cho **từng** quy trình trong §3.3.1, phân loại độ tin cậy (trung lập / tư vấn / vendor), và hai cảnh báo bắt buộc đọc — phần lớn nguồn là vendor bán đúng thuốc cho bệnh họ mô tả, và **không nguồn nào đo ngân hàng Việt Nam**. §3.3.1 thêm cột nguồn + số thật thay ước lượng ở 4/7 dòng. #4 (NPL) và #7 (báo cáo tuân thủ) đánh dấu thẳng là chưa có nguồn. |
