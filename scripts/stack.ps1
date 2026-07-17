@@ -2,15 +2,15 @@
 # stack.ps1 - one command to run / stop / check the local SHB stack (Windows)
 # =============================================================================
 #
-#   .\scripts\stack.ps1 up                 # demo: API :8000 + Web :3000 + gateway :8080
-#   .\scripts\stack.ps1 up -Profile full   # + policy/audit/tools/agent workers
-#   .\scripts\stack.ps1 down
+#   .\scripts\stack.ps1 up                 # demo: API + gateway + web
+#   .\scripts\stack.ps1 up -Profile full   # + all microservices
+#   .\scripts\stack.ps1 up -Force          # free stack ports first, then start
+#   .\scripts\stack.ps1 down               # stop tracked PIDs + free stack ports
 #   .\scripts\stack.ps1 status
 #   .\scripts\stack.ps1 restart
-#   .\scripts\stack.ps1 up -Setup          # bootstrap venv / npm if missing
+#   .\scripts\stack.ps1 up -Setup
 #
-# Logs + PIDs live under .run/ (gitignored). Demo path stays demo-proof:
-# without OPENAI_API_KEY / without microservice URLs, monolith uses fallbacks.
+# Logs + PIDs: .run/  |  Demo = in-process fallbacks  |  Full = wire HTTP seams
 # =============================================================================
 
 [CmdletBinding()]
@@ -22,7 +22,9 @@ param(
     [ValidateSet("demo", "full")]
     [string]$Profile = "demo",
 
-    [switch]$Setup
+    [switch]$Setup,
+
+    [switch]$Force
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,6 +34,7 @@ $LogDir = Join-Path $RunDir "logs"
 $PidFile = Join-Path $RunDir "pids.json"
 $ApiDir = Join-Path $Root "apps\api"
 $WebDir = Join-Path $Root "apps\web"
+$StackPorts = @(3000, 8000, 8080, 8100, 8200, 8300, 8310, 8320, 8330, 8340, 8401, 8402, 8403, 8404)
 
 function Resolve-Python {
     foreach ($candidate in @(
@@ -69,17 +72,58 @@ function Test-Port([int]$Port) {
     return [bool](Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
 }
 
+function Get-PortPids([int]$Port) {
+    $ids = @()
+    Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | ForEach-Object {
+        if ($_.OwningProcess -gt 0) { $ids += [int]$_.OwningProcess }
+    }
+    return ($ids | Select-Object -Unique)
+}
+
 function Stop-PidSafe([int]$ProcessId, [string]$Name) {
     if ($ProcessId -le 0) { return }
     try {
         $proc = Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
         if (-not $proc) { return }
         & taskkill.exe /PID $ProcessId /T /F 2>$null | Out-Null
+        Start-Sleep -Milliseconds 200
+        if (Get-Process -Id $ProcessId -ErrorAction SilentlyContinue) {
+            Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue
+        }
         Write-Host "  stopped $Name (pid $ProcessId)" -ForegroundColor Yellow
     }
     catch {
-        Write-Host "  skip $Name (pid $ProcessId)" -ForegroundColor DarkYellow
+        Write-Host "  skip $Name (pid $ProcessId) - access denied? run terminal as same user." -ForegroundColor DarkYellow
     }
+}
+
+function Clear-StackPorts {
+    Write-Host "=== Freeing stack ports ===" -ForegroundColor Cyan
+    $killed = @{}
+    foreach ($port in $StackPorts) {
+        foreach ($pidVal in (Get-PortPids $port)) {
+            if ($killed.ContainsKey($pidVal)) { continue }
+            $killed[$pidVal] = $true
+            $procName = ""
+            $p = Get-Process -Id $pidVal -ErrorAction SilentlyContinue
+            if ($p) { $procName = $p.ProcessName }
+            Write-Host "  port $port -> kill pid $pidVal ($procName)" -ForegroundColor Yellow
+            & taskkill.exe /PID $pidVal /T /F 2>$null | Out-Null
+            try { Stop-Process -Id $pidVal -Force -ErrorAction SilentlyContinue } catch {}
+        }
+    }
+    Start-Sleep -Seconds 1
+    $busy = @()
+    foreach ($port in $StackPorts) {
+        if (Test-Port $port) { $busy += $port }
+    }
+    if ($busy.Count -gt 0) {
+        Write-Host "  STILL BUSY: $($busy -join ', ')" -ForegroundColor Red
+        Write-Host "  Close those apps or run PowerShell as Administrator, then retry." -ForegroundColor Red
+        return $false
+    }
+    Write-Host "  All stack ports free." -ForegroundColor Green
+    return $true
 }
 
 function Start-LoggedProcess {
@@ -239,11 +283,10 @@ function Invoke-Setup {
         Write-Host "Created apps\api\.env from example (OPENAI_API_KEY optional)." -ForegroundColor Yellow
     }
     if (-not (Test-Path (Join-Path $WebDir ".env.local"))) {
-        $lines = @(
+        @(
             "NEXT_PUBLIC_API_URL=http://localhost:8000",
             "NEXT_PUBLIC_GATEWAY_URL=http://localhost:8080"
-        )
-        $lines | Set-Content (Join-Path $WebDir ".env.local") -Encoding ascii
+        ) | Set-Content (Join-Path $WebDir ".env.local") -Encoding ascii
         Write-Host "Created apps\web\.env.local" -ForegroundColor Yellow
     }
     if (-not (Test-Path (Join-Path $WebDir "node_modules"))) {
@@ -258,13 +301,15 @@ function Invoke-Down {
     Write-Host "=== Stopping stack ===" -ForegroundColor Cyan
     $map = Read-Pids
     if ($map.Count -eq 0) {
-        Write-Host "No .run\pids.json - nothing tracked." -ForegroundColor Yellow
+        Write-Host "No .run\pids.json - will still free ports." -ForegroundColor Yellow
     }
     foreach ($name in @($map.Keys)) {
         Stop-PidSafe -ProcessId ([int]$map[$name]) -Name $name
     }
     if (Test-Path $PidFile) { Remove-Item $PidFile -Force }
-    Write-Host "Done." -ForegroundColor Green
+    $ok = Clear-StackPorts
+    if (-not $ok) { Write-Host "Done with warnings." -ForegroundColor Yellow }
+    else { Write-Host "Done." -ForegroundColor Green }
 }
 
 function Invoke-Status {
@@ -296,17 +341,28 @@ function Invoke-Up([string]$Mode) {
         throw "apps\web\node_modules missing. Re-run: .\scripts\stack.ps1 up -Setup"
     }
 
-    Write-Host "=== Starting profile=$Mode ===" -ForegroundColor Cyan
-    if (Test-Path $PidFile) {
-        Write-Host "Stopping previous tracked processes..." -ForegroundColor Yellow
+    # Always clear previous stack; -Force also kills anything on stack ports
+    if ($Force -or (Test-Path $PidFile)) {
         Invoke-Down
     }
+    elseif ($true) {
+        # Default: free busy stack ports before start (avoids WARN skip)
+        $busy = @($StackPorts | Where-Object { Test-Port $_ })
+        if ($busy.Count -gt 0) {
+            Write-Host "Ports busy: $($busy -join ', ') - freeing..." -ForegroundColor Yellow
+            $cleared = Clear-StackPorts
+            if (-not $cleared) {
+                throw "Cannot free ports. Close processes or: .\scripts\stack.ps1 down"
+            }
+        }
+    }
 
+    Write-Host "=== Starting profile=$Mode ===" -ForegroundColor Cyan
     $catalog = Get-ServiceCatalog -Mode $Mode
     $map = @{}
     foreach ($svc in $catalog) {
         if (Test-Port $svc.Port) {
-            Write-Host "  WARN port $($svc.Port) already in use - skip $($svc.Name)" -ForegroundColor Yellow
+            Write-Host "  WARN port $($svc.Port) still busy - skip $($svc.Name)" -ForegroundColor Yellow
             continue
         }
         $wd = Join-Path $Root $svc.Dir
@@ -349,15 +405,13 @@ function Invoke-Up([string]$Mode) {
 function Show-Help {
     Write-Host "stack.ps1 - manage local API / Web / microservices"
     Write-Host ""
-    Write-Host "  .\scripts\stack.ps1 up                 # demo: api + gateway + web"
-    Write-Host "  .\scripts\stack.ps1 up -Profile full   # + policy/audit/tools/workers"
-    Write-Host "  .\scripts\stack.ps1 up -Setup          # create venv/.env/npm if needed"
-    Write-Host "  .\scripts\stack.ps1 down"
+    Write-Host "  .\scripts\stack.ps1 up                 # demo (frees busy ports first)"
+    Write-Host "  .\scripts\stack.ps1 up -Profile full"
+    Write-Host "  .\scripts\stack.ps1 up -Force          # down + free ports + up"
+    Write-Host "  .\scripts\stack.ps1 down               # kill tracked + free ports"
     Write-Host "  .\scripts\stack.ps1 status"
     Write-Host "  .\scripts\stack.ps1 restart"
-    Write-Host ""
-    Write-Host "Demo = monolith in-process fallbacks. Full wires HTTP seams."
-    Write-Host "Docker: docker compose -f docker-compose.services.yml up --build"
+    Write-Host "  .\scripts\stack.ps1 up -Setup"
 }
 
 switch ($Command) {
@@ -366,6 +420,7 @@ switch ($Command) {
     "down" { Invoke-Down }
     "status" { Invoke-Status }
     "restart" {
+        $script:Force = $true
         Invoke-Down
         Start-Sleep -Seconds 1
         Invoke-Up -Mode $Profile
