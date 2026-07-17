@@ -44,9 +44,10 @@ def test_gateway_status_aggregates_service_health(monkeypatch):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
-    assert data["summary"] == {"total": 9, "up": 9, "down": 0}
+    assert data["summary"] == {"total": 13, "up": 13, "down": 0}
     assert data["services"][0]["name"] == "api-gateway"
     assert any(item["name"] == "monolith" for item in data["services"])
+    assert any(item["name"] == "credit-svc" for item in data["services"])
 
 
 def test_gateway_assess_returns_fallback_when_monolith_is_down(monkeypatch):

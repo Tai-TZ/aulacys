@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import yaml
 from langgraph.graph import END, StateGraph
@@ -15,6 +16,7 @@ from src.agents.nodes.operations import OperationsSpec
 from src.agents.nodes.planner import PlannerSpec
 from src.agents.state import AgentState, Document, LoanApplication, RunTrace
 from src.agents.tools.workflow import write_approval_ticket
+from src.agents.worker_client import run_agent
 
 PRODUCTS_DIR = Path(__file__).parent / "products"
 REPLAN_CAP = 2
@@ -97,7 +99,7 @@ def _run_configured_agents(state: AgentState, config: dict[str, Any]) -> None:
         spec = AGENT_SPECS.get(agent_name)
         if spec is None:
             continue
-        state[agent_name] = run(spec, state)
+        state[agent_name] = run_agent(spec, state)
 
 
 def _has_veto(state: AgentState) -> bool:
@@ -165,6 +167,7 @@ async def process_application(state: AgentState) -> dict[str, Any]:
     next_state.setdefault("metadata", {})
     next_state["metadata"]["product_config"] = config
     next_state["metadata"].setdefault("application_id", "retail-demo")
+    next_state["metadata"].setdefault("request_id", str(uuid4()))
 
     # Plan -> execute -> (veto -> replan -> RE-EXECUTE)* up to the cap.
     # This loop IS the demo: the veto is an edge back to the planner, and the
@@ -182,7 +185,7 @@ async def process_application(state: AgentState) -> dict[str, Any]:
 
     lane = 3 if veto_fired else _base_lane(config)
     if lane == 3:  # Critic (tuyến 3) only runs on lane 3 (BUILD-GUIDE §8)
-        next_state["critic"] = run(CriticSpec, next_state)
+        next_state["critic"] = run_agent(CriticSpec, next_state)
         if not next_state["critic"].passed:
             escalated = True
 
