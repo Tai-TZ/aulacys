@@ -2,13 +2,13 @@
 # stack.ps1 - one command to run / stop / check the local SHB stack (Windows)
 # =============================================================================
 #
-#   .\scripts\stack.ps1 up                 # demo: API + gateway + web
-#   .\scripts\stack.ps1 up -Profile full   # + all microservices
-#   .\scripts\stack.ps1 up -Force          # free stack ports first, then start
-#   .\scripts\stack.ps1 down               # stop tracked PIDs + free stack ports
+#   .\scripts\stack.ps1 up                 # start + stream logs (Ctrl+C detach)
+#   .\scripts\stack.ps1 up -Profile full
+#   .\scripts\stack.ps1 up -Detach         # start, no log follow
+#   .\scripts\stack.ps1 up -Force          # free ports then start
+#   .\scripts\stack.ps1 logs               # attach realtime logs again
+#   .\scripts\stack.ps1 down
 #   .\scripts\stack.ps1 status
-#   .\scripts\stack.ps1 restart
-#   .\scripts\stack.ps1 up -Setup
 #
 # Logs + PIDs: .run/  |  Demo = in-process fallbacks  |  Full = wire HTTP seams
 # =============================================================================
@@ -16,7 +16,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet("up", "down", "status", "restart", "help")]
+    [ValidateSet("up", "down", "status", "restart", "logs", "help")]
     [string]$Command = "help",
 
     [ValidateSet("demo", "full")]
@@ -24,7 +24,9 @@ param(
 
     [switch]$Setup,
 
-    [switch]$Force
+    [switch]$Force,
+
+    [switch]$Detach
 )
 
 $ErrorActionPreference = "Stop"
@@ -267,6 +269,81 @@ function Get-ServiceCatalog([string]$Mode) {
     return ,$services.ToArray()
 }
 
+
+function Get-LogColor([string]$Name, [string]$Stream) {
+    if ($Stream -eq "err") { return "Red" }
+    switch -Regex ($Name) {
+        "^api$" { return "Cyan" }
+        "^web$" { return "Green" }
+        "^gateway$" { return "DarkCyan" }
+        "worker$" { return "Magenta" }
+        default { return "Gray" }
+    }
+}
+
+function Invoke-FollowLogs {
+    param([int]$TailLines = 30)
+    Ensure-RunDirs
+    if (-not (Test-Path $LogDir)) {
+        Write-Host "No .run\logs yet. Start stack first: .\scripts\stack.ps1 up" -ForegroundColor Yellow
+        return
+    }
+    $positions = @{}
+    foreach ($f in (Get-ChildItem $LogDir -Filter "*.log" -ErrorAction SilentlyContinue)) {
+        $lines = @(Get-Content $f.FullName -ErrorAction SilentlyContinue)
+        $start = [Math]::Max(0, $lines.Count - $TailLines)
+        for ($i = $start; $i -lt $lines.Count; $i++) {
+            $base = $f.BaseName
+            $stream = "out"
+            if ($base -match "^(.*)\.(out|err)$") {
+                $svc = $Matches[1]
+                $stream = $Matches[2]
+            }
+            else { $svc = $base }
+            $color = Get-LogColor $svc $stream
+            Write-Host ("[{0}|{1}] {2}" -f $svc, $stream, $lines[$i]) -ForegroundColor $color
+        }
+        $positions[$f.FullName] = $lines.Count
+    }
+
+    Write-Host ""
+    Write-Host "=== Live logs (Ctrl+C to detach; services keep running) ===" -ForegroundColor Cyan
+    Write-Host "Stop stack: .\scripts\stack.ps1 down" -ForegroundColor Yellow
+    Write-Host ""
+
+    try {
+        while ($true) {
+            $files = @(Get-ChildItem $LogDir -Filter "*.log" -ErrorAction SilentlyContinue)
+            foreach ($f in $files) {
+                $path = $f.FullName
+                $lines = @(Get-Content $path -ErrorAction SilentlyContinue)
+                if (-not $positions.ContainsKey($path)) { $positions[$path] = 0 }
+                $start = [int]$positions[$path]
+                if ($start -gt $lines.Count) { $start = 0 }
+                for ($i = $start; $i -lt $lines.Count; $i++) {
+                    $base = $f.BaseName
+                    $stream = "out"
+                    if ($base -match "^(.*)\.(out|err)$") {
+                        $svc = $Matches[1]
+                        $stream = $Matches[2]
+                    }
+                    else { $svc = $base }
+                    $color = Get-LogColor $svc $stream
+                    Write-Host ("[{0}|{1}] {2}" -f $svc, $stream, $lines[$i]) -ForegroundColor $color
+                }
+                $positions[$path] = $lines.Count
+            }
+            Start-Sleep -Milliseconds 250
+        }
+    }
+    finally {
+        Write-Host ""
+        Write-Host "Detached from logs. Services still running." -ForegroundColor Yellow
+        Write-Host "  .\scripts\stack.ps1 logs    # re-attach"
+        Write-Host "  .\scripts\stack.ps1 down    # stop all"
+        Write-Host "  .\scripts\stack.ps1 status"
+    }
+}
 function Invoke-Setup {
     Write-Host "=== Setup ===" -ForegroundColor Cyan
     $py = $null
@@ -399,16 +476,28 @@ function Invoke-Up([string]$Mode) {
     Write-Host "  Gateway  http://localhost:8080/status" -ForegroundColor Green
     Write-Host ""
     Write-Host "Stop all:  .\scripts\stack.ps1 down" -ForegroundColor Yellow
+    Write-Host "Re-attach: .\scripts\stack.ps1 logs" -ForegroundColor Yellow
     Write-Host "Status:    .\scripts\stack.ps1 status" -ForegroundColor Yellow
+
+    if ($Detach) {
+        Write-Host ""
+        Write-Host "Detached mode - logs only in .run\logs\" -ForegroundColor Yellow
+    }
+    else {
+        Write-Host ""
+        Invoke-FollowLogs
+    }
 }
 
 function Show-Help {
     Write-Host "stack.ps1 - manage local API / Web / microservices"
     Write-Host ""
-    Write-Host "  .\scripts\stack.ps1 up                 # demo (frees busy ports first)"
+    Write-Host "  .\scripts\stack.ps1 up                 # start + live logs (Ctrl+C detach)"
     Write-Host "  .\scripts\stack.ps1 up -Profile full"
-    Write-Host "  .\scripts\stack.ps1 up -Force          # down + free ports + up"
-    Write-Host "  .\scripts\stack.ps1 down               # kill tracked + free ports"
+    Write-Host "  .\scripts\stack.ps1 up -Detach         # start without following logs"
+    Write-Host "  .\scripts\stack.ps1 up -Force          # free ports then start"
+    Write-Host "  .\scripts\stack.ps1 logs               # live logs again"
+    Write-Host "  .\scripts\stack.ps1 down"
     Write-Host "  .\scripts\stack.ps1 status"
     Write-Host "  .\scripts\stack.ps1 restart"
     Write-Host "  .\scripts\stack.ps1 up -Setup"
@@ -419,6 +508,7 @@ switch ($Command) {
     "up" { Invoke-Up -Mode $Profile }
     "down" { Invoke-Down }
     "status" { Invoke-Status }
+    "logs" { Invoke-FollowLogs }
     "restart" {
         $script:Force = $true
         Invoke-Down
