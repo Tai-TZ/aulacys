@@ -41,12 +41,38 @@ export interface ComplianceVerdict {
   rule_ids: string[];
   violations: unknown[];
   citations: unknown[];
+  tool_results: Record<string, unknown>;
+}
+
+export interface Citation {
+  source: string;
+  reference: string;
+  excerpt: string;
+}
+
+export interface CreditAssessment {
+  dti: number | null;
+  income: number;
+  recommendation: string;
+  evidence: Citation[];
+  tool_results: Record<string, unknown>;
+}
+
+export interface OperationsReport {
+  valuation: number | null;
+  doc_status: string;
+  missing: string[];
+  legal_flags: string[];
+  evidence: Citation[];
+  tool_results: Record<string, unknown>;
 }
 
 export interface AssessResponse {
   response: string;
   outcome: string; // stp_approved | vetoed | ready_for_human_approval
   run_trace: RunTrace;
+  credit: CreditAssessment | null;
+  operations: OperationsReport | null;
   compliance: ComplianceVerdict | null;
   trace: NodeTrace[];
   ticket: Record<string, unknown> | null;
