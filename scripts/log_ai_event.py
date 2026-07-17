@@ -69,15 +69,26 @@ def repo_name(root: Path) -> str:
     return root.name
 
 
-def read_payload() -> dict[str, Any]:
-    raw = sys.stdin.buffer.read().decode("utf-8", errors="replace").strip()
+def read_payload() -> tuple[dict[str, Any], str]:
+    raw_bytes = sys.stdin.buffer.read()
+    raw = ""
+    for encoding in ("utf-8-sig", "utf-16", "utf-16-le"):
+        try:
+            raw = raw_bytes.decode(encoding).strip()
+            break
+        except UnicodeDecodeError:
+            continue
+    if not raw and raw_bytes:
+        raw = raw_bytes.decode("utf-8", errors="replace").strip()
     if not raw:
-        return {}
+        return {}, ""
     try:
         value = json.loads(raw)
-        return value if isinstance(value, dict) else {}
+        if isinstance(value, dict):
+            return value, ""
+        return {}, "payload must be a JSON object"
     except json.JSONDecodeError:
-        return {}
+        return {}, "payload is not valid JSON"
 
 
 def latest_cursor_prompt(transcript_path: str) -> tuple[str, str]:
@@ -196,7 +207,11 @@ def main() -> int:
         print('{"status":"skipped","reason":"tool is not enabled for this member"}')
         return 0
 
-    payload = read_payload()
+    payload, payload_error = read_payload()
+    if payload_error:
+        print(json.dumps({"status": "skipped", "reason": payload_error}))
+        return 0
+
     entry = normalize(payload, tool=args.tool, event_override=args.event, root=root)
     if not entry["event"] and not entry["session_id"] and not entry["prompt"]:
         print('{"status":"skipped","reason":"empty hook payload"}')
