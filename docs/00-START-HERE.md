@@ -17,24 +17,21 @@ Phiên bản 1.1 — 2026-07-17 · Trạng thái: draft, cần team phản biệ
 
 ---
 
-## 📌 Kịch bản đã chốt — 2026-07-17
+## 📌 Kịch bản đã chốt — retail (mentor) · cập nhật 2026-07-18
 
-> **"Công ty ABC đề nghị vay 20 tỷ đồng, thế chấp bất động sản, yêu cầu giải ngân trong 5 ngày."**
+> **Khách hàng cá nhân đề nghị vay thế chấp mua nhà** (`retail_mortgage`): khai mục đích *"mua nhà để ở"*, nhưng chứng từ `purpose_evidence` cho thấy thực tế là **tất toán khoản vay ở TCTD khác** (mục đích bị cấm).
 >
-> Credit đề xuất → **Compliance phủ quyết vì vượt trần cấp tín dụng** → Planner lập lại kế hoạch → Critic kiểm chứng → **người phê duyệt** → ghi ticket thật.
+> Planner đọc product config → Credit + Operations chạy **song song** → Compliance chờ valuation (cần LTV) → phát hiện mâu thuẫn mục đích → **veto trên hard legal limit** (policy YAML, không phải prompt) → Planner **replan** → Critic kiểm mọi số có tool call / mọi claim có citation → người phê duyệt → **ghi ticket thật**. Cùng một graph; đổi YAML → `retail_unsecured_salary` (STP) — không viết code mới.
 
-**Đừng mở lại tranh luận này.** Đã chấm 5 ứng viên theo 6 tiêu chí; log ở [`TEAM_RULES.md`](./TEAM_RULES.md) → *Decisions*.
+**Nguồn chốt:** [`AGENTS.md`](../AGENTS.md) §0 (segment retail / individual). Kịch bản corporate 20 tỷ (v1) **đã chết** — không build, không pitch.
 
-**Hiểu đúng cách chọn:** đề đã chọn *lĩnh vực* thay mình — *"credit, legal and compliance, products, or operations"*. Mình không chọn lĩnh vực. Mình chọn **kịch bản bắt các lĩnh vực đó đâm vào nhau**. Đó là lý do A thắng: nó là kịch bản duy nhất có xung đột **vừa đủ mạnh vừa kể được trong 5 phút**.
+**Nhánh veto → replan là bức tường chịu lực.** Không có nó thì ba agent chạy song song rồi gộp = một agent nhiều bước. Bảo vệ nhánh đó trên hết. Hour-36: nếu veto không chạy, cắt mọi thứ khác.
 
-| Ứng viên | Vì sao trượt |
+| Không còn trong scope demo | Vì sao |
 |---|---|
-| B. Kiểm chứng từ LC | Tri thức gọn nhất (UCP600 chỉ 39 điều), hợp AI nhất — nhưng **một phòng làm hết, không có xung đột**. → Để làm **quy trình #2** chứng minh mở rộng (§3.3) |
-| C. Onboarding / KYC DN | Xung đột mỏng hơn (kinh doanh muốn khách vs Compliance nghi ngờ) |
-| D. Triển khai thông tư mới | Xung đột đẹp nhất về trí tuệ, nhưng **trừu tượng** — không dựng được cảnh trên sân khấu |
-| E. Tái cơ cấu nợ / NPL | Xung đột tốt nhưng quá phức tạp cho 5 phút, và không có nguồn số liệu |
-
-**Nhánh veto → replan là bức tường chịu lực.** Không có nó thì ba agent chạy song song rồi gộp = một agent nhiều bước, và giám khảo sẽ nói đúng câu đó. Bảo vệ nhánh đó trên hết.
+| Vay DN 20 tỷ / trần cấp tín dụng | Superseded bởi mentor decision → retail |
+| OCR chứng từ đầy đủ | Tier-3 = human `confirmed_by`, không OCR (`AGENTS.md` §0) |
+| Scorecard nội bộ SHB / core-banking thật | Out of scope — demo MCP role, không production RBAC |
 
 ---
 
@@ -66,14 +63,14 @@ Chi tiết: Solution Design §2.4.1
 
 | Phân khúc | Trạng thái | Ai đã giải |
 |---|---|---|
-| Bán lẻ, SME chuẩn hoá, ticket nhỏ | ⏱️ **Phút** — xong rồi | Scorecard + LOS |
-| **DN lớn, phi chuẩn, có TSBĐ, chạm trần luật định** | 📅 **Vẫn tuần** | **Chưa ai** |
+| Bán lẻ chuẩn hoá, ticket nhỏ, STP | ⏱️ **Phút** — xong rồi | Scorecard + LOS |
+| **Bán lẻ có xung đột liên phòng + chạm hard legal limit** (mục đích cấm, LTV, HITL) | 📅 **Vẫn chậm / dễ miss** | **Chưa ai làm bằng agent + policy-as-code** |
 
-Techcombank dùng chữ **"sơ duyệt"** — không phải phê duyệt. **LOS giải bài định tuyến và bài chấm điểm. Nó không giải bài phán đoán.** Luân chuyển song song = chuyển *cái file* tới các phòng cùng lúc; người trong các phòng vẫn ngồi đọc.
+Techcombank dùng chữ **"sơ duyệt"** — không phải phê duyệt. **LOS giải bài định tuyến và bài chấm điểm. Nó không giải bài phán đoán khi chứng từ mâu thuẫn mục đích khai báo.** Luân chuyển song song = chuyển *cái file* tới các phòng cùng lúc; người trong các phòng vẫn ngồi đọc.
 
 **Nêu chủ động, đừng để bị hỏi:**
 
-> *"Vay 500 triệu thì 5 phút — Techcombank làm được rồi, bằng scorecard. Bài của chúng tôi bắt đầu đúng ở chỗ scorecard bó tay: 20 tỷ, bốn bộ phận phải đồng ý, và một trần luật định không được vượt."*
+> *"Vay tiêu dùng chuẩn thì scorecard/STP làm được rồi. Bài của chúng tôi bắt đầu đúng ở chỗ scorecard bó tay: thế chấp bán lẻ, mục đích khai báo mâu thuẫn chứng từ, Compliance veto trên hard limit trong policy — rồi Planner replan, không phải một prompt dài."*
 
 Đội nào vẽ bức tranh "ngân hàng mất 3 tuần cho mọi khoản vay" sẽ bị bắn hạ trong 5 giây. Đội nào tự nêu rồi khoanh đúng phân khúc thì được cộng điểm vì hiểu nghề.
 

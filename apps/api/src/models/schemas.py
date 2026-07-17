@@ -2,7 +2,15 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from src.agents.state import ComplianceVerdict, CreditAssessment, NodeTrace, OperationsReport, RunTrace
+from src.agents.state import (
+    ComplianceVerdict,
+    CreditAssessment,
+    DeclaredForm,
+    Document,
+    NodeTrace,
+    OperationsReport,
+    RunTrace,
+)
 
 
 class ChatRequest(BaseModel):
@@ -11,6 +19,19 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str = Field(..., description="Agent response")
+
+
+class AssessApplicationRequest(BaseModel):
+    """Full loan application body for POST /assess/application.
+
+    Mirrors ``LoanApplication`` in ``state.py`` so the graph can run on submitted
+    data instead of ``seed_application()``. Tier-3 docs may carry ``extracted`` +
+    ``confirmed_by`` (human confirm, not OCR).
+    """
+
+    product: str = Field(..., description="retail_mortgage | retail_unsecured_salary")
+    declared: DeclaredForm
+    documents: list[Document] = Field(default_factory=list)
 
 
 class AssessResponse(BaseModel):
