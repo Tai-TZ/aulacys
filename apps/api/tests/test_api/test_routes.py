@@ -41,3 +41,61 @@ async def test_assess_returns_structured_veto(client):
 async def test_assess_empty_message(client):
     response = await client.post("/api/v1/assess", json={"message": ""})
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_assess_application_runs_submitted_mortgage_veto(client):
+    """POST /assess/application uses the body — not seed_application()."""
+    payload = {
+        "product": "retail_mortgage",
+        "declared": {
+            "customer_name": "Tran Thi B",
+            "amount": 2_500_000_000,
+            "term_months": 240,
+            "annual_rate": 0.105,
+            "monthly_income": 85_000_000,
+            "existing_monthly_debt": 8_000_000,
+            "declared_purpose": "mua nhà để ở",
+            "collateral_value_declared": 4_000_000_000,
+        },
+        "documents": [
+            {"kind": "cccd", "tier": 1, "extracted": {"verified": True}},
+            {"kind": "sao_ke_tai_khoan", "tier": 1, "extracted": {"monthly_income": 85_000_000}},
+            {"kind": "so_do", "tier": 2, "extracted": {"parcel": "DEMO-001"}},
+            {"kind": "hop_dong_mua_ban", "tier": 2, "extracted": {"seller": "Demo Seller"}},
+            {"kind": "cic", "tier": 1, "extracted": {"score_band": "A"}},
+            {
+                "kind": "purpose_evidence",
+                "tier": 2,
+                "extracted": {"actual_purpose": "tất toán khoản vay ở TCTD khác"},
+            },
+        ],
+    }
+    response = await client.post("/api/v1/assess/application", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["outcome"] == "vetoed"
+    assert data["run_trace"]["veto_fired"] is True
+    assert data["run_trace"]["replan_count"] == 2
+    assert data["compliance"]["veto"] is True
+    assert "prohibited_purpose_refinance_other_bank" in data["compliance"]["rule_ids"]
+    assert sum(1 for item in data["trace"] if item["node"] == "compliance") == 3
+
+
+@pytest.mark.asyncio
+async def test_assess_application_unknown_product(client):
+    response = await client.post(
+        "/api/v1/assess/application",
+        json={
+            "product": "not_a_product",
+            "declared": {
+                "customer_name": "X",
+                "amount": 1,
+                "term_months": 12,
+                "monthly_income": 1,
+                "declared_purpose": "test",
+            },
+            "documents": [],
+        },
+    )
+    assert response.status_code == 422

@@ -14,6 +14,34 @@ export interface ChatResponse {
   response: string;
 }
 
+// --- Full application (POST /api/v1/assess/application) — mirrors AssessApplicationRequest ---
+
+export interface DeclaredForm {
+  customer_name: string;
+  amount: number;
+  term_months: number;
+  annual_rate?: number;
+  monthly_income: number;
+  existing_monthly_debt?: number;
+  declared_purpose: string;
+  collateral_value_declared?: number | null;
+  existing_exposure?: number;
+  bank_own_capital?: number;
+}
+
+export interface DocumentInput {
+  kind: string;
+  tier: 1 | 2 | 3;
+  extracted?: Record<string, unknown> | null;
+  confirmed_by?: string | null;
+}
+
+export interface AssessApplicationRequest {
+  product: string;
+  declared: DeclaredForm;
+  documents: DocumentInput[];
+}
+
 // --- Structured run result (POST /api/v1/assess) — mirrors AssessResponse ---
 
 export interface RunTrace {
@@ -119,6 +147,20 @@ export async function assess(message: string): Promise<AssessResponse> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message } satisfies ChatRequest),
+  });
+  if (!res.ok) {
+    throw new Error(`API error ${res.status}`);
+  }
+  return (await res.json()) as AssessResponse;
+}
+
+export async function assessApplication(
+  body: AssessApplicationRequest,
+): Promise<AssessResponse> {
+  const res = await fetch(`${API_URL}/api/v1/assess/application`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     throw new Error(`API error ${res.status}`);
