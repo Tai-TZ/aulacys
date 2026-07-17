@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
-  ArrowRight,
   Bot,
   Clock3,
   History,
@@ -94,7 +93,7 @@ export function LoanChatbot() {
     <div className={cn("fixed z-50", expanded ? "inset-0 bg-chat-backdrop p-0 sm:p-5" : "bottom-0 left-0 right-0 top-0 sm:inset-auto sm:bottom-6 sm:right-6")} role="dialog" aria-modal="true" aria-label="Trợ lý khoản vay SHB">
       <div className={cn(
         "grid h-full overflow-hidden border border-chat-border bg-chat-canvas shadow-chat transition-all",
-        expanded ? "mx-auto max-w-[1440px] rounded-none sm:h-[calc(100vh-2.5rem)] sm:rounded-[28px] lg:grid-cols-[260px_1fr]" : "rounded-none sm:h-[680px] sm:w-[430px] sm:rounded-[24px]",
+        expanded ? "mx-auto max-w-[1440px] rounded-none sm:h-[calc(100vh-2.5rem)] sm:rounded-[28px] lg:grid-cols-[260px_1fr]" : "rounded-none sm:h-[min(580px,calc(100vh-3rem))] sm:w-[400px] sm:rounded-[24px]",
       )}>
         {expanded && (
           <aside className="hidden flex-col border-r border-chat-border bg-chat-sidebar p-4 lg:flex">
@@ -107,7 +106,7 @@ export function LoanChatbot() {
         )}
 
         <div className="flex min-h-0 min-w-0 flex-col">
-          <header className="flex h-16 shrink-0 items-center justify-between border-b border-chat-border bg-card px-4">
+          <header className="flex h-14 shrink-0 items-center justify-between border-b border-chat-border bg-card px-4">
             <div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-on-primary"><Sparkles size={19}/></span><div><p className="text-sm font-semibold text-navy">Trợ lý khoản vay SHB</p><p className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-chat-online"/> Sẵn sàng hỗ trợ</p></div></div>
             <div className="flex items-center gap-1">
               <Button type="button" variant="ghost" size="icon" onClick={() => setExpanded((value) => !value)} aria-label={expanded ? "Thu nhỏ chatbot" : "Mở rộng chatbot"}>{expanded ? <Minimize2 size={18}/> : <Maximize2 size={18}/>}</Button>
@@ -115,14 +114,14 @@ export function LoanChatbot() {
             </div>
           </header>
 
-          <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-4 sm:px-6">
+          <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-4 sm:px-5">
             {messages.length === 0 ? (
-              <div className={cn("mx-auto flex min-h-full max-w-3xl flex-col py-8", expanded ? "justify-center" : "justify-start pt-6 sm:pt-10")}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-on-primary shadow-brand"><Bot size={22}/></div>
-                <h2 className={cn("mt-5 font-light tracking-tight text-navy", expanded ? "text-4xl" : "text-[22px] leading-snug sm:text-2xl")}>Xin chào, tôi có thể giúp gì?</h2>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">Mô tả nhu cầu vay và kế hoạch tài chính của bạn để nhận tư vấn phù hợp.</p>
-                <div className={cn("mt-6 grid gap-2.5", expanded && "sm:grid-cols-2")}>
-                  {suggestions.map(([title, prompt]) => <button key={title} onClick={() => selectSuggestion(prompt)} className="group rounded-2xl border border-chat-border bg-card p-3.5 text-left transition hover:border-brand/40 hover:shadow-sm active:scale-[0.98]"><span className="text-sm font-semibold text-navy">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{prompt}</span><ArrowRight className="mt-2 text-brand opacity-0 transition group-hover:opacity-100" size={15}/></button>)}
+              <div className={cn("mx-auto flex min-h-full max-w-3xl flex-col justify-center", expanded ? "py-8" : "py-5")}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-on-primary shadow-brand"><Bot size={19}/></div>
+                <h2 className={cn("mt-3 font-light tracking-tight text-navy", expanded ? "text-4xl" : "text-xl leading-snug")}>Xin chào, tôi có thể giúp gì?</h2>
+                <p className="mt-1.5 text-[13px] leading-5 text-muted-foreground">Mô tả nhu cầu vay và kế hoạch tài chính của bạn để nhận tư vấn phù hợp.</p>
+                <div className={cn("mt-4 grid gap-2", expanded && "sm:grid-cols-2")}>
+                  {suggestions.map(([title, prompt]) => <button key={title} onClick={() => selectSuggestion(prompt)} className="group rounded-xl border border-chat-border bg-card px-3 py-2.5 text-left transition hover:border-brand/40 hover:shadow-sm active:scale-[0.98]"><span className="text-[13px] font-semibold text-navy">{title}</span><span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground line-clamp-1">{prompt}</span></button>)}
                 </div>
               </div>
             ) : (
@@ -133,13 +132,13 @@ export function LoanChatbot() {
             )}
           </div>
 
-          <div className="shrink-0 bg-chat-canvas px-3 pb-3 pt-2 sm:px-5 sm:pb-5">
-            <form onSubmit={handleSend} className="mx-auto max-w-3xl rounded-[20px] border border-chat-border bg-card p-2.5 shadow-composer focus-within:border-brand/50 focus-within:ring-4 focus-within:ring-brand/10">
+          <div className="shrink-0 bg-chat-canvas px-3 pb-2 pt-1.5 sm:px-4 sm:pb-3">
+            <form onSubmit={handleSend} className="mx-auto max-w-3xl rounded-2xl border border-chat-border bg-card p-2 shadow-composer focus-within:border-brand/50 focus-within:ring-4 focus-within:ring-brand/10">
               <label htmlFor="floating-loan-request" className="sr-only">Nhập câu hỏi về khoản vay</label>
-              <Textarea id="floating-loan-request" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} rows={2} className="max-h-32 min-h-14 resize-none border-0 bg-transparent px-2 py-2 text-sm shadow-none focus-visible:ring-0" placeholder="Hỏi về khoản vay của bạn..."/>
-              <div className="flex items-center justify-between"><div className="flex items-center gap-1"><Button type="button" variant="ghost" size="icon" aria-label="Đính kèm hồ sơ"><Paperclip size={17}/></Button>{expanded && <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex"><Clock3 size={13}/> Phản hồi có kiểm chứng</span>}</div><Button type="submit" size="icon" disabled={loading || !input.trim()} className="rounded-full" aria-label="Gửi tin nhắn"><Send size={16}/></Button></div>
+              <Textarea id="floating-loan-request" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} rows={1} className="max-h-24 min-h-[38px] resize-none border-0 bg-transparent px-2 py-1.5 text-sm shadow-none focus-visible:ring-0" placeholder="Hỏi về khoản vay của bạn..."/>
+              <div className="flex items-center justify-between"><div className="flex items-center gap-1"><Button type="button" variant="ghost" size="icon" aria-label="Đính kèm hồ sơ"><Paperclip size={16}/></Button>{expanded && <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex"><Clock3 size={13}/> Phản hồi có kiểm chứng</span>}</div><Button type="submit" size="icon" disabled={loading || !input.trim()} className="h-8 w-8 rounded-full" aria-label="Gửi tin nhắn"><Send size={15}/></Button></div>
             </form>
-            <p className="mt-2 text-center text-[10px] text-muted-foreground">Thông tin chỉ mang tính tham khảo.</p>
+            <p className="mt-1.5 text-center text-[10px] text-muted-foreground">Thông tin chỉ mang tính tham khảo.</p>
           </div>
         </div>
       </div>
