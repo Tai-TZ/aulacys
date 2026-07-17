@@ -28,6 +28,8 @@ async def assess(request: ChatRequest) -> AssessResponse:
         response=state.get("response", ""),
         outcome=state.get("outcome", ""),
         run_trace=state.get("run_trace") or RunTrace(),
+        credit=state.get("credit"),
+        operations=state.get("operations"),
         compliance=state.get("compliance"),
         trace=state.get("trace", []),
         ticket=state.get("ticket"),

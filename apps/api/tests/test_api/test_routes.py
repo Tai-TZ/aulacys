@@ -29,6 +29,10 @@ async def test_assess_returns_structured_veto(client):
     assert data["outcome"] == "vetoed"
     assert data["run_trace"]["lane"] == 3
     assert data["run_trace"]["replan_count"] == 2
+    assert data["credit"]["dti"] == 0.3878
+    assert data["credit"]["tool_results"]["cic_lookup"]["score_band"] == "A"
+    assert data["operations"]["valuation"] == 4_000_000_000
+    assert data["operations"]["legal_flags"] == []
     assert data["compliance"]["veto"] is True
     assert any(item["node"] == "compliance" for item in data["trace"])
 

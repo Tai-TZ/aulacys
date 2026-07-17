@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from src.agents.state import ComplianceVerdict, NodeTrace, RunTrace
+from src.agents.state import ComplianceVerdict, CreditAssessment, NodeTrace, OperationsReport, RunTrace
 
 
 class ChatRequest(BaseModel):
@@ -22,6 +22,8 @@ class AssessResponse(BaseModel):
     response: str = Field(..., description="Human-readable summary")
     outcome: str = Field(..., description="stp_approved | vetoed | ready_for_human_approval")
     run_trace: RunTrace
+    credit: CreditAssessment | None = None
+    operations: OperationsReport | None = None
     compliance: ComplianceVerdict | None = None
     trace: list[NodeTrace] = Field(default_factory=list)
     ticket: dict[str, Any] | None = None
