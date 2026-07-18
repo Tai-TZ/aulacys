@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from src.agents.harness.dispatch import dispatch
+from src.agents.harness.permissions import is_tool_allowed
 from src.agents.specs import AgentSpec
 from src.agents.state import AgentState, Citation, CreditAssessment
 
@@ -25,15 +26,18 @@ def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessmen
         {"cccd": declared.id_number, "consent_granted": declared.cic_consent},
     )
     tool_calls.append("cic_lookup")
+    income_tool = "salary_verify" if any(doc.kind == "sao_ke_luong" for doc in app.documents) else "income_verify"
+    if not is_tool_allowed(spec.tools, income_tool):
+        income_tool = "income_verify"
     income = dispatch(
         spec,
-        "income_verify" if "income_verify" in spec.tools else "salary_verify",
+        income_tool,
         {
             "declared_monthly_income": declared.monthly_income,
             "statement_monthly_income": statement_income,
         },
     )
-    tool_calls.append("income_verify" if "income_verify" in spec.tools else "salary_verify")
+    tool_calls.append(income_tool)
 
     annual_service = dispatch(
         spec,
@@ -119,14 +123,7 @@ CreditSpec = AgentSpec(
     name="credit",
     line=1,
     reads=["application"],
-    tools=[
-        "cic_lookup",
-        "income_verify",
-        "salary_verify",
-        "compute_annual_debt_service",
-        "compute_dti",
-        "price_loan",
-    ],
+    tools=["core_banking_read", "loan_calculator"],
     kb="retail_lending",
     policy="retail_lending.yaml",
     output=CreditAssessment,

@@ -3,22 +3,7 @@
 agents: [credit, operations, compliance]
 depends:
   compliance: [operations]
-tools:
-  - cic_lookup
-  - income_verify
-  - compute_annual_debt_service
-  - compute_dti
-  - price_loan
-  - sao_ke_parse
-  - schedule_valuation
-  - property_valuation
-  - land_registry
-  - doc_checklist
-  - compute_ltv
-  - kyc_check
-  - ubo_check
-  - aml_screen
-  - related_party
+tools: [core_banking_read, loan_calculator, aml_screening, workflow_write]
 policy: retail_lending.yaml
 limits:
   ltv_cap: 0.9

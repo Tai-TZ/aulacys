@@ -8,6 +8,7 @@ from pydantic import BaseModel, ValidationError
 
 from src.agents.harness import context, trace
 from src.agents.harness.meter import NodeTimer
+from src.agents.harness.permissions import is_tool_allowed
 from src.agents.specs import AgentSpec
 from src.agents.state import AgentState, NodeTrace
 from src.config import get_settings
@@ -123,7 +124,7 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
         else:
             obj, tool_calls = spec.fallback(state, spec)
 
-    tool_calls = [name for name in tool_calls if name in spec.tools][: spec.max_tool_calls]
+    tool_calls = [name for name in tool_calls if is_tool_allowed(spec.tools, name)][: spec.max_tool_calls]
 
     trace.emit(
         state,

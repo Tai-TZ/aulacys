@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from src.agents.harness.dispatch import dispatch
+from src.agents.harness.permissions import is_tool_allowed
 from src.agents.specs import AgentSpec
 from src.agents.state import AgentState, Citation, OperationsReport
 
@@ -26,7 +27,7 @@ def operations_fallback(state: AgentState, spec: AgentSpec) -> tuple[OperationsR
     valuation_task: dict = {}
     registry_result: dict = {"legal_flags": []}
     valuation: float | None = None
-    if declared.collateral_value_declared is not None and "property_valuation" in spec.tools:
+    if declared.collateral_value_declared is not None and is_tool_allowed(spec.tools, "property_valuation"):
         valuation_task = dispatch(
             spec,
             "schedule_valuation",
@@ -94,7 +95,7 @@ OperationsSpec = AgentSpec(
     name="operations",
     line=1,
     reads=["application", "metadata"],
-    tools=["schedule_valuation", "property_valuation", "land_registry", "doc_checklist", "write_approval_ticket"],
+    tools=["core_banking_read", "workflow_write"],
     kb="collateral",
     output=OperationsReport,
     model="deterministic-fallback",

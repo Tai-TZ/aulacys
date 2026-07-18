@@ -59,13 +59,27 @@ separation. Đây là bản nâng của vòng veto→replan hiện có.
 
 | Tiêu chí | Planner | Credit | Compliance | Operations | Critic |
 |---|---|---|---|---|---|
-| Model tier | ❌ 0 model | ❌ | ❌ | ❌ | ❌ |
-| Trách nhiệm lõi | ⚠️ DAG không execute | ⚠️ **thiếu lãi suất** | ⚠️ **thiếu KYC/UBO** | ⚠️ **ticket sai chủ** | ⚠️ **không soạn tờ trình / plan sửa** |
-| Tool whitelist | ✅ | ⚠️ core-bank mock | ⚠️ | ❌ thiếu write-ticket | ✅ |
+| Model tier | ✅ strong | ✅ mini | ✅ mini | ✅ mini | ✅ strong |
+| Trách nhiệm lõi | ✅ DAG + replan | ✅ DTI + hạn mức/lãi suất | ✅ KYC/UBO + AML + veto | ✅ checklist + valuation schedule + ticket | ✅ verify + memo/remediation |
+| Tool whitelist | ✅ none | ✅ facade | ✅ facade | ✅ facade | ✅ none |
 | KB | — ✅ | ❌ rỗng | ❌ rỗng | ❌ rỗng | ✅ đọc-all |
 | Veto | — | — | ✅ | — | — |
 
-Nền đúng: tách role, whitelist enforce (`dispatch`), veto policy-as-code, replan loop, Critic-verify.
+Hiện đã có: model-tier infra, DAG execution order, Credit pricing, Compliance KYC/UBO,
+Operations workflow write, Critic memo/remediation, và facade permission enforce trong
+`apps/api/src/agents/harness/permissions.py`.
+
+Tool whitelist trong code dùng **facade** đúng bảng contract:
+
+| Facade | Physical tools |
+|---|---|
+| `core_banking_read` | `cic_lookup`, `income_verify`, `salary_verify`, `sao_ke_parse`, `kyc_check`, `ubo_check`, `compute_ltv`, `doc_checklist`, `property_valuation`, `land_registry` |
+| `loan_calculator` | `compute_annual_debt_service`, `compute_dti`, `price_loan` |
+| `aml_screening` | `aml_screen`, `related_party` |
+| `workflow_write` | `schedule_valuation`, `write_approval_ticket` |
+
+Trace vẫn ghi **physical tool call** để Critic/audit có bằng chứng; permission surface của
+agent thì chỉ là facade.
 
 ---
 

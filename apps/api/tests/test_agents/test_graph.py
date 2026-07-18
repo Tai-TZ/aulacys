@@ -2,7 +2,11 @@ import pytest
 
 from src.agents import graph as graph_module
 from src.agents.graph import agent
+from src.agents.nodes.compliance import ComplianceSpec
+from src.agents.nodes.credit import CreditSpec
+from src.agents.nodes.critic import CriticSpec
 from src.agents.nodes.operations import OperationsSpec
+from src.agents.nodes.planner import PlannerSpec
 
 
 @pytest.mark.asyncio
@@ -40,7 +44,7 @@ async def test_mortgage_demo_veto_replans_and_writes_ticket():
     assert result["critic"].remediation_plan
     assert result["run_trace"].veto_fired is True
     assert result["ticket"]["status"] == "vetoed"
-    assert "write_approval_ticket" in OperationsSpec.tools
+    assert OperationsSpec.tools == ["core_banking_read", "workflow_write"]
     # compliance re-ran each replan: initial + 2 replans = 3 compliance traces.
     assert sum(1 for item in result["trace"] if item.node == "compliance") == 3
 
@@ -96,3 +100,11 @@ async def test_agent_execution_warns_on_dag_cycle(monkeypatch):
     result = await agent.ainvoke({"query": "tín chấp lương"})
 
     assert "DAG dependency cycle" in result["metadata"]["graph_warnings"][0]
+
+
+def test_agent_specs_match_role_permission_contract():
+    assert PlannerSpec.tools == []
+    assert CreditSpec.tools == ["core_banking_read", "loan_calculator"]
+    assert ComplianceSpec.tools == ["core_banking_read", "aml_screening"]
+    assert OperationsSpec.tools == ["core_banking_read", "workflow_write"]
+    assert CriticSpec.tools == []

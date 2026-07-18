@@ -1,16 +1,7 @@
 # Alias kept for demo message path + existing tests.
 # Prefer loan-unsecured-term / loan-unsecured-overdraft for new callers.
 agents: [credit, compliance]
-tools:
-  - cic_lookup
-  - salary_verify
-  - compute_annual_debt_service
-  - compute_dti
-  - price_loan
-  - kyc_check
-  - ubo_check
-  - aml_screen
-  - related_party
+tools: [core_banking_read, loan_calculator, aml_screening]
 policy: retail_lending.yaml
 limits:
   amount_ceiling: 500000000
