@@ -5,9 +5,7 @@ import { Coins, Plus, Settings, Grid, List } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/cn";
-import {
-  INITIAL_GROUPS,
-  INITIAL_PRODUCTS,
+import type {
   LoanProduct,
   LoanProductGroup,
   ProductStatus,
@@ -43,10 +41,11 @@ import {
 type ViewMode = "LIST" | "CREATE" | "EDIT";
 
 export default function IndividualLoanProductPage() {
-  const [products, setProducts] = useState<LoanProduct[]>(INITIAL_PRODUCTS);
-  const [groups, setGroups] = useState<LoanProductGroup[]>(INITIAL_GROUPS);
+  const [products, setProducts] = useState<LoanProduct[]>([]);
+  const [groups, setGroups] = useState<LoanProductGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [apiLive, setApiLive] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [catalogSource, setCatalogSource] = useState<"database" | "memory" | null>(null);
 
   const [viewMode, setViewMode] = useState<ViewMode>("LIST");
   const [viewType, setViewType] = useState<"GROUP" | "TABLE">("GROUP");
@@ -65,30 +64,45 @@ export default function IndividualLoanProductPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "error" }[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
+    // One toast at a time — stacked toasts feel laggy after multi-save / HMR.
+    setToasts([{ id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3500);
+    }, 2800);
   };
 
   const refreshCatalog = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
-      await seedLoanProducts().catch(() => undefined);
-      const [gDtos, pDtos] = await Promise.all([
+      let [gDtos, pDtos] = await Promise.all([
         listProductGroups(),
         listLoanProducts("INDIVIDUAL"),
       ]);
+      // Seed only when catalog empty — avoid stale API processes re-writing DB with old seed.
+      if (gDtos.length === 0 || pDtos.length === 0) {
+        const seeded = await seedLoanProducts();
+        setCatalogSource(seeded.source === "memory" ? "memory" : "database");
+        [gDtos, pDtos] = await Promise.all([
+          listProductGroups(),
+          listLoanProducts("INDIVIDUAL"),
+        ]);
+      } else {
+        setCatalogSource("database");
+      }
       setGroups(gDtos.map(groupFromDto));
       setProducts(pDtos.map(productFromDto));
-      setApiLive(true);
-    } catch {
-      setGroups(INITIAL_GROUPS);
-      setProducts(INITIAL_PRODUCTS);
-      setApiLive(false);
-      showToast("API catalog không sẵn sàng — đang dùng mock local.", "error");
+    } catch (err) {
+      setGroups([]);
+      setProducts([]);
+      setCatalogSource(null);
+      const msg = err instanceof Error ? err.message : "Không tải được catalog từ API";
+      setLoadError(msg);
+      showToast(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -108,24 +122,20 @@ export default function IndividualLoanProductPage() {
   };
 
   const handleSaveProduct = async (prod: LoanProduct) => {
+    if (saving) return;
+    setSaving(true);
     try {
-      if (apiLive) {
-        const body = productToWrite(prod);
-        const saved =
-          viewMode === "CREATE"
-            ? await createLoanProduct(body)
-            : await updateLoanProduct(prod.id, body);
-        const mapped = productFromDto(saved);
-        setProducts((prev) =>
-          viewMode === "CREATE"
-            ? [mapped, ...prev.filter((p) => p.id !== mapped.id)]
-            : prev.map((p) => (p.id === mapped.id ? mapped : p)),
-        );
-      } else if (viewMode === "CREATE") {
-        setProducts((prev) => [prod, ...prev]);
-      } else {
-        setProducts((prev) => prev.map((p) => (p.id === prod.id ? prod : p)));
-      }
+      const body = productToWrite(prod);
+      const saved =
+        viewMode === "CREATE"
+          ? await createLoanProduct(body)
+          : await updateLoanProduct(prod.id, body);
+      const mapped = productFromDto(saved);
+      setProducts((prev) =>
+        viewMode === "CREATE"
+          ? [mapped, ...prev.filter((p) => p.id !== mapped.id)]
+          : prev.map((p) => (p.id === mapped.id ? mapped : p)),
+      );
       showToast(
         viewMode === "CREATE"
           ? `Đã tạo sản phẩm vay "${prod.productName}" thành công.`
@@ -135,24 +145,16 @@ export default function IndividualLoanProductPage() {
       setEditingProduct(null);
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Lưu sản phẩm thất bại", "error");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleStatusConfirm = async (id: string, nextStatus: ProductStatus) => {
     try {
-      if (apiLive) {
-        const saved = await patchLoanProductStatus(id, nextStatus);
-        const mapped = productFromDto(saved);
-        setProducts((prev) => prev.map((p) => (p.id === id ? mapped : p)));
-      } else {
-        setProducts((prev) =>
-          prev.map((p) =>
-            p.id === id
-              ? { ...p, status: nextStatus, updatedAt: new Date().toISOString().split("T")[0]! }
-              : p,
-          ),
-        );
-      }
+      const saved = await patchLoanProductStatus(id, nextStatus);
+      const mapped = productFromDto(saved);
+      setProducts((prev) => prev.map((p) => (p.id === id ? mapped : p)));
       setStatusConfirmOpen(false);
       setSelectedProduct(null);
       showToast("Cập nhật trạng thái sản phẩm thành công.");
@@ -163,29 +165,18 @@ export default function IndividualLoanProductPage() {
 
   const handleSaveGroup = async (group: LoanProductGroup, isNew: boolean) => {
     try {
-      if (apiLive) {
-        const body = groupToWrite(group);
-        const saved = isNew
-          ? await createProductGroup(body)
-          : await updateProductGroup(group.id, body);
-        const mapped = groupFromDto(saved);
-        if (isNew) {
-          setGroups((prev) => [...prev, mapped]);
-        } else {
-          setGroups((prev) => prev.map((g) => (g.id === mapped.id ? mapped : g)));
-          setProducts((prev) =>
-            prev.map((p) =>
-              p.productGroupId === mapped.id ? { ...p, productGroupName: mapped.name } : p,
-            ),
-          );
-        }
-      } else if (isNew) {
-        setGroups((prev) => [...prev, group]);
+      const body = groupToWrite(group);
+      const saved = isNew
+        ? await createProductGroup(body)
+        : await updateProductGroup(group.id, body);
+      const mapped = groupFromDto(saved);
+      if (isNew) {
+        setGroups((prev) => [...prev, mapped]);
       } else {
-        setGroups((prev) => prev.map((g) => (g.id === group.id ? group : g)));
+        setGroups((prev) => prev.map((g) => (g.id === mapped.id ? mapped : g)));
         setProducts((prev) =>
           prev.map((p) =>
-            p.productGroupId === group.id ? { ...p, productGroupName: group.name } : p,
+            p.productGroupId === mapped.id ? { ...p, productGroupName: mapped.name } : p,
           ),
         );
       }
@@ -196,9 +187,7 @@ export default function IndividualLoanProductPage() {
 
   const handleDeleteGroup = async (groupId: string) => {
     try {
-      if (apiLive) {
-        await deleteProductGroup(groupId);
-      }
+      await deleteProductGroup(groupId);
       setGroups((prev) => prev.filter((g) => g.id !== groupId));
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Xóa nhóm thất bại", "error");
@@ -218,6 +207,15 @@ export default function IndividualLoanProductPage() {
     }
     return true;
   });
+
+  const sourceLabel =
+    catalogSource === "database"
+      ? "Nguồn: database"
+      : catalogSource === "memory"
+        ? "Nguồn: API (memory fallback)"
+        : loading
+          ? ""
+          : "Nguồn: chưa tải";
 
   return (
     <AdminShell
@@ -245,7 +243,20 @@ export default function IndividualLoanProductPage() {
 
       <div className="space-y-6">
         {loading && (
-          <p className="text-xs text-muted-foreground">Đang tải catalog sản phẩm…</p>
+          <p className="text-xs text-muted-foreground">Đang tải catalog sản phẩm từ API…</p>
+        )}
+        {loadError && !loading && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-800 flex flex-wrap items-center gap-3">
+            <span>Không tải được catalog: {loadError}</span>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 rounded-lg text-xs font-bold"
+              onClick={() => void refreshCatalog()}
+            >
+              Thử lại
+            </Button>
+          </div>
         )}
 
         {viewMode === "LIST" && (
@@ -259,7 +270,8 @@ export default function IndividualLoanProductPage() {
                 <p className="text-xs text-[#6B7280] leading-relaxed">
                   Quản lý các sản phẩm tín dụng dành cho khách hàng cá nhân theo nhu cầu vay,
                   hình thức cấp tín dụng và chính sách sản phẩm.
-                  {apiLive ? " · Nguồn: API/DB" : " · Nguồn: mock local"}
+                  {sourceLabel ? ` · ${sourceLabel}` : ""}
+                  {!loading && products.length > 0 ? ` (${products.length} sản phẩm)` : ""}
                 </p>
               </div>
 
@@ -268,6 +280,7 @@ export default function IndividualLoanProductPage() {
                   onClick={() => setGroupMgmtOpen(true)}
                   variant="outline"
                   className="h-11 rounded-xl border-[#003B71]/20 text-[#003B71] hover:bg-[#003B71]/5 font-bold text-xs"
+                  disabled={!!loadError}
                 >
                   <Settings size={15} className="mr-1.5" />
                   Quản lý nhóm sản phẩm
@@ -278,6 +291,7 @@ export default function IndividualLoanProductPage() {
                     setViewMode("CREATE");
                   }}
                   className="h-11 rounded-xl bg-[#F58220] hover:bg-[#F58220]/95 text-on-primary font-bold text-xs shadow-md"
+                  disabled={!!loadError || groups.length === 0}
                 >
                   <Plus size={16} className="mr-1.5" />
                   Tạo sản phẩm vay cá nhân
@@ -405,10 +419,13 @@ export default function IndividualLoanProductPage() {
             <IndividualLoanProductForm
               groups={groups}
               editingProduct={editingProduct}
+              catalogSource={catalogSource}
+              saving={saving}
               onSave={(prod) => {
                 void handleSaveProduct(prod);
               }}
               onCancel={() => {
+                if (saving) return;
                 setViewMode("LIST");
                 setEditingProduct(null);
               }}

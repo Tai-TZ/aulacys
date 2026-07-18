@@ -213,10 +213,28 @@ SEED_PRODUCTS: list[dict[str, Any]] = [
         "max_term": 60,
         "status": "ACTIVE",
         "interest_rate": 0,
-        "segments": ["Cá nhân", "Hộ gia đình"],
+        # Labels must match admin form SEGMENTS checklist
+        "segments": ["Khách hàng cá nhân phổ thông", "Người nhận lương"],
         "purpose": "Phục vụ các nhu cầu tiêu dùng của khách hàng",
         "agent_product_id": "retail_unsecured_salary",
         "channels": ["Tại quầy", "Website", "Ứng dụng"],
+        "loan_structure": {
+            "minAmount": None,
+            "maxAmount": 500_000_000,
+            "minTermMonths": None,
+            "maxTermMonths": 60,
+            "creditMethods": ["TERM_LOAN", "CREDIT_LIMIT"],
+            "loanMethodName": "Cho vay theo món / hạn mức tín dụng",
+            "securedTypeName": "Không có tài sản bảo đảm",
+        },
+        "interest_config": {
+            "publishedRate": None,
+            "promoRate": None,
+            "displayText": "Theo chính sách từ SHB",
+        },
+        "repayment_config": {
+            "method": "Theo thỏa thuận và chính sách SHB từng thời kỳ",
+        },
         "eligibility": {
             "nationality": "VIETNAMESE",
             "customerTypes": ["INDIVIDUAL", "HOUSEHOLD"],
@@ -226,5 +244,39 @@ SEED_PRODUCTS: list[dict[str, Any]] = [
             "goodCreditHistoryRequired": True,
             "repaymentCapacityProofRequired": True,
         },
+        "document_groups": [
+            {
+                "title": "Hồ sơ pháp lý",
+                "items": [
+                    "CCCD còn hiệu lực",
+                    "Thông tin cư trú",
+                    "Giấy tờ chứng minh mối quan hệ (nếu có)",
+                ],
+                "code": "LEGAL_DOCUMENTS",
+                "name": "Hồ sơ pháp lý",
+                "required": True,
+            },
+            {
+                "title": "Hồ sơ chứng minh thu nhập trả nợ",
+                "items": [
+                    "Hợp đồng lao động",
+                    "Sao kê lương 3 tháng gần nhất",
+                    "Xác nhận thu nhập khác (nếu có)",
+                ],
+                "code": "INCOME_DOCUMENTS",
+                "name": "Hồ sơ chứng minh thu nhập trả nợ",
+                "required": True,
+            },
+            {
+                "title": "Hồ sơ chứng minh mục đích vay vốn",
+                "items": [
+                    "Phương án sử dụng vốn kiêm cam kết trả nợ",
+                    "Giấy đề nghị vay vốn kiêm phương án trả nợ",
+                ],
+                "code": "LOAN_PURPOSE_DOCUMENTS",
+                "name": "Hồ sơ chứng minh mục đích vay vốn",
+                "required": True,
+            },
+        ],
     },
 ]

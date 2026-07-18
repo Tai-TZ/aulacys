@@ -1,4 +1,4 @@
-"""Proxy application-svc list/get — demo-proof empty list when unreachable."""
+"""Proxy application-svc list/get — returns None when unreachable."""
 
 from __future__ import annotations
 
@@ -18,10 +18,11 @@ def _base_url() -> str | None:
     return url.rstrip("/") if url else None
 
 
-def list_applications(*, limit: int = 100) -> list[dict[str, Any]]:
+def list_applications(*, limit: int = 100) -> list[dict[str, Any]] | None:
+    """Return dossiers from application-svc, or None if the service is unreachable."""
     base = _base_url()
     if not base:
-        return []
+        return None
     try:
         req = urllib.request.Request(f"{base}/applications?limit={limit}")
         with urllib.request.urlopen(req, timeout=8) as resp:  # noqa: S310
@@ -29,7 +30,7 @@ def list_applications(*, limit: int = 100) -> list[dict[str, Any]]:
             return data if isinstance(data, list) else []
     except Exception:
         logger.exception("list_applications: application-svc unreachable")
-        return []
+        return None
 
 
 def fetch_application(application_id: str) -> dict[str, Any] | None:

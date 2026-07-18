@@ -47,15 +47,33 @@ def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessmen
 
     verified_income = float(income.get("verified_monthly_income", declared.monthly_income))
     proposed_monthly = float(annual_service.get("monthly_payment", 0))
-    dti_result = dispatch(
-        spec,
-        "compute_dti",
-        {
-            "monthly_debt": declared.existing_monthly_debt + proposed_monthly,
-            "monthly_income": verified_income,
-        },
-    )
-    tool_calls.append("compute_dti")
+    cic_outstanding = float(cic.get("total_outstanding_vnd") or 0)
+    cic_monthly_debt = cic.get("monthly_debt_obligation_vnd")
+    if cic_outstanding > 0 and cic_monthly_debt is None:
+        # Outstanding principal cannot be converted to a monthly obligation without
+        # schedule/rate data. Do not guess: omit DTI so policy fails closed.
+        dti_result = {
+            "error": "CIC monthly debt obligation is required when outstanding debt is positive",
+            "inputs": {
+                "cic_total_outstanding_vnd": cic_outstanding,
+                "proposed_monthly_payment": proposed_monthly,
+                "monthly_income": verified_income,
+            },
+        }
+    else:
+        existing_monthly_debt = max(
+            declared.existing_monthly_debt,
+            float(cic_monthly_debt) if cic_monthly_debt is not None else 0.0,
+        )
+        dti_result = dispatch(
+            spec,
+            "compute_dti",
+            {
+                "monthly_debt": existing_monthly_debt + proposed_monthly,
+                "monthly_income": verified_income,
+            },
+        )
+        tool_calls.append("compute_dti")
 
     dti = dti_result.get("dti")
     max_overdue = int(cic.get("max_overdue_days") or cic.get("overdue_days") or 0)

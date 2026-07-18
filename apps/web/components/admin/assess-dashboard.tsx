@@ -32,6 +32,24 @@ import { cn } from "@/lib/cn";
 /** Dashboard always edits a full body (id path is API-only for now). */
 type AssessFormState = MappedAssessForm;
 
+type MetricFactView = {
+  value: number | null;
+  label_vi: string;
+  unit: string;
+  stage: string;
+  source: string;
+  valid: boolean;
+  error?: string | null;
+};
+
+type MetricReportView = {
+  complete: boolean;
+  required: string[];
+  missing: string[];
+  invalid: string[];
+  facts: Record<string, MetricFactView>;
+};
+
 const MORTGAGE_DEMO: AssessFormState = {
   product: "retail_mortgage",
   declared: {
@@ -1062,10 +1080,7 @@ function rememberResult(
   });
 }
 
-type DossierListItem = ReturnType<typeof applicationToListRow> & {
-  /** mock-only scenario key when not from DB */
-  fromDb?: boolean;
-};
+type DossierListItem = ReturnType<typeof applicationToListRow>;
 
 export function AssessDashboard() {
   const [viewMode, setViewMode] = useState<"list" | "detail">("list");
@@ -1077,77 +1092,29 @@ export function AssessDashboard() {
     data: AssessFormState;
     scenario: string;
     applicationId?: string | null;
-  } | null>({ data: HAPPY_DEMO, scenario: "happy" });
+  } | null>(null);
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
   const [result, setResult] = useState<AssessResponse | null>(null);
   const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
-  const [listSource, setListSource] = useState<"db" | "mock">("mock");
+  const [listSource, setListSource] = useState<"db" | "offline">("db");
   const [listLoading, setListLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const mockDossiers: DossierListItem[] = [
-    {
-      id: "happy",
-      application_id: "happy",
-      customer_name: "NGUYỄN THỊ BÉ HOA",
-      product: "retail_unsecured_salary",
-      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
-      amount: 150_000_000,
-      db_status: "submitted",
-      scenario: "happy",
-      data: HAPPY_DEMO,
-      fromDb: false,
-    },
-    {
-      id: "veto",
-      application_id: "veto",
-      customer_name: "TRẦN THỊ VUI",
-      product: "retail_unsecured_salary",
-      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
-      amount: 150_000_000,
-      db_status: "submitted",
-      scenario: "veto",
-      data: VETO_DEMO,
-      fromDb: false,
-    },
-    {
-      id: "hitl",
-      application_id: "hitl",
-      customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
-      product: "retail_mortgage",
-      product_label: "Vay thế chấp mua nhà (Mortgage Loan)",
-      amount: 2_500_000_000,
-      db_status: "submitted",
-      scenario: "hitl",
-      data: HITL_DEMO,
-      fromDb: false,
-    },
-  ];
 
   const refreshDossiers = useCallback(async () => {
     setListLoading(true);
     try {
       const rows = await listApplications(100);
-      if (rows.length > 0) {
-        setDossiers(
-          rows.map((r) => ({
-            ...applicationToListRow(r as unknown as ApplicationSectionA),
-            fromDb: true,
-          })),
-        );
-        setListSource("db");
-      } else {
-        setDossiers(mockDossiers);
-        setListSource("mock");
-      }
+      setDossiers(
+        rows.map((r) => applicationToListRow(r as unknown as ApplicationSectionA)),
+      );
+      setListSource("db");
     } catch {
-      setDossiers(mockDossiers);
-      setListSource("mock");
+      setDossiers([]);
+      setListSource("offline");
     } finally {
       setListLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mock is stable for fallback
   }, []);
 
   useEffect(() => {
@@ -1166,7 +1133,7 @@ export function AssessDashboard() {
   const getDossierStatusInfo = (item: DossierListItem) => {
     const match = cases.find(
       (c: HitlCase) =>
-        (item.fromDb && c.application_id === item.application_id) ||
+        c.application_id === item.application_id ||
         c.customer_name.toUpperCase() === item.customer_name.toUpperCase() ||
         c.customer_name.toUpperCase().includes(item.customer_name.split(" ").slice(-1)[0] ?? ""),
     );
@@ -1233,6 +1200,7 @@ export function AssessDashboard() {
   const compliance = result?.compliance;
   const veto = Boolean(compliance?.veto);
   const unverified = (compliance?.violations ?? []).filter((v) => v.unverified);
+  const metricReport = compliance?.tool_results?.metric_report as MetricReportView | undefined;
   const stats = [
     {
       label: "Lane",
@@ -1334,8 +1302,8 @@ export function AssessDashboard() {
               {listLoading
                 ? "Đang tải…"
                 : listSource === "db"
-                  ? `Nguồn: database (${dossiers.length} hồ sơ)`
-                  : "Nguồn: mock local (API/application-svc trống hoặc offline)"}
+                  ? `Nguồn: application-svc / database (${dossiers.length} hồ sơ)`
+                  : "Nguồn: không kết nối được API/application-svc"}
             </p>
           </div>
         </div>
@@ -1394,7 +1362,11 @@ export function AssessDashboard() {
                 {filteredDossiers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-12 text-xs text-muted-foreground italic bg-secondary/5">
-                      Không tìm thấy hồ sơ nào phù hợp với bộ lọc.
+                      {listSource === "offline"
+                        ? "Không kết nối được application-svc. Kiểm tra service :8360 rồi tải lại trang."
+                        : dossiers.length === 0
+                          ? "Chưa có hồ sơ trong database. Chạy seed: python scripts/seed_dossiers.py"
+                          : "Không tìm thấy hồ sơ nào phù hợp với bộ lọc."}
                     </td>
                   </tr>
                 ) : (
@@ -1408,7 +1380,7 @@ export function AssessDashboard() {
                           setDossier({
                             data: item.data,
                             scenario: item.scenario,
-                            applicationId: item.fromDb ? item.application_id : null,
+                            applicationId: item.application_id,
                           });
                           setForm(item.data);
                           setResult(null); // Clear previous results when switching
@@ -1530,6 +1502,52 @@ export function AssessDashboard() {
           </Card>
         ))}
       </section>
+
+      {metricReport && (
+        <Card className="border-border/70 p-5 shadow-card sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-3">
+            <div>
+              <h2 className="text-sm font-semibold text-navy">Chỉ số thẩm định</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Giá trị do tool tạo và nguồn bằng chứng được dùng để chạy Rule Engine.
+              </p>
+            </div>
+            <StatusBadge tone={metricReport.complete ? "success" : "warning"}>
+              {metricReport.complete
+                ? `Đủ ${metricReport.required.length}/${metricReport.required.length}`
+                : `Thiếu ${metricReport.missing.length + metricReport.invalid.length}`}
+            </StatusBadge>
+          </div>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {metricReport.required.map((name) => {
+              const fact = metricReport.facts[name];
+              const ok = Boolean(fact?.valid && fact.value != null);
+              return (
+                <div
+                  key={name}
+                  className={cn(
+                    "rounded-xl border p-3",
+                    ok ? "border-border/60 bg-secondary/30" : "border-warning-foreground/20 bg-warning-soft",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-xs font-semibold text-navy">{fact?.label_vi || name}</span>
+                    <StatusBadge tone={ok ? "success" : "warning"}>{ok ? "Đạt dữ liệu" : "Thiếu"}</StatusBadge>
+                  </div>
+                  <p className="mt-2 text-lg font-semibold text-foreground">
+                    {fact?.value == null ? "—" : new Intl.NumberFormat("vi-VN").format(fact.value)}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                    <code>{name}</code> · Nguồn: {fact?.source || "Chưa có"}
+                  </p>
+                  {fact?.error && <p className="mt-1 text-xs text-warning-foreground">{fact.error}</p>}
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {veto && (
         <Card className="border-warning-foreground/15 bg-warning-soft p-5 shadow-card">
