@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     seed_path: Path = Path(__file__).resolve().parents[2] / "seed" / "cic_records.json"
     service_name: str = "cic-svc"
-    version: str = "0.2.0"
+    version: str = "0.4.0"
 
 @lru_cache
 def get_settings() -> Settings:
