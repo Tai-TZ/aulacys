@@ -42,9 +42,7 @@ def test_mapper_maps_section_a_fields() -> None:
 
 def test_mapper_consent_gate() -> None:
     with pytest.raises(ConsentDeniedError, match="data_processing_consent"):
-        map_to_loan_application(
-            _section_a(consent={"data_processing_consent": False, "marketing_consent": False})
-        )
+        map_to_loan_application(_section_a(consent={"data_processing_consent": False, "marketing_consent": False}))
 
 
 def test_product_override() -> None:

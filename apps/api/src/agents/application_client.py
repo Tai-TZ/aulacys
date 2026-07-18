@@ -64,9 +64,7 @@ def map_to_loan_application(
     """Section A payload → LoanApplication. Raises ConsentDeniedError if blocked."""
     consent = raw.get("consent") or {}
     if not consent.get("data_processing_consent"):
-        raise ConsentDeniedError(
-            "data_processing_consent must be true — cannot process PII without consent"
-        )
+        raise ConsentDeniedError("data_processing_consent must be true — cannot process PII without consent")
 
     applicant = raw.get("applicant") or {}
     financial = raw.get("financial") or {}
@@ -89,9 +87,7 @@ def map_to_loan_application(
 
     documents: list[Document] = list(extra_documents or [])
     if not any(d.kind == "cccd" for d in documents):
-        documents.append(
-            Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": id_number})
-        )
+        documents.append(Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": id_number}))
     if total_income and not any(d.kind in {"sao_ke_luong", "sao_ke_tai_khoan"} for d in documents):
         documents.append(
             Document(

@@ -1,0 +1,94 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: Bạn đang ở
+        - button "Khách hàng doanh nghiệp" [ref=e8] [cursor=pointer]
+        - generic [ref=e11]: Giới thiệu SHB
+      - generic [ref=e12]:
+        - generic [ref=e13]: Tìm ATM & Chi nhánh
+        - generic [ref=e17]: Nhắn tin với SHB
+        - generic [ref=e20]: "*6688"
+        - generic [ref=e23]: 🇻🇳 Tiếng Việt
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - img "SHB" [ref=e26]
+        - generic [ref=e27]: Digital Expert
+      - button "Đăng nhập" [ref=e33] [cursor=pointer]
+  - generic [ref=e36]:
+    - img "Chuyên gia SHB đồng hành cùng doanh nghiệp" [ref=e37]
+    - generic [ref=e39]:
+      - generic [ref=e40]:
+        - generic [ref=e41]: Khách hàng doanh nghiệp
+        - generic [ref=e44]: Digital Expert
+      - heading "Đồng hành cùng bạn với mọi quyết định tương lai" [level=1] [ref=e45]: Đồng hành cùng bạn vớimọi quyết định tương lai
+      - paragraph [ref=e46]: Bạn cần hỗ trợ thẩm định?
+      - generic [ref=e47]:
+        - generic [ref=e48]: Thẩm định tín dụng
+        - generic [ref=e52]: Kiểm tra tuân thủ
+        - generic [ref=e57]: Định giá tài sản
+        - generic [ref=e63]: Phê duyệt hồ sơ
+        - generic [ref=e70]: Vận hành giải ngân
+  - generic [ref=e76]:
+    - generic [ref=e77]: Khám phá giải pháp
+    - heading "Lựa chọn tối ưu cho mọi hồ sơ tín dụng" [level=2] [ref=e80]: Lựa chọn tối ưu chomọi hồ sơ tín dụng
+    - generic [ref=e81]:
+      - generic [ref=e82]:
+        - generic [ref=e83]: Tín dụng
+        - heading "Phân tích hồ sơ doanh nghiệp" [level=3] [ref=e91]
+        - paragraph [ref=e92]: DSCR, LTV và hạn mức được tính bằng công cụ định lượng.
+      - generic [ref=e93]:
+        - generic [ref=e94]: Tuân thủ
+        - heading "Kiểm tra giới hạn pháp lý" [level=3] [ref=e103]
+        - paragraph [ref=e104]: Policy-as-code phát hiện vi phạm và có quyền phủ quyết.
+      - generic [ref=e105]:
+        - generic [ref=e106]: Điều phối
+        - heading "Lập kế hoạch và tái lập kế hoạch" [level=3] [ref=e117]
+        - paragraph [ref=e118]: Planner phối hợp chuyên gia, Critic kiểm chứng từng kết luận.
+  - generic [ref=e120]:
+    - generic [ref=e121]:
+      - text: Hồ sơ tín dụng
+      - heading "Phân tích khoản vay cùng đội ngũ chuyên gia" [level=2] [ref=e122]: Phân tích khoản vaycùng đội ngũ chuyên gia
+      - paragraph [ref=e123]: Nhập yêu cầu. Planner sẽ phân công Credit và Compliance chạy song song, xử lý phủ quyết và trình kết quả có thể kiểm toán.
+      - generic [ref=e124]:
+        - paragraph [ref=e125]: Mọi con số đến từ công cụ định lượng
+        - paragraph [ref=e128]: Mọi kết luận đều có nguồn trích dẫn
+        - paragraph [ref=e131]: Hành động quan trọng cần người phê duyệt
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - text: Yêu cầu thẩm định
+        - generic [ref=e136]:
+          - textbox "Yêu cầu thẩm định" [ref=e137]:
+            - /placeholder: Nhập yêu cầu khoản vay...
+            - text: Công ty ABC đề nghị vay 20 tỷ đồng, thế chấp bất động sản, cần giải ngân trong 5 ngày.
+          - button "Bắt đầu" [ref=e138] [cursor=pointer]
+      - generic [ref=e143]:
+        - heading "Sẵn sàng xử lý hồ sơ" [level=3] [ref=e147]
+        - paragraph [ref=e148]: Dùng tình huống mẫu hoặc nhập yêu cầu mới để xem các chuyên gia phối hợp.
+  - generic [ref=e150]:
+    - generic [ref=e151]:
+      - generic [ref=e155]:
+        - heading "Bạn cần trợ giúp?" [level=3] [ref=e156]
+        - paragraph [ref=e157]: SHB hỗ trợ 24/7
+      - button "Liên hệ ngay" [ref=e158] [cursor=pointer]
+    - generic [ref=e161]:
+      - generic [ref=e167]:
+        - heading "Theo dõi hồ sơ" [level=3] [ref=e168]
+        - paragraph [ref=e169]: Xem tiến trình chuyên gia
+      - button "Khám phá" [ref=e170] [cursor=pointer]
+    - generic [ref=e173]:
+      - generic [ref=e178]:
+        - heading "Bạn cần đến SHB?" [level=3] [ref=e179]
+        - paragraph [ref=e180]: Tìm điểm giao dịch gần nhất
+      - button "Mở bản đồ" [ref=e181] [cursor=pointer]
+  - generic [ref=e184]:
+    - generic [ref=e185]:
+      - generic [ref=e186]:
+        - img "SHB" [ref=e187]
+        - paragraph [ref=e188]: Digital Expert Agents — tăng tốc xử lý tín dụng nhưng không nới lỏng bất kỳ ràng buộc tuân thủ nào.
+      - generic [ref=e189]:
+        - generic [ref=e190]: TRỤ SỞ CHÍNH
+        - generic [ref=e191]: HOTLINE
+        - generic [ref=e192]: 77 Trần Hưng Đạo, Hà Nội
+        - generic [ref=e193]: "*6688 (24/7)"
+    - generic [ref=e194]: © Bản quyền thuộc về Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)

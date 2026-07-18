@@ -44,10 +44,7 @@ def _resolve_application(request: AssessApplicationRequest) -> LoanApplication:
         if loaded is None:
             raise HTTPException(
                 status_code=502,
-                detail=(
-                    f"application {request.application_id} not found or "
-                    "APPLICATION_SVC_URL unreachable"
-                ),
+                detail=(f"application {request.application_id} not found or APPLICATION_SVC_URL unreachable"),
             )
         return loaded
 
@@ -104,8 +101,7 @@ async def assess_application(request: AssessApplicationRequest) -> AssessRespons
                 "query": f"assess {application.product}",
                 "application": application,
                 "metadata": {
-                    "application_id": request.application_id
-                    or f"inline-{application.product}",
+                    "application_id": request.application_id or f"inline-{application.product}",
                 },
             }
         )

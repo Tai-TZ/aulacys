@@ -1,0 +1,80 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]: Bạn đang ở
+          - button "Khách hàng cá nhân" [ref=e8] [cursor=pointer]
+          - generic [ref=e11]: Giới thiệu SHB
+        - generic [ref=e12]:
+          - generic [ref=e13]: Tìm ATM & Chi nhánh
+          - generic [ref=e17]: Nhắn tin với SHB
+          - generic [ref=e20]: "*6688"
+          - generic [ref=e23]: 🇻🇳 Tiếng Việt
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - img "SHB" [ref=e26]
+          - generic [ref=e27]: Digital Expert
+        - button "Đăng nhập" [ref=e33] [cursor=pointer]
+    - generic [ref=e36]:
+      - img "SHB đồng hành cùng kế hoạch tài chính cá nhân" [ref=e37]
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - generic [ref=e41]: Khách hàng cá nhân
+          - generic [ref=e44]: Trợ lý khoản vay
+        - heading "Đồng hành cùng bạn với mọi quyết định tương lai" [level=1] [ref=e45]: Đồng hành cùng bạn vớimọi quyết định tương lai
+        - paragraph [ref=e46]: Bạn đang có kế hoạch tài chính nào?
+        - generic [ref=e47]:
+          - generic [ref=e48]: Vay mua nhà
+          - generic [ref=e52]: Vay mua ô tô
+          - generic [ref=e57]: Vay tiêu dùng
+          - generic [ref=e64]: Vay du học
+          - generic [ref=e70]: Tính khoản vay
+    - generic [ref=e76]:
+      - generic [ref=e77]: Khám phá giải pháp
+      - heading "Lựa chọn tối ưu cho mọi hồ sơ tín dụng" [level=2] [ref=e80]: Lựa chọn tối ưu chomọi hồ sơ tín dụng
+      - generic [ref=e81]:
+        - generic [ref=e82]:
+          - generic [ref=e83]: Mua nhà
+          - heading "Hiện thực hóa tổ ấm" [level=3] [ref=e91]
+          - paragraph [ref=e92]: Ước tính hạn mức, khoản trả hàng tháng và phương án vay phù hợp với thu nhập.
+        - generic [ref=e93]:
+          - generic [ref=e94]: Mua xe
+          - heading "Chủ động mọi hành trình" [level=3] [ref=e103]
+          - paragraph [ref=e104]: So sánh thời hạn vay, vốn tự có và lịch thanh toán theo nhu cầu cá nhân.
+        - generic [ref=e105]:
+          - generic [ref=e106]: Tiêu dùng
+          - heading "Linh hoạt cho mọi kế hoạch" [level=3] [ref=e117]
+          - paragraph [ref=e118]: Tư vấn điều kiện, hồ sơ cần chuẩn bị và các bước đăng ký khoản vay.
+    - generic [ref=e120]:
+      - generic [ref=e121]:
+        - generic [ref=e125]:
+          - heading "Bạn cần trợ giúp?" [level=3] [ref=e126]
+          - paragraph [ref=e127]: SHB hỗ trợ 24/7
+        - button "Liên hệ ngay" [ref=e128] [cursor=pointer]
+      - generic [ref=e131]:
+        - generic [ref=e137]:
+          - heading "Theo dõi hồ sơ" [level=3] [ref=e138]
+          - paragraph [ref=e139]: Xem tiến trình chuyên gia
+        - button "Khám phá" [ref=e140] [cursor=pointer]
+      - generic [ref=e143]:
+        - generic [ref=e148]:
+          - heading "Bạn cần đến SHB?" [level=3] [ref=e149]
+          - paragraph [ref=e150]: Tìm điểm giao dịch gần nhất
+        - button "Mở bản đồ" [ref=e151] [cursor=pointer]
+    - generic [ref=e154]:
+      - generic [ref=e155]:
+        - generic [ref=e156]:
+          - img "SHB" [ref=e157]
+          - paragraph [ref=e158]: Trợ lý khoản vay SHB — đồng hành cùng mọi kế hoạch tài chính cá nhân của bạn.
+        - generic [ref=e159]:
+          - generic [ref=e160]: TRỤ SỞ CHÍNH
+          - generic [ref=e161]: HOTLINE
+          - generic [ref=e162]: 77 Trần Hưng Đạo, Hà Nội
+          - generic [ref=e163]: "*6688 (24/7)"
+      - generic [ref=e164]: © Bản quyền thuộc về Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)
+    - button "Mở trợ lý khoản vay SHB" [ref=e165] [cursor=pointer]:
+      - generic [ref=e170]:
+        - generic [ref=e171]: Trợ lý khoản vay
+        - generic [ref=e172]: Hỏi SHB ngay
+  - alert [ref=e173]
