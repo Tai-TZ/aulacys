@@ -1,0 +1,25 @@
+# Vay du học.
+agents: [credit, operations, compliance]
+depends:
+  compliance: [operations]
+tools:
+  - cic_lookup
+  - income_verify
+  - compute_annual_debt_service
+  - compute_dti
+  - sao_ke_parse
+  - property_valuation
+  - land_registry
+  - doc_checklist
+  - compute_ltv
+  - aml_screen
+  - related_party
+policy: retail_lending.yaml
+limits:
+  ltv_cap: 1.0
+  term_years_max: 10
+documents:
+  required: [cccd, sao_ke_tai_khoan, so_do, cic, purpose_evidence]
+gate:
+  stp_when: never
+  else: hitl

@@ -29,7 +29,13 @@ class AssessApplicationRequest(BaseModel):
     ``confirmed_by`` (human confirm, not OCR).
     """
 
-    product: str = Field(..., description="retail_mortgage | retail_unsecured_salary")
+    product: str = Field(
+        ...,
+        description=(
+            "Product config id under agents/products/*.yaml — e.g. loan-1, "
+            "loan-unsecured-term, retail_mortgage, retail_unsecured_salary"
+        ),
+    )
     declared: DeclaredForm
     documents: list[Document] = Field(default_factory=list)
 

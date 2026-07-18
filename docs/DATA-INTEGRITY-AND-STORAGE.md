@@ -7,43 +7,30 @@
 
 | Service | Storage kind | Backing | Owns / mutates? | Integrity need |
 | ------- | ------------ | ------- | --------------- | -------------- |
-| **audit-svc** | transactional DB | **SQLite** (`AUDIT_DB`), `app/db.py` | append-only ledger | **HIGH — hash chain** |
-| **los-svc** | transactional DB | **SQLite** (`LOS_DB`), `app/db.py` | upsert tickets | low (mutable record) |
+| **audit-svc** | transactional DB | **Postgres only** (`DATABASE_URL`, schema `audit`) | append-only ledger | **HIGH — hash chain + triggers** |
+| **los-svc** | transactional DB | **Postgres only** (`DATABASE_URL`, schema `los`) | upsert tickets + history | low (mutable record) |
 | **policy-svc** | config files | `rules/*.yaml` (`lru_cache`) | read-only | git + `verified` flag |
 | **cic-svc** | reference/seed | `seed/cic_records.json` | read-only | git (static) |
 | **aml-svc** | reference/seed | `seed/aml_lists.json` | read-only | git (static) |
 | **property-svc** | reference/seed | `seed/parcel.json` | read-only | git (static) |
 | **income-svc** | **none** | — | pure compute (stateless) | n/a |
+| **catalog-svc** | reference/seed | `seed/catalog.json` | read-only | git (static) |
 | **api-gateway** | **none** | — | proxy + `/status` monitor | n/a |
 | **agent-worker-svc** | **none** | — | compute worker | n/a |
 
-**Three storage classes:**
-1. **Transactional DB** (state changes): `audit-svc`, `los-svc`. SQLite now → Postgres in prod.
+1. **Transactional DB** (state changes): `audit-svc`, `los-svc` — **Postgres only** (see `CONFIG.md`).
 2. **Reference / seed** (read-only lookup): `cic`, `aml`, `property` (JSON), `policy` (YAML). Ships in the image, versioned in git.
 3. **Stateless** (no storage): `income`, `api-gateway`, `agent-worker`.
 
-Only **2 services own mutable data**. Everything else is read-only or stateless — which
-is why most services are a single `main.py`: they have nothing to persist.
+Only **2 services own mutable data**. Everything else is read-only or stateless.
 
-## 2. ⚠️ The one real ambiguity — audit lives in TWO places
+## 2. Audit ownership — resolved
 
-- `apps/api/src/db/models/audit.py` + `migrations/0001_audit_chain.py` → **Postgres**
-  tables (`audit_record`, `audit_violation`) with UPDATE/DELETE **triggers**. Defined,
-  but **NO writer in the monolith** — `audit_client.py` posts to audit-svc instead. So
-  these Postgres tables are currently **unused / orphaned**.
-- `services/audit-svc/app/db.py` → **SQLite** ledger with an app-level hash chain. This
-  is the **live** one in the demo.
+**(A) audit-svc is authoritative.** It owns the Postgres ledger (schema `audit`).
+The monolith's `migrations/0001_audit_chain` / `db/models/audit.py` are **orphaned** —
+no writer in the monolith; park or delete later so nobody thinks the monolith writes audit.
+SQLite fallback was **removed** (team decision; see `CONFIG.md`).
 
-**Decision needed (pick one):**
-- **(A) audit-svc is authoritative** (recommended): keep audit-svc as the owner. Treat the
-  monolith's Postgres schema (`migration 0001`) as the **production target** audit-svc
-  adopts later (SQLite → Postgres). Remove/park the monolith's audit models so nobody
-  thinks the monolith writes audit.
-- **(B) monolith owns audit**: delete audit-svc, wire `write_audit` into the monolith
-  against Postgres. Loses the "audit as its own service" story.
-
-Recommendation: **(A)** — it matches the microservice direction and keeps the immutable
-ledger a separate deployable.
 
 ## 3. Integrity — what needs it, and proof it works
 

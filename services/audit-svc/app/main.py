@@ -7,60 +7,21 @@ service must not break the decision path (the caller treats the write as best-ef
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from pydantic import BaseModel
 
-from app import db
-
-app = FastAPI(title="audit-svc", version="0.1.0")
-
-
-class Violation(BaseModel):
-    rule_id: str
-    rule_version: str
-    effective_from: str
-    legal_basis: str
-    metric_name: str
-    metric_value: float
-    threshold: float | None = None
-    is_blocking: bool = False
+from app.api.routes import router
+from app.core.config import get_settings
+from app.services import audit as audit_service
 
 
-class RecordRequest(BaseModel):
-    application_id: str
-    product: str
-    lane: int
-    outcome: str
-    veto_fired: bool
-    replan_count: int
-    as_of: str
-    signed_by: str
-    violations: list[Violation] = []
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    audit_service.init()
+    yield
 
 
-@app.on_event("startup")
-def _startup() -> None:
-    db.init_db()
-
-
-@app.get("/health")
-def health() -> dict:
-    return {"status": "ok", **db.verify_chain()}
-
-
-@app.post("/records")
-def create_record(req: RecordRequest) -> dict:
-    return db.append_record(
-        req.model_dump(exclude={"violations"}),
-        [v.model_dump() for v in req.violations],
-    )
-
-
-@app.get("/records/{application_id}")
-def get_records(application_id: str) -> dict:
-    return {"application_id": application_id, "records": db.records_for(application_id)}
-
-
-@app.get("/verify")
-def verify() -> dict:
-    return db.verify_chain()
+settings = get_settings()
+app = FastAPI(title=settings.service_name, version=settings.version, lifespan=lifespan)
+app.include_router(router)

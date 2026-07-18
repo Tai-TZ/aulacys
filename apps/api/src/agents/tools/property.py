@@ -29,9 +29,12 @@ def _from_service(path: str, payload: dict) -> dict | None:
 
 
 @tool
-def property_valuation(collateral_value: float) -> dict:
+def property_valuation(collateral_value: float, parcel_id: str | None = None) -> dict:
     """Property valuation. Calls property-svc when PROPERTY_SVC_URL is set, else fallback."""
-    from_svc = _from_service("valuation", {"collateral_value": collateral_value})
+    from_svc = _from_service(
+        "valuation",
+        {"collateral_value": collateral_value, "parcel_id": parcel_id},
+    )
     if from_svc is not None:
         return from_svc
 
@@ -41,15 +44,22 @@ def property_valuation(collateral_value: float) -> dict:
     return {
         "valuation": collateral_value,
         "method": "seeded_desktop_valuation",
-        "inputs": {"collateral_value": collateral_value},
+        "inputs": {"collateral_value": collateral_value, "parcel_id": parcel_id},
         "computed_at": _now(),
     }
 
 
 @tool
-def land_registry(has_dispute: bool = False, zoning_flag: bool = False) -> dict:
+def land_registry(
+    has_dispute: bool = False,
+    zoning_flag: bool = False,
+    parcel_id: str | None = None,
+) -> dict:
     """Land-registry/legal check. Calls property-svc when PROPERTY_SVC_URL is set, else fallback."""
-    from_svc = _from_service("land-registry", {"has_dispute": has_dispute, "zoning_flag": zoning_flag})
+    from_svc = _from_service(
+        "land-registry",
+        {"has_dispute": has_dispute, "zoning_flag": zoning_flag, "parcel_id": parcel_id},
+    )
     if from_svc is not None:
         return from_svc
 
@@ -63,7 +73,7 @@ def land_registry(has_dispute: bool = False, zoning_flag: bool = False) -> dict:
         "clear": not flags,
         "legal_flags": flags,
         "source": "seeded_land_registry",
-        "inputs": {"has_dispute": has_dispute, "zoning_flag": zoning_flag},
+        "inputs": {"has_dispute": has_dispute, "zoning_flag": zoning_flag, "parcel_id": parcel_id},
         "computed_at": _now(),
     }
 

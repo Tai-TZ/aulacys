@@ -75,7 +75,12 @@ Keep `main` green and deployable (see `AGENTS.md` §1).
   service. Caveat: `NEXT_PUBLIC_API_URL` is baked at **build** time, so it must be passed as a
   Docker **build arg** (`apps/web/Dockerfile` already declares `ARG NEXT_PUBLIC_API_URL`).
   Vercel avoids this hassle — prefer it for the web.
-- **Local full stack:** `docker compose up --build` → API on `:8000`, Web on `:3000`.
+- **Local full stack (DEFAULT = microservice):** `docker compose up --build` boots the
+  **whole distributed system** — orchestrator `:8000` (wired to every service), web `:3000`,
+  gateway `:8080`, and all services (`policy/audit/los/cic/aml/property/income/catalog` +
+  4 agent workers). The orchestrator calls services over HTTP by default; the in-process
+  fallback stays only as resilience. For a services-only run use
+  `docker compose -f docker-compose.services.yml up`.
 
 ## Troubleshooting
 

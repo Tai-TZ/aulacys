@@ -1,3 +1,5 @@
+# Alias kept for demo message path + existing tests.
+# Prefer catalog ids (loan-1, …) for new callers.
 agents: [credit, operations, compliance]
 depends:
   compliance: [operations]
@@ -14,6 +16,9 @@ tools:
   - aml_screen
   - related_party
 policy: retail_lending.yaml
+limits:
+  ltv_cap: 0.9
+  term_years_max: 35
 documents:
   required: [cccd, sao_ke_tai_khoan, so_do, hop_dong_mua_ban, cic, purpose_evidence]
   optional: [dang_ky_ket_hon]

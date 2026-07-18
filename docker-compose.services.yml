@@ -6,6 +6,23 @@
 # orchestrator wiring) get added as blocks below. See docs/ARCHITECTURE-services.md.
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./services/db/init-schemas.sql:/docker-entrypoint-initdb.d/01-schemas.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api-gateway:
     build: ./services/api-gateway
     ports:
@@ -19,6 +36,7 @@ services:
       AML_SVC_URL: http://aml-svc:8320
       PROPERTY_SVC_URL: http://property-svc:8330
       INCOME_SVC_URL: http://income-svc:8340
+      CATALOG_SVC_URL: http://catalog-svc:8350
       CREDIT_AGENT_URL: http://credit-svc:8400
       OPERATIONS_AGENT_URL: http://operations-svc:8400
       COMPLIANCE_AGENT_URL: http://compliance-svc:8400
@@ -44,8 +62,13 @@ services:
     build: ./services/audit-svc
     ports:
       - "8200:8200"
-    volumes:
-      - audit-data:/data
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?options=-csearch_path%3Daudit
+      DIRECT_URL: postgresql://postgres:postgres@postgres:5432/postgres?options=-csearch_path%3Daudit
+      DB_SCHEMA: audit
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8200/health')"]
       interval: 10s
@@ -66,8 +89,13 @@ services:
     build: ./services/los-svc
     ports:
       - "8310:8310"
-    volumes:
-      - los-data:/data
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?options=-csearch_path%3Dlos
+      DIRECT_URL: postgresql://postgres:postgres@postgres:5432/postgres?options=-csearch_path%3Dlos
+      DB_SCHEMA: los
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8310/health')"]
       interval: 10s
@@ -100,6 +128,16 @@ services:
       - "8340:8340"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8340/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  catalog-svc:
+    build: ./services/catalog-svc
+    ports:
+      - "8350:8350"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8350/health')"]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -166,5 +204,4 @@ services:
       retries: 3
 
 volumes:
-  audit-data:
-  los-data:
+  pg-data:

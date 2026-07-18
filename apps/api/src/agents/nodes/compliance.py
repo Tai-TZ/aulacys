@@ -13,6 +13,7 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
     app = state["application"]
     declared = app.declared
     operations = state.get("operations")
+    limits = (state.get("metadata", {}) or {}).get("product_config", {}).get("limits") or {}
     tool_calls: list[str] = []
 
     aml = dispatch(spec, "aml_screen", {"sanctions_match_count": 0, "pep_match_count": 0})
@@ -32,6 +33,14 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
         tool_calls.append("compute_ltv")
         if "ltv" in ltv:
             metrics["ltv"] = float(ltv["ltv"])
+            ltv_cap = limits.get("ltv_cap")
+            if ltv_cap is not None:
+                # Cap lives in product YAML; policy only sees a boolean metric (no if-product in rules).
+                metrics["ltv_within_product_cap"] = 1.0 if metrics["ltv"] <= float(ltv_cap) else 0.0
+
+    ceiling = limits.get("amount_ceiling")
+    if ceiling is not None:
+        metrics["amount_within_product_ceiling"] = 1.0 if float(declared.amount) <= float(ceiling) else 0.0
 
     purpose_doc = next((doc for doc in app.documents if doc.kind == "purpose_evidence" and doc.extracted), None)
     evidence_purpose = str(purpose_doc.extracted.get("actual_purpose", "")) if purpose_doc else ""

@@ -2,5 +2,6 @@
   "_default": { "score_band": "A", "overdue_days": 0, "active_loans": 1 },
   "Nguyen Van A": { "score_band": "A", "overdue_days": 0, "active_loans": 1 },
   "Tran Thi B": { "score_band": "A", "overdue_days": 0, "active_loans": 2 },
-  "Le Van Risky": { "score_band": "D", "overdue_days": 45, "active_loans": 4 }
+  "Le Van Risky": { "score_band": "D", "overdue_days": 45, "active_loans": 4 },
+  "Pham Thi Dti": { "score_band": "B", "overdue_days": 0, "active_loans": 3 }
 }
