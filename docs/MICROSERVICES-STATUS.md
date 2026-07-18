@@ -1,36 +1,47 @@
-# Microservices - status and runbook
+# Microservices — status & next steps
 
-> Current service split for the retail lending demo. The orchestrator owns the
-> workflow and veto -> replan loop; leaf services expose HTTP seams with local
-> fallbacks kept in-process for demo resilience.
+> Where the split is now and exactly what to do next. Design rationale:
+> `ARCHITECTURE-services.md`. System overview: `OVERVIEW.md`.
+> Current service coding roadmap: `SERVICE-CODING-PLAN.md`.
 
-## Current Shape
+## TL;DR
 
-| Service | Port | Role | Caller env |
-| ------- | ---- | ---- | ---------- |
-| api-gateway | 8080 | front door + `/status` monitor | `MONOLITH_URL`, service URLs |
-| orchestrator-svc / apps/api | 8000 | workflow, graph, replan loop | n/a |
-| policy-svc | 8100 | deterministic policy/rule engine | `POLICY_SVC_URL` |
-| audit-svc | 8200 | append-only audit ledger | `AUDIT_SVC_URL` |
-| cic-svc | 8300 | CIC bureau mock | `CIC_SVC_URL` |
-| los-svc | 8310 | approval ticket system | `LOS_SVC_URL` |
-| aml-svc | 8320 | AML/PEP/sanctions mock | `AML_SVC_URL` |
-| property-svc | 8330 | valuation/registry mock | `PROPERTY_SVC_URL` |
-| income-svc | 8340 | income verification mock | `INCOME_SVC_URL` |
-| catalog-svc | 8350 | retail product catalog | `CATALOG_SVC_URL` |
-| application-svc | 8360 | intake/dossier store | `APPLICATION_SVC_URL` |
-| legal-svc | 8370 | legal blacklist mock | `LEGAL_SVC_URL` |
-| agent-worker-svc | 8400 | Planner/Credit/Operations/Compliance/Critic runtime | `AGENT_WORKER_URL` |
+The monolith (`apps/api`) still owns the graph. **11 seams plus one gateway are extracted into
+real services** (api-gateway, policy, audit, cic, los, aml, property, income,
+credit, operations, compliance, critic = 12 services + monolith = 13 processes).
+Each network seam is called over HTTP **with an in-process fallback** — unset the
+env var and the monolith runs alone (demo-proof). Full veto flow remains protected.
 
-The agent runtime is intentionally one container. It is stateless, owns no data,
-and dispatches by `POST /run` body field `agent`.
+## Services now
 
-## Run Locally
+| Service | Port | Owns data | Monolith env var | Status |
+| ------- | ---- | --------- | ---------------- | ------ |
+| api-gateway | 8080 | health aggregation / front door | `MONOLITH_URL` + service URLs | ✅ wired |
+| monolith (orchestrator + agents) | 8000 | — | — | ✅ |
+| policy-svc | 8100 | rules (YAML) | `POLICY_SVC_URL` | ✅ wired |
+| audit-svc | 8200 | audit ledger (Postgres schema `audit`) | `AUDIT_SVC_URL` | ✅ wired |
+| cic-svc | 8300 | cic_records seed (JSON) | `CIC_SVC_URL` | ✅ wired |
+| los-svc | 8310 | loan_ticket (Postgres schema `los`) | `LOS_SVC_URL` | ✅ wired |
+| aml-svc | 8320 | sanctions/PEP seed (JSON) | `AML_SVC_URL` | ✅ wired |
+| property-svc | 8330 | parcel seed (JSON) | `PROPERTY_SVC_URL` | ✅ wired |
+| income-svc | 8340 | statement verification mock | `INCOME_SVC_URL` | ✅ wired |
+| catalog-svc | 8350 | retail product catalog seed | `CATALOG_SVC_URL` (gateway) | ✅ standing |
+| legal-svc | 8370 | police / court / bank legal blacklist seed | `LEGAL_SVC_URL` | ✅ standing (agent tool not wired) |
+| credit-svc | 8401 | credit worker execution | `CREDIT_AGENT_URL` | ✅ wired |
+| operations-svc | 8402 | operations worker execution | `OPERATIONS_AGENT_URL` | ✅ wired |
+| compliance-svc | 8403 | compliance worker execution | `COMPLIANCE_AGENT_URL` | ✅ wired |
+| critic-svc | 8404 | critic worker execution | `CRITIC_AGENT_URL` | ✅ wired |
 
-Recommended:
+Wiring pattern (every seam): `apps/api/.../{policy/client.py, agents/audit_client.py,
+tools/cic.py, tools/workflow.py, tools/aml.py, tools/property.py, tools/income.py}` → if env URL set, HTTP call; else in-process fallback
+(urllib, no new dependency).
 
-```powershell
-.\scripts\stack.ps1 up -Profile full
+## How to run the whole thing
+
+**Option A — Docker (all services):**
+```bash
+docker compose -f docker-compose.services.yml up --build   # gateway, policy, audit, cic, los, aml, property, income
+# then run the monolith with the service URLs (see below)
 ```
 
 Manual agent runtime:
@@ -63,21 +74,52 @@ curl -s localhost:8400/health
 curl -s localhost:8080/status
 curl -s localhost:8080/assess -H "content-type: application/json" -d "{\"message\":\"retail mortgage\"}"
 ```
+**Monolith alone (no services):** unset the env vars — everything falls back in-process, `52 tests` still pass.
 
-Expected when `AGENT_WORKER_URL` is set: agent traces show `model=http-worker:*`.
-If `agent-worker-svc` is down or unset, the orchestrator runs the same node logic
-in-process and the demo path still returns an assessment.
+## Commit status
 
-## Status
+The service split, web monitor, and runbook updates are represented in the current
+branch history. See `SERVICE-CODING-PLAN.md` for the next pickup order.
 
-- [x] One `agent-worker-svc` serves Planner, Credit, Operations, Compliance, and Critic.
-- [x] Orchestrator prefers `AGENT_WORKER_URL` and keeps per-agent URL fallback for compatibility.
-- [x] Gateway monitors one `agent-worker-svc`.
-- [x] Docker Compose and GCP draft deploy scripts use one agent runtime service.
-- [x] Shared and route tests cover the single-runtime path.
+## Next steps (in order)
 
-## Known Gaps
+### Phase 3 leftover — copy the cic-svc pattern (low risk, ~30 min each)
+- [x] `aml-svc` (8320) — seed `sanctions_list` / `pep_list`; wire `tools/aml.py`.
+- [x] `property-svc` (8330) — seed `parcel`; wire `tools/property.py`.
+- [x] `income-svc` (8340) — wire `tools/income.py`.
+Each = copy `services/cic-svc/`, change seed + endpoint, add a compose block, add the
+env-gated HTTP call in the tool (same shape as `tools/cic.py`).
 
-- [ ] `planner_plan_trace` is still in-memory metadata, not persisted to the run ledger.
-- [ ] Gateway status is a lightweight monitor, not Prometheus/OpenTelemetry.
-- [ ] Legacy per-agent URL env vars remain accepted for backward compatibility and can be removed in a later cleanup.
+### Phase 4 — api-gateway + status monitor (safe, high demo value)
+- [x] `api-gateway` (front door): proxy `/assess` to the monolith; one entry point.
+- [x] **status aggregator**: `GET /status` pings every service `/health` → one board.
+  This is the "service monitor" — the cheap answer instead of Prometheus/Jaeger.
+- [x] Dashboard tile in `apps/web` reading `/status` + the `/assess` `trace[]`.
+
+### Phase 5 — agent workers over network
+- [x] `credit-svc`, `operations-svc`, `compliance-svc`, `critic-svc` (8401-8404).
+- [x] Orchestrator calls them over HTTP instead of `run(spec, state)` when the
+  matching `*_AGENT_URL` env var is set.
+- [x] Every worker call keeps the in-process harness as fallback. If a worker is
+  down or returns a bad shape, the graph still runs locally and the demo survives.
+
+### Phase 6 — full distributed orchestrator
+- [x] Orchestrator is coordination-first for specialist nodes: planner remains
+  in-process, while credit/operations/compliance/critic can run as network workers.
+- [x] `request_id` is created in graph metadata, sent as `X-Request-ID`, and echoed
+  by workers for distributed tracing.
+- [ ] Planner as its own service is intentionally deferred; moving it out adds risk
+  without improving the veto/replan demo.
+
+## Known gaps (unrelated to the split)
+- [ ] Frontend dashboard rendering `/assess` (lane badge, veto banner, replan counter, node timeline).
+- [ ] `PolicyViolation.version` — audit uses `ef:<effective_from>` as a stand-in; add a real version field in `loader.py`.
+- [ ] DAG drives execution — `_run_configured_agents` iterates config, not the Planner's DAG.
+- [ ] `AssessResponse` does not expose `credit`/`operations` — add if the dashboard needs CIC band / valuation.
+- [ ] `00-START-HERE.md` still shows the dead corporate 20bn scenario — contradicts `AGENTS.md` §0, fix it.
+
+## The pitch (what this buys)
+"Each seam is a real service with its own data, called over HTTP, with an in-process
+fallback so a dead service never breaks the demo. Service boundaries mirror the bank's
+real integration points — CIC, the LOS, the policy engine, the audit ledger. Splitting
+further is changing transport, not rewriting logic."

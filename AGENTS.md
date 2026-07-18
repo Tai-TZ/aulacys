@@ -126,7 +126,7 @@ apps/
     Dockerfile
 packages/
   shared/                 # cross-app contract notes (keep FE/BE types in sync)
-docs/                     # ARCHITECTURE.md, TEAM_RULES.md, DEPLOY.md, architecture_diagram.md
+docs/                     # SYSTEM-ARCHITECTURE.md, TEAM_RULES.md, DEPLOY.md, AGENT-SPEC.md
 eval/                     # evaluation report
 presentation/             # pitch deck + demo video
 render.yaml               # Render blueprint (API);  Vercel deploys web (see docs/DEPLOY.md)

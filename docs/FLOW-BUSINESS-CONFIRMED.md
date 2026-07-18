@@ -2,10 +2,8 @@
 
 > **Trạng thái:** 📌 DECIDED — confirm với team (2026-07-18).  
 > **Sản phẩm neo:** vay tín chấp / tiêu dùng cá nhân (STP có thể). Thế chấp = cùng khung stage,
-> thêm LTV / định giá / pháp lý TSBĐ (xem [`FLOW-BUSINESS-REVIEW.md`](./FLOW-BUSINESS-REVIEW.md) §7).  
-> **Liên quan:** draft cũ [`FLOW-PROCESS-LOAN.md`](./FLOW-PROCESS-LOAN.md) · review
-> [`FLOW-BUSINESS-REVIEW.md`](./FLOW-BUSINESS-REVIEW.md) · plan kỹ thuật
-> [`PLAN-LOAN-LIFECYCLE.md`](./PLAN-LOAN-LIFECYCLE.md).
+> thêm LTV / định giá / pháp lý TSBĐ theo [`LIFECYCLE-MULTI-AGENT-ARCHITECTURE.md`](./LIFECYCLE-MULTI-AGENT-ARCHITECTURE.md).
+> **Liên quan:** [`AGENT-SPEC.md`](./AGENT-SPEC.md) định nghĩa 5 agent hiện tại; file này chỉ giữ quy trình nghiệp vụ đã confirm.
 
 ---
 
@@ -241,5 +239,5 @@ Số liệu (DTI, LS, CIC) **không** do LLM bịa — tool / policy; LLM chỉ 
 
 ## Ngoài confirm này (không chặn demo)
 
-- KYC/eKYC đầy đủ, AML đầu vào, ma trận thẩm quyền hạn mức, multi-tranche, hậu giải ngân — xem gap trong [`FLOW-BUSINESS-REVIEW.md`](./FLOW-BUSINESS-REVIEW.md).
+- KYC/eKYC đầy đủ, AML đầu vào, ma trận thẩm quyền hạn mức, multi-tranche, hậu giải ngân — theo dõi như roadmap, không chặn demo hiện tại.
 - Sửa kỹ thuật ưu tiên nếu đụng production: DTI phải gồm nợ CIC; chặn nhóm nợ xấu; AML đúng stage tiếp nhận.
