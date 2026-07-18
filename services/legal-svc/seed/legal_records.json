@@ -1,0 +1,72 @@
+{
+  "by_cccd": {
+    "001099000001": {
+      "full_name": "Nguyen Van An",
+      "hits": []
+    },
+    "001099000010": {
+      "full_name": "Pham Van Wanted",
+      "hits": [
+        {
+          "list": "police_wanted",
+          "code": "WANTED_CRIMINAL",
+          "severity": "blocking",
+          "detail": "Truy nã hình sự — giả định danh sách C06/Cục Cảnh sát"
+        }
+      ]
+    },
+    "001099000011": {
+      "full_name": "Tran Thi Judgment",
+      "hits": [
+        {
+          "list": "court_judgment",
+          "code": "CRIMINAL_CONVICTION",
+          "severity": "blocking",
+          "detail": "Bản án hình sự có hiệu lực — giả định dữ liệu Tòa án"
+        }
+      ]
+    },
+    "001099000012": {
+      "full_name": "Le Van Softflag",
+      "hits": [
+        {
+          "list": "bank_internal",
+          "code": "INTERNAL_WATCH",
+          "severity": "review",
+          "detail": "Cảnh báo nội bộ ngân hàng (không đủ để từ chối cứng)"
+        }
+      ]
+    },
+    "001099000013": {
+      "full_name": "Hoang Van Multi",
+      "hits": [
+        {
+          "list": "police_wanted",
+          "code": "WANTED_ECONOMIC",
+          "severity": "blocking",
+          "detail": "Truy nã tội phạm kinh tế"
+        },
+        {
+          "list": "bank_internal",
+          "code": "FRAUD_BLACKLIST",
+          "severity": "blocking",
+          "detail": "Blacklist nội bộ do gian lận tín dụng"
+        }
+      ]
+    }
+  },
+  "by_name": {
+    "Nguyen Van Ghost": [
+      {
+        "list": "police_wanted",
+        "code": "WANTED_NAME_ONLY",
+        "severity": "review",
+        "detail": "Trùng tên trên danh sách truy nã — chưa khớp CCCD (POSSIBLE_HIT)"
+      }
+    ]
+  },
+  "_default": {
+    "full_name": "",
+    "hits": []
+  }
+}
