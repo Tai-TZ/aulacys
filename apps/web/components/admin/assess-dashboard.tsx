@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -744,8 +744,93 @@ export function AssessDashboard() {
     },
   ];
 
+  // Step status determination:
+  let step3Status: "complete" | "active" | "failed" | "pending" = "active";
+  let step4Status: "complete" | "active" | "failed" | "pending" = "pending";
+  let step5Status: "complete" | "active" | "failed" | "pending" = "pending";
+
+  if (loading) {
+    step3Status = "active";
+  } else if (result) {
+    if (veto) {
+      step3Status = "failed";
+      step4Status = "pending";
+      step5Status = "pending";
+    } else {
+      step3Status = "complete";
+      if (result.ticket?.status === "approved" || result.ticket?.status === "disbursed" || result.ticket?.ticket_id) {
+        step4Status = "complete";
+        step5Status = "complete";
+      } else {
+        step4Status = "active"; // Waiting for HITL approval
+        step5Status = "pending";
+      }
+    }
+  }
+
+  const steps = [
+    { title: "Tiếp nhận hồ sơ", desc: "Đã nhận đơn vay", status: "complete" as const },
+    { title: "Phân loại", desc: dossier?.data.product || "Hồ sơ bán lẻ", status: "complete" as const },
+    {
+      title: "Thẩm định (Graph)",
+      desc: step3Status === "failed" ? "Compliance Veto" : step3Status === "complete" ? "Đã thẩm định" : "Đang thẩm định...",
+      status: step3Status,
+    },
+    {
+      title: "Xét duyệt (HITL)",
+      desc: step4Status === "complete" ? "Lãnh đạo đã duyệt" : step4Status === "active" ? "Chờ phê duyệt" : "Chưa chuyển tiếp",
+      status: step4Status,
+    },
+    {
+      title: "Giải ngân",
+      desc: step5Status === "complete" ? "Đã tạo ticket SHB" : "Chưa giải ngân",
+      status: step5Status,
+    },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* ── THANH TIẾN TRÌNH WIZARD ── */}
+      <Card className="border border-border/70 p-5 shadow-card bg-white">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2">
+          {steps.map((step, idx) => {
+            let circleBg = "bg-gray-100 text-gray-400 border-gray-300";
+            let textColor = "text-muted-foreground";
+            let icon = String(idx + 1);
+
+            if (step.status === "complete") {
+              circleBg = "bg-green-500 text-white border-green-500";
+              textColor = "text-gray-800 font-medium";
+              icon = "✓";
+            } else if (step.status === "active") {
+              circleBg = "bg-[#e8650a] text-white border-[#e8650a] animate-pulse";
+              textColor = "text-[#e8650a] font-bold";
+            } else if (step.status === "failed") {
+              circleBg = "bg-red-500 text-white border-red-500";
+              textColor = "text-red-600 font-bold";
+              icon = "✗";
+            }
+
+            return (
+              <Fragment key={idx}>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold shadow-sm", circleBg)}>
+                    {icon}
+                  </span>
+                  <div className="text-left">
+                    <p className={cn("text-xs leading-none", textColor)}>{step.title}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1 max-w-[150px] truncate">{step.desc}</p>
+                  </div>
+                </div>
+                {idx < steps.length - 1 && (
+                  <div className="hidden md:block w-8 h-px bg-border shrink-0 mx-2" />
+                )}
+              </Fragment>
+            );
+          })}
+        </div>
+      </Card>
+
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map(({ label, value, change, icon: Icon }) => (
           <Card key={label} className="overflow-hidden border-border/70 p-0 shadow-card">
