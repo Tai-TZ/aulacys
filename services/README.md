@@ -21,6 +21,10 @@ runtime, `orchestrator-svc`, `application-svc`, `los-svc`, and `audit-svc` own
 persistence; agent/tool services stay stateless or seed-backed until a real bank
 integration replaces the mock.
 
+Control-plane and knowledge-plane services are tracked separately in
+`docs/CONTROL-AND-KNOWLEDGE-PLANE.md`: `identity-svc`/`authz-svc` for users and
+RBAC, and `knowledge-svc` for vector/graph RAG.
+
 ## Run policy-svc
 
 ```bash
