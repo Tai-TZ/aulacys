@@ -50,6 +50,7 @@ Per service, only the schema in `search_path` changes:
 |---------|-------------|
 | audit-svc | `audit` |
 | los-svc | `los` |
+| application-svc | `application` |
 | orchestrator-svc | `orchestrator` |
 
 ## 4. App code — nothing schema-specific needed

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
+from src.agents.application_client import ConsentDeniedError, load_loan_application
 from src.agents.graph import agent, load_product_config
 from src.agents.state import LoanApplication, RunTrace
 from src.agents.tools.workflow import write_approval_ticket
@@ -29,6 +30,35 @@ def _to_assess_response(state: dict) -> AssessResponse:
     )
 
 
+def _resolve_application(request: AssessApplicationRequest) -> LoanApplication:
+    """Body path or application-svc id (consent gate on load)."""
+    if request.application_id:
+        try:
+            loaded = load_loan_application(
+                request.application_id,
+                product_override=request.product,
+                extra_documents=list(request.documents),
+            )
+        except ConsentDeniedError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        if loaded is None:
+            raise HTTPException(
+                status_code=502,
+                detail=(
+                    f"application {request.application_id} not found or "
+                    "APPLICATION_SVC_URL unreachable"
+                ),
+            )
+        return loaded
+
+    assert request.product is not None and request.declared is not None
+    return LoanApplication(
+        product=request.product,
+        declared=request.declared,
+        documents=request.documents,
+    )
+
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     """Chat with the agent."""
@@ -55,22 +85,28 @@ async def assess(request: ChatRequest) -> AssessResponse:
 
 @router.post("/assess/application", response_model=AssessResponse)
 async def assess_application(request: AssessApplicationRequest) -> AssessResponse:
-    """Run the graph on a submitted loan application (not seed-from-message)."""
+    """Run the graph on a submitted body or an application-svc id."""
     try:
-        load_product_config(request.product)
+        application = _resolve_application(request)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    try:
+        load_product_config(application.product)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
 
-    application = LoanApplication(
-        product=request.product,
-        declared=request.declared,
-        documents=request.documents,
-    )
     try:
         state = await agent.ainvoke(
             {
-                "query": f"assess {request.product}",
+                "query": f"assess {application.product}",
                 "application": application,
+                "metadata": {
+                    "application_id": request.application_id
+                    or f"inline-{application.product}",
+                },
             }
         )
     except Exception as e:

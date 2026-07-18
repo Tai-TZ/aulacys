@@ -17,6 +17,8 @@ DB_SCHEMA=los
 ```bash
 alembic upgrade head
 uvicorn app.main:app --port 8310
+# Postgres: docker compose -f docker-compose.db.yml up -d --wait
+# REQUIRE_DB=1 pytest -q   (or make test-db / scripts/test-db.ps1)
 pytest -q
 ```
 

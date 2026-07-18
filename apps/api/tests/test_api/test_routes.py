@@ -30,7 +30,11 @@ async def test_assess_returns_structured_veto(client):
     assert data["run_trace"]["lane"] == 3
     assert data["run_trace"]["replan_count"] == 2
     assert data["credit"]["dti"] == 0.3878
-    assert data["credit"]["tool_results"]["cic_lookup"]["score_band"] == "A"
+    cic = data["credit"]["tool_results"]["cic_lookup"]
+    assert cic["max_overdue_days"] == 0  # fallback when CIC_SVC_URL unset
+    assert cic["cic_group"] == 1
+    assert cic["has_bad_debt"] is False
+    assert "overdue_days" in cic  # alias
     assert data["operations"]["valuation"] == 4_000_000_000
     assert data["operations"]["legal_flags"] == []
     assert data["compliance"]["veto"] is True
@@ -57,6 +61,8 @@ async def test_assess_application_runs_submitted_mortgage_veto(client):
             "existing_monthly_debt": 8_000_000,
             "declared_purpose": "mua nhà để ở",
             "collateral_value_declared": 4_000_000_000,
+            "id_number": "001099000003",
+            "cic_consent": True,
         },
         "documents": [
             {"kind": "cccd", "tier": 1, "extracted": {"verified": True}},
@@ -99,6 +105,66 @@ async def test_assess_application_unknown_product(client):
         },
     )
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_assess_by_application_id_maps_and_runs(client, monkeypatch):
+    """application_id → application-svc payload → graph (no inline declared)."""
+    from src.agents.application_client import map_to_loan_application
+
+    raw = {
+        "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        "product": "loan-unsecured-term",
+        "total_amount": "250000000",
+        "term_months": 36,
+        "applicant": {"full_name": "Nguyen Van A", "id_number": "001099000001"},
+        "financial": {"total_income": "35000000", "personal_expense": "3000000"},
+        "consent": {"data_processing_consent": True},
+        "purposes": [{"category": "consumer", "amount": "250000000", "purpose_detail": "tiêu dùng cá nhân"}],
+    }
+
+    monkeypatch.setattr(
+        "src.api.routes.load_loan_application",
+        lambda application_id, product_override=None, extra_documents=None: map_to_loan_application(
+            raw, product_override=product_override, extra_documents=extra_documents
+        ),
+    )
+
+    response = await client.post(
+        "/api/v1/assess/application",
+        json={"application_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["outcome"] == "stp_approved"
+    assert data["credit"]["income"] == 35_000_000
+    assert data["credit"]["tool_results"]["cic_lookup"]["cccd"] == "001099000001"
+
+
+@pytest.mark.asyncio
+async def test_assess_by_application_id_consent_denied(client, monkeypatch):
+    from src.agents.application_client import ConsentDeniedError
+
+    def _deny(*_a, **_k):
+        raise ConsentDeniedError("data_processing_consent must be true")
+
+    monkeypatch.setattr("src.api.routes.load_loan_application", _deny)
+    response = await client.post(
+        "/api/v1/assess/application",
+        json={"application_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"},
+    )
+    assert response.status_code == 400
+    assert "consent" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_assess_by_application_id_unavailable(client, monkeypatch):
+    monkeypatch.setattr("src.api.routes.load_loan_application", lambda *_a, **_k: None)
+    response = await client.post(
+        "/api/v1/assess/application",
+        json={"application_id": "00000000-0000-0000-0000-000000000001"},
+    )
+    assert response.status_code == 502
 
 
 @pytest.mark.asyncio

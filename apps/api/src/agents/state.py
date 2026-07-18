@@ -31,6 +31,9 @@ class DeclaredForm(BaseModel):
     collateral_value_declared: float | None = None
     existing_exposure: float = 0
     bank_own_capital: float = 200_000_000_000
+    # CCCD (12 digits) for cic-svc lookup — default = seed overdue 120d (group 3+)
+    id_number: str = "001099000003"
+    cic_consent: bool = True
 
 
 class LoanApplication(BaseModel):

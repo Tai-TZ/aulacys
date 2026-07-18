@@ -60,6 +60,8 @@ def seed_application(query: str) -> LoanApplication:
                 "monthly_income": 35_000_000,
                 "existing_monthly_debt": 3_000_000,
                 "declared_purpose": "tiêu dùng cá nhân",
+                "id_number": "001099000001",  # clean CIC (group 1)
+                "cic_consent": True,
             },
             "documents": [
                 Document(kind="cccd", tier=1, extracted={"verified": True}),
@@ -77,6 +79,8 @@ def seed_application(query: str) -> LoanApplication:
                 "existing_monthly_debt": 8_000_000,
                 "declared_purpose": "mua nhà để ở",
                 "collateral_value_declared": 4_000_000_000,
+                "id_number": "001099000003",  # overdue 120d — demo CIC bad path
+                "cic_consent": True,
             },
             "documents": [
                 Document(kind="cccd", tier=1, extracted={"verified": True}),

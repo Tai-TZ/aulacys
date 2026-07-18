@@ -1,0 +1,30 @@
+# Postgres only — for audit / los / application service tests.
+# Does not start the full microservice stack.
+#
+#   docker compose -f docker-compose.db.yml up -d --wait
+#   ./scripts/test-db.sh
+#   docker compose -f docker-compose.db.yml down
+#
+# Same credentials as docker-compose.services.yml postgres block.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - pg-test-data:/var/lib/postgresql/data
+      - ./services/db/init-schemas.sql:/docker-entrypoint-initdb.d/01-schemas.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+volumes:
+  pg-test-data:

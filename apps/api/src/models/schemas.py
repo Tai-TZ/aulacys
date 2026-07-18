@@ -1,6 +1,6 @@
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from src.agents.state import (
     ComplianceVerdict,
@@ -22,22 +22,35 @@ class ChatResponse(BaseModel):
 
 
 class AssessApplicationRequest(BaseModel):
-    """Full loan application body for POST /assess/application.
+    """Run assess from a submitted body **or** an application-svc id.
 
-    Mirrors ``LoanApplication`` in ``state.py`` so the graph can run on submitted
-    data instead of ``seed_application()``. Tier-3 docs may carry ``extracted`` +
-    ``confirmed_by`` (human confirm, not OCR).
+    - ``application_id`` set → load Section A from application-svc (consent gate).
+    - else → ``product`` + ``declared`` required (existing dashboard path).
     """
 
-    product: str = Field(
-        ...,
+    application_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=64,
+        description="UUID from application-svc; when set, declared may be omitted",
+    )
+    product: str | None = Field(
+        default=None,
         description=(
             "Product config id under agents/products/*.yaml — e.g. loan-1, "
             "loan-unsecured-term, retail_mortgage, retail_unsecured_salary"
         ),
     )
-    declared: DeclaredForm
+    declared: DeclaredForm | None = None
     documents: list[Document] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def require_id_or_body(self) -> Self:
+        if self.application_id:
+            return self
+        if not self.product or self.declared is None:
+            raise ValueError("Provide application_id, or both product and declared")
+        return self
 
 
 class AssessResponse(BaseModel):

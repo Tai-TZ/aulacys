@@ -27,6 +27,10 @@ export interface DeclaredForm {
   collateral_value_declared?: number | null;
   existing_exposure?: number;
   bank_own_capital?: number;
+  /** CCCD 12 digits — cic-svc lookup key */
+  id_number?: string;
+  /** Must be true before CIC inquiry (BR-03) */
+  cic_consent?: boolean;
 }
 
 export interface DocumentInput {
@@ -37,9 +41,11 @@ export interface DocumentInput {
 }
 
 export interface AssessApplicationRequest {
-  product: string;
-  declared: DeclaredForm;
-  documents: DocumentInput[];
+  /** UUID from application-svc — when set, product/declared may be omitted */
+  application_id?: string;
+  product?: string;
+  declared?: DeclaredForm;
+  documents?: DocumentInput[];
 }
 
 // --- Structured run result (POST /api/v1/assess) — mirrors AssessResponse ---

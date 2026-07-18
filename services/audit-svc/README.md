@@ -17,6 +17,11 @@ DB_SCHEMA=audit
 ```bash
 alembic upgrade head
 uvicorn app.main:app --port 8200
+
+# Postgres required — start local DB then:
+#   docker compose -f docker-compose.db.yml up -d --wait
+#   REQUIRE_DB=1 pytest -q
+# Or all three DB services:  .\scripts\test-db.ps1   /  make test-db
 pytest -q
 ```
 

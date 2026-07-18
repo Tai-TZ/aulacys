@@ -23,6 +23,7 @@ services:
       AML_SVC_URL: http://aml-svc:8320
       PROPERTY_SVC_URL: http://property-svc:8330
       INCOME_SVC_URL: http://income-svc:8340
+      APPLICATION_SVC_URL: http://application-svc:8360
       CREDIT_AGENT_URL: http://credit-svc:8400
       OPERATIONS_AGENT_URL: http://operations-svc:8400
       COMPLIANCE_AGENT_URL: http://compliance-svc:8400
@@ -37,6 +38,7 @@ services:
       - aml-svc
       - property-svc
       - income-svc
+      - application-svc
       - credit-svc
       - operations-svc
       - compliance-svc
@@ -78,6 +80,7 @@ services:
       PROPERTY_SVC_URL: http://property-svc:8330
       INCOME_SVC_URL: http://income-svc:8340
       CATALOG_SVC_URL: http://catalog-svc:8350
+      APPLICATION_SVC_URL: http://application-svc:8360
       CREDIT_AGENT_URL: http://credit-svc:8400
       OPERATIONS_AGENT_URL: http://operations-svc:8400
       COMPLIANCE_AGENT_URL: http://compliance-svc:8400
@@ -96,15 +99,15 @@ services:
   audit-svc:
     build: ./services/audit-svc
     ports: ["8200:8200"]
-    volumes:
-      - audit-data:/data
+    env_file:
+      - ./services/audit-svc/.env   # DATABASE_URL + DIRECT_URL (Supabase, gitignored)
     restart: unless-stopped
 
   los-svc:
     build: ./services/los-svc
     ports: ["8310:8310"]
-    volumes:
-      - los-data:/data
+    env_file:
+      - ./services/los-svc/.env     # DATABASE_URL + DIRECT_URL (Supabase, gitignored)
     restart: unless-stopped
 
   # ---------- external mocks + catalog (seed) ----------
@@ -131,6 +134,13 @@ services:
   catalog-svc:
     build: ./services/catalog-svc
     ports: ["8350:8350"]
+    restart: unless-stopped
+
+  application-svc:
+    build: ./services/application-svc
+    ports: ["8360:8360"]
+    env_file:
+      - ./services/application-svc/.env
     restart: unless-stopped
 
   # ---------- agent workers (4 processes; see SERVICE-CODING-PLAN §12) ----------
@@ -174,7 +184,3 @@ services:
     environment:
       AGENT_NAME: critic
     restart: unless-stopped
-
-volumes:
-  audit-data:
-  los-data:

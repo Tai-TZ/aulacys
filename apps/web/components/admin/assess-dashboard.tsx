@@ -16,12 +16,20 @@ import {
   assessApplication,
   type AssessApplicationRequest,
   type AssessResponse,
+  type DeclaredForm,
   type DocumentInput,
 } from "@/lib/api";
 import { enqueueAssessResult } from "@/lib/hitl-queue";
 import { cn } from "@/lib/cn";
 
-const MORTGAGE_DEMO: AssessApplicationRequest = {
+/** Dashboard always edits a full body (id path is API-only for now). */
+type AssessFormState = {
+  product: string;
+  declared: DeclaredForm;
+  documents: DocumentInput[];
+};
+
+const MORTGAGE_DEMO: AssessFormState = {
   product: "retail_mortgage",
   declared: {
     customer_name: "Tran Thi B",
@@ -32,6 +40,8 @@ const MORTGAGE_DEMO: AssessApplicationRequest = {
     existing_monthly_debt: 8_000_000,
     declared_purpose: "mua nhà để ở",
     collateral_value_declared: 4_000_000_000,
+    id_number: "001099000003",
+    cic_consent: true,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true } },
@@ -47,7 +57,7 @@ const MORTGAGE_DEMO: AssessApplicationRequest = {
   ],
 };
 
-const UNSECURED_DEMO: AssessApplicationRequest = {
+const UNSECURED_DEMO: AssessFormState = {
   product: "retail_unsecured_salary",
   declared: {
     customer_name: "Nguyen Van A",
@@ -57,6 +67,8 @@ const UNSECURED_DEMO: AssessApplicationRequest = {
     monthly_income: 35_000_000,
     existing_monthly_debt: 3_000_000,
     declared_purpose: "tiêu dùng cá nhân",
+    id_number: "001099000001",
+    cic_consent: true,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true } },
@@ -133,7 +145,7 @@ function MoneyInput({
   );
 }
 
-function rememberResult(result: AssessResponse, form: AssessApplicationRequest) {
+function rememberResult(result: AssessResponse, form: AssessFormState) {
   enqueueAssessResult(result, {
     customer_name: form.declared.customer_name,
     product: form.product,
@@ -143,15 +155,15 @@ function rememberResult(result: AssessResponse, form: AssessApplicationRequest) 
 }
 
 export function AssessDashboard() {
-  const [form, setForm] = useState<AssessApplicationRequest>(MORTGAGE_DEMO);
+  const [form, setForm] = useState<AssessFormState>(MORTGAGE_DEMO);
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
   const [result, setResult] = useState<AssessResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function updateDeclared<K extends keyof AssessApplicationRequest["declared"]>(
+  function updateDeclared<K extends keyof DeclaredForm>(
     key: K,
-    value: AssessApplicationRequest["declared"][K],
+    value: DeclaredForm[K],
   ) {
     setForm((prev) => ({ ...prev, declared: { ...prev.declared, [key]: value } }));
   }
