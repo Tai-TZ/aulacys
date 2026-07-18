@@ -27,6 +27,10 @@ AGENT_SPECS = {
 }
 
 
+def _agent_contracts() -> dict[str, dict[str, list[str]]]:
+    return {name: {"reads": spec.reads} for name, spec in AGENT_SPECS.items()}
+
+
 def load_product_config(product: str) -> dict[str, Any]:
     path = PRODUCTS_DIR / f"{product}.yaml"
     if not path.is_file():
@@ -422,6 +426,7 @@ async def process_application(state: AgentState) -> dict[str, Any]:
     config = load_product_config(next_state["application"].product)
     next_state.setdefault("metadata", {})
     next_state["metadata"]["product_config"] = config
+    next_state["metadata"]["agent_contracts"] = _agent_contracts()
     next_state["metadata"].setdefault("application_id", "retail-demo")
     next_state["metadata"].setdefault("request_id", str(uuid4()))
 
