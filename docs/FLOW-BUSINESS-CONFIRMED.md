@@ -84,12 +84,9 @@ DTI = Tổng nghĩa vụ nợ phải trả hàng tháng / Tổng thu nhập hàn
 
 - **Tử số:** mọi khoản trả tháng hiện hữu (**ưu tiên từ CIC**, không chỉ nợ khai báo) **+** khoản trả của phương án mới.
 - **Mẫu số:** thu nhập tháng đã xác minh / khai báo theo sản phẩm.
-- **Ngưỡng tham chiếu thị trường (tham khảo, không thay policy nội bộ):**
-  - &lt; 36% — lý tưởng
-  - 37–42% — cân nhắc
-  - 43–49% — rủi ro cao
-  - ≥ 50% — báo động  
-  → **Ngưỡng chặn thật** nằm trong `policy/` / product YAML (`limits.dti_cap`), không hard-code trong prompt.
+- **Ngưỡng tham chiếu chung (thị trường):** &lt;36% lý tưởng · 37–42% cân nhắc · ≥43% rủi ro  
+  → Với **tín chấp cá nhân**, dùng **cap theo band thu nhập** ở §3.C.2 (ưu tiên hơn bảng generic này).
+- **Ngưỡng chặn thật** encode trong `policy/` / product YAML — không hard-code trong prompt.
 
 ### Output stage 2
 
@@ -102,14 +99,85 @@ tóm tắt, risk premium — sẵn sàng làm **input stage 3**.
 
 **Đầu vào:** phương án cho vay từ stage 2 (không tự bịa số mới ngoài tool).
 
-**Thẩm định kiểm tra:**
+**Ba trụ thẩm định (tín chấp cá nhân):**
 
-1. **Phương án đề xuất có hợp lý không** — khớp hạn mức sản phẩm, kỳ hạn, LS floor/cap, DTI/LTV (nếu có), khẩu vị rủi ro.
-2. **Legal của user** — pháp lý / blacklist / mục đích cấm / related-party (theo tool + policy).
-3. **Khả năng trả nợ** — DTI + nguồn thu nhập + nợ CIC / nhóm nợ; veto nếu vượt hard limit trong policy.
+1. **Pháp lý & nhân khẩu** — tuổi, eKYC Face Match, khoảng cách địa lý.
+2. **Phương án vay** — hạn mức vs thu nhập, kỳ hạn khớp mục đích.
+3. **Khả năng trả nợ** — thu nhập tối thiểu theo vùng, DTI theo phân khúc, disposable income buffer.
+
+Chi tiết tiêu chí: mục **3.A–3.C** bên dưới.  
+Số ngưỡng **không** nằm trong prompt LLM — encode trong `policy/` / product YAML khi wire production; demo dùng tool + policy hiện có.
 
 **Output:** kết luận thẩm định + tờ trình tín dụng (số từ tool; nhận định = prose).  
 **Không** lập hợp đồng tín dụng ở stage này — hợp đồng chỉ sau khi **đã phê duyệt** (stage 4).
+
+### 3.A Thẩm định pháp lý & nhân khẩu
+
+| Tiêu chí | Điều kiện |
+|----------|-----------|
+| **Độ tuổi** | Từ **22 tuổi** đến **không quá 60 tuổi** *tại thời điểm đáo hạn* khoản vay |
+| **Điểm tin cậy eKYC (Face Match Score)** | ≥ **85%** (selfie so với ảnh CCCD) |
+| **Khoảng cách địa lý** | Sinh sống / làm việc trong bán kính **30–50 km** từ CN/PGD gần nhất |
+
+*Demo:* eKYC / geo có thể mock hoặc ngoài slice OCR (`AGENTS.md` §0); vẫn ghi nhận là **điều kiện nghiệp vụ** stage thẩm định / intake.
+
+### 3.B Thẩm định phương án vay
+
+| Tiêu chí | Điều kiện |
+|----------|-----------|
+| **Hạn mức vay tối đa** | Tối đa **10–12× thu nhập ròng tháng**, và **≤ 500 triệu đồng** với phân khúc đại trà |
+| **Kỳ hạn 36–60 tháng** | Nhu cầu tiêu dùng lớn (sửa nhà, mua ô tô, …) |
+| **Kỳ hạn 12–24 tháng** | Mua sắm nhỏ lẻ |
+
+Credit / Compliance đối chiếu phương án RM với hạn mức sản phẩm + các dòng trên → hợp lý / cần chỉnh / veto.
+
+### 3.C Thẩm định khả năng trả nợ
+
+#### 3.C.1 Thu nhập ròng tối thiểu
+
+| Khu vực | Thu nhập ròng tối thiểu |
+|---------|------------------------:|
+| Tỉnh / thành **ngoài** Hà Nội & TP.HCM | **4,5 – 5 triệu** ₫/tháng |
+| **Hà Nội / TP.HCM** | **7 – 8 triệu** ₫/tháng |
+
+#### 3.C.2 Tỷ lệ DTI (Debt-to-Income)
+
+```
+DTI = (Tổng nghĩa vụ trả nợ hàng tháng / Thu nhập ròng hàng tháng) × 100%
+```
+
+- **Tử số:** nợ hiện hữu (ưu tiên CIC) + khoản trả phương án mới (sau khi đã có LS).
+- **Mẫu số:** thu nhập ròng đã xác minh.
+
+| Phân khúc thu nhập ròng | Điều kiện DTI |
+|-------------------------|---------------|
+| **&lt; 10 triệu** ₫/tháng | **DTI ≤ 35%** |
+| **10 – 30 triệu** ₫/tháng | **DTI ≤ 45%** |
+| **&gt; 30 triệu** ₫/tháng | **DTI ≤ 50–55%** |
+
+→ Thay / bổ sung ngưỡng generic thị trường ở §2; **cap theo band thu nhập** là khẩu vị sản phẩm tín chấp cá nhân đã confirm.
+
+#### 3.C.3 Số dư sinh hoạt phí tối thiểu (Disposable Income Buffer)
+
+```
+Thu nhập ròng − Tổng nghĩa vụ trả nợ ≥ Chi phí sinh hoạt tối thiểu
+```
+
+- Chi phí sinh hoạt tối thiểu tham chiếu: **~3–4 triệu** ₫/tháng (hoặc theo quy định nội bộ / lương cơ sở từng thời kỳ).
+- Không đạt → từ chối hoặc **giảm hạn mức** (không tự tăng thu nhập).
+
+### 3.D Mapping agent / tool (gợi ý)
+
+| Tiêu chí | Agent / tool gần nhất |
+|----------|------------------------|
+| Tuổi / đáo hạn | Ops / Credit (DOB + `term_months`) |
+| eKYC Face Match ≥ 85% | KYC tool (mock) / Compliance |
+| Bán kính 30–50 km | Ops (geo) — có thể demo-skip |
+| Hạn mức 10–12× / ≤ 500tr | Credit + `limits` product YAML |
+| Kỳ hạn vs mục đích | Credit / Compliance |
+| Thu nhập tối thiểu theo vùng | Credit + income verify |
+| DTI theo band | `compute_dti` + policy band |
+| Disposable buffer | Credit (tool số; prose = nhận định) |
 
 ---
 
@@ -165,7 +233,9 @@ Số liệu (DTI, LS, CIC) **không** do LLM bịa — tool / policy; LLM chỉ 
 2. Agent ở stage 2: CIC + DTI + phương án + LS từ CIC + kỳ hạn + risk; **user chỉnh được**.
 3. Stage 3 đầu vào = phương án agent; focus hợp lý / legal / khả năng trả nợ.
 4. Stage 4: Agent STP khi hồ sơ đẹp & đơn giản; người khi rủi ro.
-5. Stage 5 tín chấp tiêu dùng: **auto giải ngân** sau duyệt.
+6. **Tiêu chí thẩm định tín chấp cá nhân** (§3.A–3.C): tuổi 22–60 (tại đáo hạn), eKYC ≥85%,
+   bán kính 30–50 km; hạn mức ≤10–12× thu nhập & ≤500tr; kỳ hạn 12–24 / 36–60; thu nhập tối thiểu
+   theo vùng; DTI theo band; disposable buffer ≥ ~3–4tr.
 
 ---
 
