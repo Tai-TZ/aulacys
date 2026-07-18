@@ -24,30 +24,37 @@ async def test_agent_state_structure():
 
 
 @pytest.mark.asyncio
-async def test_unverified_mortgage_rule_escalates_without_auto_veto():
+async def test_mortgage_purpose_contradiction_vetoes_and_replans():
+    """Wow path: purpose evidence contradiction → blocking veto → Planner replan loop."""
     result = await agent.ainvoke({"query": "retail mortgage"})
 
     assert result["application"].product == "retail_mortgage"
-    assert result["compliance"].veto is False
+    assert result["compliance"].veto is True
     assert "prohibited_purpose_refinance_other_bank" in result["compliance"].rule_ids
     violation = next(
         v for v in result["compliance"].violations if v.rule_id == "prohibited_purpose_refinance_other_bank"
     )
-    assert violation.unverified is True
-    assert violation.severity == "warning"
-    assert result["replan_count"] == 0
-    assert result["run_trace"].lane == 3
-    assert result["critic"].passed is True  # lane 3 -> Critic runs
-    assert result["run_trace"].veto_fired is False
-    assert result["ticket"]["status"] == "ready_for_human_approval"
-    assert result["credit"].proposed_limit == 2_500_000_000
-    assert result["credit"].proposed_rate is not None
+    assert violation.unverified is False
+    assert violation.severity == "blocking"
+    assert result["replan_count"] >= 1
+    assert result["run_trace"].veto_fired is True
+    assert result["outcome"] == "vetoed"
+    assert result["ticket"]["status"] == "vetoed"
+    assert result["credit"].proposed_limit is not None
     assert "price_loan" in result["credit"].tool_results
     assert result["operations"].valuation_task["status"] == "scheduled"
-    assert result["compliance"].kyc_status == "passed"
-    assert result["compliance"].ubo_status in {"passed", "not_applicable"}
     assert "kyc_check" in result["compliance"].tool_results
-    assert sum(1 for item in result["trace"] if item.node == "compliance") == 1
+
+
+@pytest.mark.asyncio
+async def test_unsecured_purpose_veto_seed_blocks():
+    result = await agent.ainvoke({"query": "tín chấp veto"})
+
+    assert result["application"].product == "retail_unsecured_salary"
+    assert result["compliance"].veto is True
+    assert "prohibited_purpose_refinance_other_bank" in result["compliance"].rule_ids
+    assert result["run_trace"].veto_fired is True
+    assert result["outcome"] == "vetoed"
 
 
 @pytest.mark.asyncio

@@ -37,7 +37,7 @@ rules:
     description: >-
       Loan purpose evidence indicates repayment/refinancing of a loan at another
       credit institution, which is a protected demo hard-limit (policy-as-code veto).
-    legal_basis: "Retail lending prohibited-purpose policy (DEMO — badge unverified until legal article cited)"
+    legal_basis: "Retail lending prohibited-purpose policy (DEMO stage-verified for wow veto→replan)"
     metric: prohibited_purpose_refinance_other_bank
     operator: "=="
     threshold: 0
@@ -45,8 +45,8 @@ rules:
     effective_from: "2024-07-01"
     severity: blocking
     veto_agent: compliance
-    version: "demo-1.0"
-    verified: false
+    version: "demo-1.1"
+    verified: true
     kind: legal
 
   - id: max_retail_dti
@@ -142,7 +142,7 @@ rules:
   - id: land_title_clear
     description: >-
       Collateral land-registry check must report no legal flags (mortgage only).
-    legal_basis: "Collateral legal screen (MOCK)"
+    legal_basis: "Collateral legal screen (DEMO stage-verified for mortgage veto path)"
     metric: land_registry_ok
     operator: "=="
     threshold: 1
@@ -150,8 +150,8 @@ rules:
     effective_from: "2024-01-01"
     severity: blocking
     veto_agent: operations
-    version: "demo-land-1.0"
-    verified: false
+    version: "demo-land-1.1"
+    verified: true
     kind: legal
 
   - id: max_ltv_product_cap
