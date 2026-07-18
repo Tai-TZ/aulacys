@@ -1,6 +1,9 @@
-# [Project Name]
+# Digital Expert Agents for SHB (`aulacys`)
 
-> One-line summary: [problem] → [solution] for [target user].
+> Bank loan approval stalls in the queues between departments and the rework when a
+> violation is caught too late → a multi-agent system where specialist agents (Credit,
+> Operations, Compliance) plan, call deterministic tools, and **execute real actions**,
+> with a policy-as-code Compliance veto → replan loop → for bank credit & compliance teams.
 
 Monorepo: **`apps/api`** (FastAPI + LangGraph agent) and **`apps/web`** (Next.js UI).
 
@@ -18,7 +21,7 @@ cd <your-repo>
 cd apps/api
 bash scripts/setup.sh                                        # Linux / macOS / Git Bash
 # Windows: powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
-# edit .env → add OPENAI_API_KEY, then:
+# edit .env → add GEMINI_API_KEY (primary LLM; OPENAI_API_KEY optional fallback), then:
 make run          # or: uvicorn src.main:app --reload --port 8000
 # Swagger UI: http://localhost:8000/docs
 ```
