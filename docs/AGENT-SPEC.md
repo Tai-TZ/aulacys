@@ -151,11 +151,12 @@ OperationsReport
 - doc_status
 - missing[]
 - legal_flags[]
+- rationale
 - evidence[]
 - tool_results{}
 ```
 
-Operations does **not** decide repayment capacity and does **not** issue legal veto.
+Operations does **not** decide repayment capacity and does **not** issue legal veto. `rationale` may be LLM-polished; valuation and flags stay tool-backed.
 
 ### Compliance
 

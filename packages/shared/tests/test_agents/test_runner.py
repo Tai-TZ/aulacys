@@ -41,23 +41,16 @@ def test_llm_not_configured_without_key(monkeypatch):
     assert _llm_configured(PlannerSpec) is False
 
 
-def test_operations_never_calls_llm_even_with_key(monkeypatch):
-    """Ops stays fully deterministic until it opts into prose_fields."""
-    monkeypatch.setenv("LLM_PROVIDER", "gemini")
-    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
-    get_settings.cache_clear()
-    assert OperationsSpec.llm_prose is False
-    assert _llm_configured(OperationsSpec) is False
-    get_settings.cache_clear()
-
-
-def test_credit_and_compliance_prose_are_rationale_only():
+def test_credit_compliance_operations_prose_are_rationale_only():
     assert CreditSpec.llm_prose is True
     assert CreditSpec.prose_fields == ["rationale"]
     assert CreditSpec.model_tier == "mini"
     assert ComplianceSpec.llm_prose is True
     assert ComplianceSpec.prose_fields == ["rationale"]
     assert ComplianceSpec.model_tier == "mini"
+    assert OperationsSpec.llm_prose is True
+    assert OperationsSpec.prose_fields == ["rationale"]
+    assert OperationsSpec.model_tier == "mini"
 
 
 def test_planner_uses_strong_model_tier_for_prose():
