@@ -135,7 +135,6 @@ def _plan_hash(state: AgentState, nodes: list[str], edges: list[tuple[str, str]]
     app = state.get("application")
     payload = {
         "product": getattr(app, "product", "unknown"),
-        "replan_count": int(state.get("replan_count", 0)),
         "nodes": nodes,
         "edges": edges,
     }

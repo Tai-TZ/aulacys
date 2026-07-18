@@ -22,7 +22,7 @@ python -m ruff format --check aulacys tests
 python -m pytest tests/ -q
 ```
 
-Expected result: Ruff check passes, format check passes, and pytest reports `92 passed`.
+Expected result: Ruff check passes, format check passes, and pytest reports `93 passed`.
 
 ## Contract impact
 No public API response change. Internal shared `DAG` gained optional/defaulted audit fields: `plan_id`, `plan_hash`, `warnings`.
@@ -33,4 +33,4 @@ No public API response change. Internal shared `DAG` gained optional/defaulted a
 - [ ] Persist `metadata.planner_plan_trace` to a durable audit store when the team turns on production persistence for agent runs.
 
 ## Gotchas
-Planner warnings are internal metadata today; they are not shown in `AssessResponse`. `plan_hash` intentionally hashes the structural plan, not LLM-polished prose, so `rationale` changes do not change the replay/audit identity. LLM prose can still refine only `DAG.rationale` when an LLM key is configured, but nodes/edges/hash remain deterministic because runner seeds the authoritative fallback object and copies back only prose fields.
+Planner warnings are internal metadata today; they are not shown in `AssessResponse`. `plan_hash` intentionally hashes the structural plan only (`product`, `nodes`, `edges`), not `replan_count` or LLM-polished prose, so the same DAG keeps the same replay/audit identity across replans. LLM prose can still refine only `DAG.rationale` when an LLM key is configured, but nodes/edges/hash remain deterministic because runner seeds the authoritative fallback object and copies back only prose fields.

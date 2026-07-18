@@ -80,7 +80,7 @@ def test_planner_replan_rationale_carries_veto_rules_without_deciding_outcome() 
     assert plan.plan_id.startswith("retail_mortgage:r1:")
     assert "Compliance veto returned control to Planner" in plan.rationale
     assert "max_amount_product_ceiling" in plan.rationale
-    assert "approve" in plan.rationale
+    assert "does not compute figures, approve, veto, or call tools" in plan.rationale
 
 
 def test_planner_warns_and_skips_unknown_dependency() -> None:
@@ -125,6 +125,29 @@ def test_planner_hash_is_stable_for_same_structural_plan() -> None:
     assert first.plan_hash == second.plan_hash
     assert first.plan_id == second.plan_id
     assert len(state["metadata"]["planner_plan_trace"]) == 2
+
+
+def test_planner_hash_stays_structural_across_replans() -> None:
+    state = {
+        "application": _application(),
+        "metadata": {
+            "product_config": {
+                "agents": ["credit", "operations", "compliance"],
+                "depends": {"compliance": ["operations"]},
+            },
+            "agent_contracts": AGENT_CONTRACTS,
+        },
+        "replan_count": 0,
+    }
+
+    first, _ = planner_fallback(state, PlannerSpec)
+    state["replan_count"] = 1
+    second, _ = planner_fallback(state, PlannerSpec)
+
+    assert first.plan_hash == second.plan_hash
+    assert first.plan_id != second.plan_id
+    assert first.plan_id.startswith("retail_mortgage:r0:")
+    assert second.plan_id.startswith("retail_mortgage:r1:")
 
 
 def test_planner_warns_on_cycle_before_graph_execution() -> None:
