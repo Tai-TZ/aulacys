@@ -12,12 +12,10 @@ from sqlalchemy.pool import NullPool
 from app.core.config import get_settings
 
 
-def _sync_url(url: str, schema: str) -> str:
-    """Normalize for psycopg; drop Prisma ``pgbouncer`` query flag (invalid for libpq)."""
+def _sync_url(url: str) -> str:
+    """Normalize for psycopg; drop Prisma ``pgbouncer`` / URL options (pooler ignores them)."""
     u = make_url(url)
-    query = {k: v for k, v in dict(u.query).items() if k != "pgbouncer"}
-    if "options" not in query and schema:
-        query["options"] = f"-csearch_path={schema}"
+    query = {k: v for k, v in dict(u.query).items() if k not in {"pgbouncer", "options"}}
     return u.set(drivername="postgresql+psycopg", query=query).render_as_string(hide_password=False)
 
 
@@ -26,19 +24,19 @@ def get_engine() -> Engine:
     settings = get_settings()
     schema = settings.db_schema
     engine = create_engine(
-        _sync_url(settings.require_database_url(), schema),
+        _sync_url(settings.require_database_url()),
         poolclass=NullPool,
         pool_pre_ping=True,
         future=True,
         connect_args={"prepare_threshold": None},
     )
 
-    if schema:
-
-        @event.listens_for(engine, "connect")
-        def _set_search_path(dbapi_conn: object, _connection_record: object) -> None:
-            with dbapi_conn.cursor() as cur:  # type: ignore[attr-defined]
-                cur.execute(f'SET search_path TO "{schema}"')
+    @event.listens_for(engine, "checkout")
+    def _set_search_path(dbapi_conn, _connection_rec, _connection_proxy):  # noqa: ANN001
+        if not schema:
+            return
+        with dbapi_conn.cursor() as cur:
+            cur.execute(f'SET search_path TO "{schema}", public')
 
     return engine
 

@@ -128,7 +128,7 @@ export function OverviewDashboard() {
               href="/admin/bo-ho-so"
               className="inline-flex items-center gap-1 text-[11px] font-bold text-[#e8650a] hover:text-[#c05000] transition"
             >
-              Mở Bộ hồ sơ <ArrowRight size={12} />
+              Mở Yêu cầu vay <ArrowRight size={12} />
             </Link>
           </div>
 

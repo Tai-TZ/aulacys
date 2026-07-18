@@ -69,6 +69,8 @@ const TOOL_LABELS: Record<string, string> = {
   compute_exposure_ratio: "Tỷ lệ tập trung tín dụng",
   aml_screen: "Sàng lọc AML",
   related_party: "Kiểm tra bên liên quan",
+  kyc_check: "Kiểm tra KYC",
+  ubo_check: "Kiểm tra UBO / chủ sở hữu hưởng lợi",
   doc_checklist: "Kiểm tra đủ hồ sơ",
   property_valuation: "Định giá TSBĐ",
   land_registry: "Thẩm tra sổ đỏ",
@@ -121,12 +123,57 @@ function look(map: Record<string, string>, key: string | null | undefined): stri
 }
 
 export const nodeLabelVi = (node: string) => look(NODE_LABELS, node);
-export const toolLabelVi = (tool: string) => look(TOOL_LABELS, tool);
+export const toolLabelVi = (tool: string) => {
+  const mapped = look(TOOL_LABELS, tool);
+  if (mapped === tool && tool.includes("_")) {
+    return tool
+      .split("_")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  }
+  return mapped;
+};
 export const outcomeLabelVi = (outcome: string | null | undefined) => look(OUTCOME_LABELS, outcome);
 export const recommendationLabelVi = (rec: string | null | undefined) =>
   look(RECOMMENDATION_LABELS, rec);
 export const docKindLabelVi = (kind: string) => look(DOC_KIND_LABELS, kind);
 export const productLabelVi = (product: string | null | undefined) => look(PRODUCT_LABELS, product);
+
+/** Seed / DB enum slugs → VN (occupation, purpose, disbursement method, …). */
+const FIELD_SLUG_LABELS: Record<string, string> = {
+  // occupation
+  cong_chuc: "Công chức",
+  nhan_vien: "Nhân viên",
+  tu_doanh: "Tự doanh",
+  can_bo_dn: "Cán bộ doanh nghiệp",
+  // position
+  khac: "Khác",
+  can_bo_ql: "Cán bộ quản lý",
+  // purpose
+  tieu_dung: "Tiêu dùng",
+  consumer: "Tiêu dùng",
+  // disbursement
+  borrower: "Chuyển khoản người vay",
+  per_loan: "Theo từng khoản vay",
+};
+
+export const fieldSlugLabelVi = (slug: string | null | undefined): string => {
+  if (!slug) return "—";
+  const trimmed = slug.trim();
+  const mapped = FIELD_SLUG_LABELS[trimmed.toLowerCase()];
+  if (mapped) return mapped;
+  // Already human text (spaces / Vietnamese accents) — keep as-is
+  if (/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/i.test(trimmed)) {
+    return trimmed;
+  }
+  if (trimmed.includes("_")) {
+    return trimmed
+      .split("_")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  }
+  return trimmed;
+};
 export const ruleLabelVi = (ruleId: string | null | undefined) => {
   if (!ruleId) return "—";
   const mapped = look(RULE_LABELS, ruleId);

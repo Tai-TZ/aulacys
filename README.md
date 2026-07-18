@@ -1,6 +1,9 @@
-# Aulacys — Digital Expert Agents for SHB
+# Digital Expert Agents for SHB (`aulacys`)
 
-**Status:** Hackathon MVP / draft Cloud Run · **Segment:** retail lending (individual) · **Event:** SHB Hack CX Together 2026
+> Bank loan approval stalls in the queues between departments and the rework when a
+> violation is caught too late → a multi-agent system where specialist agents (Credit,
+> Operations, Compliance) plan, call deterministic tools, and **execute real actions**,
+> with a policy-as-code Compliance veto → replan loop → for bank credit & compliance teams.
 
 > Specialist agents that **plan, call banking tools, enforce hard legal limits as code, and write real LOS tickets** — not a chatbot that only returns prose.
 
@@ -120,9 +123,12 @@ Details: [`docs/BUILD-GUIDE.md`](./docs/BUILD-GUIDE.md) §1 · [`docs/AGENT-SPEC
 Or assess by DB id:
 
 ```bash
-curl -s -X POST "$ORCHESTRATOR/api/v1/assess/application" \
-  -H "Content-Type: application/json" \
-  -d '{"application_id":"<uuid-from-application-svc>"}'
+cd apps/api
+bash scripts/setup.sh                                        # Linux / macOS / Git Bash
+# Windows: powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
+# edit .env → add GEMINI_API_KEY (primary LLM; OPENAI_API_KEY optional fallback), then:
+make run          # or: uvicorn src.main:app --reload --port 8000
+# Swagger UI: http://localhost:8000/docs
 ```
 
 Materials: [`presentation/`](./presentation/) (deck + demo video checklist).

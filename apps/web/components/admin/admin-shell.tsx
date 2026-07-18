@@ -9,12 +9,11 @@ import {
   LogOut,
   Menu,
   Package,
-  Search,
   Users,
   X,
 } from "lucide-react";
 import { BrandMark } from "@/components/client/brand-mark";
-import { Button, Input } from "@/components/ui";
+import { Button } from "@/components/ui";
 import {
   adminInitials,
   clearAdminSession,
@@ -31,7 +30,7 @@ export type AdminActiveHref =
 
 const nav = [
   { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
-  { href: "/admin/bo-ho-so", label: "Bộ hồ sơ", icon: FolderOpen },
+  { href: "/admin/bo-ho-so", label: "Yêu cầu vay", icon: FolderOpen },
   { href: "/admin/san-pham/ca-nhan", label: "Sản phẩm vay", icon: Package },
   { href: "/admin/approvals", label: "Người dùng & phân quyền", icon: Users },
 ] as const;
@@ -216,15 +215,6 @@ export function AdminShell({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-              <Input
-                aria-label="Tìm kiếm hồ sơ"
-                placeholder="Tìm kiếm hồ sơ…"
-                className="w-56 border-border/80 bg-secondary/60 pl-9"
-                disabled
-              />
-            </div>
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium text-navy">{session.name}</p>
               <p className="text-xs text-muted-foreground">{session.email}</p>
@@ -237,7 +227,7 @@ export function AdminShell({
             </div>
           </div>
         </header>
-        <div className="relative z-10 p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="relative z-10 p-2 sm:p-4 lg:p-6">{children}</div>
       </div>
     </main>
   );
