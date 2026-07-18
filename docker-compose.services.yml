@@ -37,6 +37,7 @@ services:
       PROPERTY_SVC_URL: http://property-svc:8330
       INCOME_SVC_URL: http://income-svc:8340
       CATALOG_SVC_URL: http://catalog-svc:8350
+      LEGAL_SVC_URL: http://legal-svc:8360
       CREDIT_AGENT_URL: http://credit-svc:8400
       OPERATIONS_AGENT_URL: http://operations-svc:8400
       COMPLIANCE_AGENT_URL: http://compliance-svc:8400
@@ -138,6 +139,16 @@ services:
       - "8350:8350"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8350/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  legal-svc:
+    build: ./services/legal-svc
+    ports:
+      - "8360:8360"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8360/health')"]
       interval: 10s
       timeout: 3s
       retries: 3
