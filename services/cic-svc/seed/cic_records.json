@@ -1,0 +1,68 @@
+{
+  "_default": {
+    "full_name": "Khách hàng mặc định",
+    "total_outstanding_vnd": 0,
+    "credit_limit_total_vnd": 50000000,
+    "num_active_loans": 0,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 36,
+    "credit_types": ["unsecured"],
+    "inquiries_last_6m": 1
+  },
+  "001099000001": {
+    "full_name": "Nguyen Van An",
+    "total_outstanding_vnd": 150000000,
+    "credit_limit_total_vnd": 500000000,
+    "num_active_loans": 1,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 84,
+    "credit_types": ["secured", "unsecured", "card"],
+    "inquiries_last_6m": 1
+  },
+  "001099000002": {
+    "full_name": "Tran Thi Binh",
+    "total_outstanding_vnd": 320000000,
+    "credit_limit_total_vnd": 600000000,
+    "num_active_loans": 2,
+    "max_overdue_days": 25,
+    "overdue_amount_vnd": 5000000,
+    "credit_history_months": 48,
+    "credit_types": ["unsecured", "card"],
+    "inquiries_last_6m": 3
+  },
+  "001099000003": {
+    "full_name": "Le Van Cuong",
+    "total_outstanding_vnd": 450000000,
+    "credit_limit_total_vnd": 550000000,
+    "num_active_loans": 3,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 40000000,
+    "credit_history_months": 24,
+    "credit_types": ["unsecured"],
+    "inquiries_last_6m": 5
+  },
+  "001099000004": {
+    "full_name": "Pham Thi Dung",
+    "total_outstanding_vnd": 780000000,
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 4,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 120000000,
+    "credit_history_months": 10,
+    "credit_types": ["card"],
+    "inquiries_last_6m": 7
+  },
+  "001099000005": {
+    "full_name": "Hoang Van Em",
+    "total_outstanding_vnd": 1200000000,
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 5,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 400000000,
+    "credit_history_months": 4,
+    "credit_types": [],
+    "inquiries_last_6m": 10
+  }
+}

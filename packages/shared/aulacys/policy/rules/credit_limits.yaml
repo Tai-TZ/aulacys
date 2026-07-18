@@ -1,0 +1,102 @@
+# Hard legal limits — policy-as-code.
+#
+# WHY THIS IS DATA AND NOT A PROMPT:
+# Ask an LLM for a statutory threshold and it recalls the number it saw most during
+# training — which is the number from the OLD law. These limits changed in 2024.
+# Rules live here so they are versioned, dated, reviewable, and cannot be argued with.
+#
+# A rule with `severity: blocking` cannot be reasoned around by any agent.
+# `veto_agent` is the only agent allowed to raise it.
+#
+# `version` is what the audit ledger records (not `ef:<effective_from>`).
+
+rules:
+  - id: single_customer_credit_limit
+    description: >-
+      Total credit exposure to a single customer, as a ratio of the bank's own capital.
+    legal_basis: "Luật Các tổ chức tín dụng 2024 (32/2024/QH15), Điều 136 khoản 1 điểm b"
+    metric: exposure_ratio_single_customer
+    operator: "<="
+    threshold: 0.13
+    unit: ratio_of_own_capital
+    effective_from: "2026-01-01"
+    effective_to: "2026-12-31"
+    severity: blocking
+    veto_agent: compliance
+    version: "2026.1-dieu136"
+    # Verified 2026-07-18 against Công báo / Wikisource Điều 136 schedule:
+    # 01/01/2026–31/12/2026 → 13% một khách hàng (NHTM). Next row needed for 2027 (12%).
+    verified: true
+
+  - id: related_party_credit_limit
+    description: >-
+      Total credit exposure to a customer and its related parties, as a ratio of own capital.
+    legal_basis: "Luật Các tổ chức tín dụng 2024 (32/2024/QH15), Điều 136 khoản 1 điểm b"
+    metric: exposure_ratio_related_group
+    operator: "<="
+    threshold: 0.21
+    unit: ratio_of_own_capital
+    effective_from: "2026-01-01"
+    effective_to: "2026-12-31"
+    severity: blocking
+    veto_agent: compliance
+    version: "2026.1-dieu136"
+    # Same schedule: 21% khách hàng + người liên quan trong năm 2026.
+    verified: true
+
+  - id: sanctions_hit
+    description: >-
+      Customer, its ultimate beneficial owner, or a related party appears on a sanctions list.
+    legal_basis: "Luật Phòng, chống rửa tiền 2022, Điều 9 và Điều 10"
+    metric: sanctions_match_count
+    operator: "=="
+    threshold: 0
+    unit: count
+    effective_from: "2023-03-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "2023.1-aml"
+    verified: true
+
+  - id: pep_requires_enhanced_dd
+    description: >-
+      A politically exposed person in the ownership chain requires enhanced due diligence
+      and senior approval — it does not by itself block the loan.
+    legal_basis: "Luật Phòng, chống rửa tiền 2022, Điều 17"
+    metric: pep_match_count
+    operator: "=="
+    threshold: 0
+    unit: count
+    effective_from: "2023-03-01"
+    severity: warning
+    veto_agent: compliance
+    version: "2023.1-aml"
+    verified: true
+
+  - id: min_dscr
+    description: >-
+      Minimum debt service coverage ratio for a corporate term loan.
+    legal_basis: "SHB internal credit policy (MOCK — not a real SHB document)"
+    metric: dscr
+    operator: ">="
+    threshold: 1.2
+    unit: ratio
+    effective_from: "2026-01-01"
+    severity: warning
+    veto_agent: credit
+    version: "mock-2026.1"
+    verified: true
+
+  - id: max_ltv_real_estate
+    description: >-
+      Maximum loan-to-value against real-estate collateral.
+    legal_basis: "SHB internal credit policy (MOCK — not a real SHB document)"
+    metric: ltv
+    operator: "<="
+    threshold: 0.7
+    unit: ratio
+    effective_from: "2026-01-01"
+    severity: warning
+    veto_agent: credit
+    version: "mock-2026.1"
+    verified: true

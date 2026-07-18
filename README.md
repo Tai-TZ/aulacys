@@ -78,7 +78,7 @@ docker-compose.yml           # local full stack
 
 | Layer | Technology |
 |-------|-----------|
-| AI Agent | LangGraph + OpenAI (`gpt-4o-mini`) |
+| AI Agent | LangGraph + Gemini (`gemini-3.1-flash-lite`) |
 | Backend | FastAPI + Python 3.11+ |
 | Frontend | Next.js (App Router) + TypeScript + Tailwind |
 | Database | In-memory (dict) — no DB for MVP |

@@ -1,0 +1,93 @@
+# Retail lending demo policy.
+#
+# Legal thresholds stay in YAML so Compliance can veto from versioned data.
+# Confirm exact legal article text before quoting the prohibited-purpose row on stage.
+
+rules:
+  - id: kyc_identity_verified
+    description: >-
+      Borrower identity and processing consent must be verified before retail
+      credit assessment can proceed.
+    legal_basis: "Retail onboarding KYC control (MOCK - replace with SHB KYC policy reference)"
+    metric: kyc_verified
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "mock-kyc-2026.1"
+    verified: true
+
+  - id: ubo_related_control_clear
+    description: >-
+      Retail UBO/related-party control must either pass or be not applicable.
+    legal_basis: "Retail onboarding UBO/related-party control (MOCK - replace with SHB KYC policy reference)"
+    metric: ubo_clear
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "mock-ubo-2026.1"
+    verified: true
+
+  - id: prohibited_purpose_refinance_other_bank
+    description: >-
+      Loan purpose evidence indicates repayment/refinancing of a loan at another
+      credit institution, which is a protected demo hard-limit (policy-as-code veto).
+    legal_basis: "Retail lending prohibited-purpose policy (DEMO — badge unverified until legal article cited)"
+    metric: prohibited_purpose_refinance_other_bank
+    operator: "=="
+    threshold: 0
+    unit: boolean_flag
+    effective_from: "2024-07-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "demo-1.0"
+    verified: false
+
+  - id: max_retail_dti
+    description: >-
+      Retail borrower debt-to-income ratio should stay within demo appetite.
+    legal_basis: "Retail underwriting appetite (MOCK - not a real SHB document)"
+    metric: dti
+    operator: "<="
+    threshold: 0.5
+    unit: ratio
+    effective_from: "2026-01-01"
+    severity: warning
+    veto_agent: credit
+    version: "mock-2026.1"
+    verified: true
+
+  - id: max_ltv_product_cap
+    description: >-
+      Loan-to-value must stay within the product YAML limits.ltv_cap.
+      Compliance emits ltv_within_product_cap (1=ok, 0=breach); the numeric cap
+      itself stays in product config, not hardcoded here.
+    legal_basis: "Product catalogue LTV cap (MOCK marketing-page figure until legal review)"
+    metric: ltv_within_product_cap
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2024-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "demo-product-ltv-1.0"
+    verified: false
+
+  - id: max_amount_product_ceiling
+    description: >-
+      Requested amount must stay within product YAML limits.amount_ceiling.
+    legal_basis: "Product catalogue ceiling (MOCK marketing-page figure until legal review)"
+    metric: amount_within_product_ceiling
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2024-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "demo-product-ceiling-1.0"
+    verified: false

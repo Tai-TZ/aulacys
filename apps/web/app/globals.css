@@ -1,61 +1,52 @@
 @import "tailwindcss";
 
-/* Dark mode by a `.dark` class on <html> (toggled in-app, NOT by the OS). */
-@custom-variant dark (&:where(.dark, .dark *));
-
-/* ============================================================
-   DESIGN TOKENS — the ONE place to change the look.
-   Components reference token classes (bg-primary, text-foreground…),
-   never raw hex. Dark mode = override the SAME tokens under .dark.
-   ============================================================ */
-
 :root {
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.22 0.02 260);
-
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 260);
-
-  --muted: oklch(0.96 0.005 260);
-  --muted-foreground: oklch(0.55 0.02 260);
-
-  --primary: oklch(0.58 0.17 262);
-  --on-primary: oklch(0.99 0 0);
-
-  --secondary: oklch(0.95 0.01 260);
-  --secondary-foreground: oklch(0.28 0.02 260);
-
-  --border: oklch(0.9 0.01 260);
-  --ring: oklch(0.58 0.17 262);
-
-  --success: oklch(0.62 0.15 150);
-  --error: oklch(0.58 0.2 25);
-  --warning: oklch(0.75 0.15 80);
-
-  --radius: 0.625rem;
+  --background: #f7f8fb;
+  --foreground: #16183f;
+  --card: #ffffff;
+  --card-foreground: #16183f;
+  --muted: #eef0f5;
+  --muted-foreground: #5c6078;
+  --primary: #f36f21;
+  --on-primary: #ffffff;
+  --secondary: #eef0f5;
+  --secondary-foreground: #16183f;
+  --border: #e2e5ee;
+  --ring: #f36f21;
+  --brand: #f37021;
+  --brand-hover: #e05f12;
+  --brand-soft: #ff9a58;
+  --navy: #1e2148;
+  --navy-deep: #12142e;
+  --cream: #eef0f5;
+  --accent: #fff4ec;
+  --accent-foreground: #1e2148;
+  --hero-overlay: linear-gradient(
+    105deg,
+    rgba(18, 20, 46, 0.88) 0%,
+    rgba(18, 20, 46, 0.72) 42%,
+    rgba(18, 20, 46, 0.35) 68%,
+    rgba(18, 20, 46, 0.12) 100%
+  );
+  --gradient-hero: linear-gradient(160deg, #12142e 0%, #1e2148 55%, #2a2d5c 100%);
+  --warning-soft: #fff1e7;
+  --warning-foreground: #b54708;
+  --pending-soft: #fff7d6;
+  --pending-foreground: #8a6100;
+  --success-soft: #e8f7ef;
+  --success-foreground: #147a4b;
+  --active-soft: #eef0ff;
+  --active-foreground: #343a8a;
+  --chat-surface: #f3f0e9;
+  --chat-canvas: #fbfaf7;
+  --chat-sidebar: #eeeae2;
+  --chat-border: #ded9cf;
+  --chat-user: #f0ebe2;
+  --chat-online: #20a464;
+  --chat-backdrop: rgba(20, 22, 48, 0.58);
+  --radius: 0.75rem;
 }
 
-.dark {
-  --background: oklch(0.2 0.02 260);
-  --foreground: oklch(0.95 0.01 260);
-
-  --card: oklch(0.24 0.02 260);
-  --card-foreground: oklch(0.95 0.01 260);
-
-  --muted: oklch(0.28 0.02 260);
-  --muted-foreground: oklch(0.7 0.02 260);
-
-  --primary: oklch(0.68 0.16 262);
-  --on-primary: oklch(0.16 0.02 260);
-
-  --secondary: oklch(0.3 0.02 260);
-  --secondary-foreground: oklch(0.92 0.01 260);
-
-  --border: oklch(0.32 0.02 260);
-  --ring: oklch(0.68 0.16 262);
-}
-
-/* Map the runtime vars onto Tailwind color utilities (bg-*, text-*, border-*). */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -69,19 +60,198 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
-  --color-success: var(--success);
-  --color-error: var(--error);
-  --color-warning: var(--warning);
-
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-navy: var(--navy);
+  --color-navy-deep: var(--navy-deep);
+  --color-cream: var(--cream);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-pending-soft: var(--pending-soft);
+  --color-pending-foreground: var(--pending-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-success-foreground: var(--success-foreground);
+  --color-active-soft: var(--active-soft);
+  --color-active-foreground: var(--active-foreground);
+  --color-chat-surface: var(--chat-surface);
+  --color-chat-canvas: var(--chat-canvas);
+  --color-chat-sidebar: var(--chat-sidebar);
+  --color-chat-border: var(--chat-border);
+  --color-chat-user: var(--chat-user);
+  --color-chat-online: var(--chat-online);
+  --color-chat-backdrop: var(--chat-backdrop);
+  --background-image-hero-overlay: var(--hero-overlay);
+  --background-image-gradient-hero: var(--gradient-hero);
+  --shadow-chat: 0 24px 80px rgba(34, 36, 91, 0.12);
+  --shadow-composer: 0 8px 30px rgba(34, 36, 91, 0.08);
+  --shadow-brand: 0 10px 24px rgba(243, 112, 33, 0.24);
+  --shadow-chat-launcher: 0 16px 36px rgba(34, 36, 91, 0.24);
+  --shadow-card: 0 8px 30px -12px rgba(34, 36, 91, 0.15);
+  --shadow-elevated: 0 20px 50px -20px rgba(34, 36, 91, 0.25);
   --radius-lg: var(--radius);
+  --font-sans: var(--font-be-vietnam), "Be Vietnam Pro", system-ui, sans-serif;
 }
 
-/* Respect reduced-motion globally. */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; }
+
+button, a { cursor: pointer; }
+
+/* Native range slider — loan calculator (fill via --range-progress) */
+input[type="range"].loan-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--brand) 0%,
+    var(--brand) var(--range-progress, 0%),
+    var(--border) var(--range-progress, 0%),
+    var(--border) 100%
+  );
+  outline: none;
+}
+input[type="range"].loan-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+}
+input[type="range"].loan-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid var(--brand);
+  box-shadow: 0 1px 4px rgba(34, 36, 91, 0.15);
+  cursor: pointer;
+}
+input[type="range"].loan-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+}
+input[type="range"].loan-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--brand);
+}
+input[type="range"].loan-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid var(--brand);
+  box-shadow: 0 1px 4px rgba(34, 36, 91, 0.15);
+  cursor: pointer;
+}
+input[type="range"].loan-range:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+}
+
+/* Motion — landing / banking surfaces */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes hero-zoom {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes line-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 1s ease both;
+}
+.animate-hero-zoom {
+  animation: hero-zoom 8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-delay-1 { animation-delay: 0.12s; }
+.animate-delay-2 { animation-delay: 0.24s; }
+.animate-delay-3 { animation-delay: 0.36s; }
+.animate-delay-4 { animation-delay: 0.48s; }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.btn-shimmer:hover::after {
+  opacity: 1;
+  animation: shimmer 1.1s ease;
+}
+
+.brand-underline {
+  transform-origin: left;
+  animation: line-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
   }
 }

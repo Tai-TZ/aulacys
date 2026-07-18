@@ -16,13 +16,18 @@ env/
 .env
 .env.local
 .env.production
+env.production
 
 # IDE
 .vscode/
 .idea/
+.claude/settings.local.json
 *.swp
 *.swo
 *~
+
+# Codegraph local index
+.codegraph/
 
 # OS
 .DS_Store
@@ -36,6 +41,7 @@ data/
 # Logs
 logs/
 *.log
+.run/
 
 # Test coverage
 htmlcov/

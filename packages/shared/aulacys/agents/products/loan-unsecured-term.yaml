@@ -1,0 +1,18 @@
+# Vay tín chấp trả góp — STP when clean and under ceiling.
+agents: [credit, compliance]
+tools:
+  - cic_lookup
+  - salary_verify
+  - compute_annual_debt_service
+  - compute_dti
+  - aml_screen
+  - related_party
+policy: retail_lending.yaml
+limits:
+  amount_ceiling: 500000000
+  term_months_max: 60
+documents:
+  required: [cccd, sao_ke_luong, cic]
+gate:
+  stp_when: all_rules_pass
+  else: hitl

@@ -1,0 +1,46 @@
+SHB — Digital Expert Agents: A Team of AI Specialists for Banking Operations
+================================================================================
+Nguồn   : PROBLEM STATEMENT - SHB2.pdf (243.6 KB, 2 trang)
+Extract : pdftotext -enc UTF-8, chỉ gộp khoảng trắng thừa. KHÔNG sửa chữ nào.
+Ngày    : 2026-07-17
+
+LƯU Ý — Key Deliverable #5 bị CỤT trong chính file PDF gốc (ô bảng tràn chữ):
+  "A performance comparison between a single-agent chatbot"
+  ...và hết. Đây KHÔNG phải lỗi extract. Hỏi BTC câu đầy đủ.
+
+Đây là bản gốc để đối chiếu. Mọi diễn giải nằm ở
+../SHB-Digital-Expert-Agents-Solution-Design.md §2.1 — nếu hai bên lệch, file này đúng.
+================================================================================
+
+PROBLEM STATEMENT
+
+Topic
+Digital Expert Agents – A Team of AI Specialists for Banking Operations
+
+Digital Expert Agents – A Team of AI Specialists for Banking Operations
+
+Brief Description
+
+Suggested Technologies
+
+Key Deliverables
+
+Benefits to the Bank
+
+Why This Problem Matters
+
+A multi-agent AI system in which each agent acts as a digital expert in a specific banking domain, such as credit, legal and compliance, products, or operations. The agents should autonomously plan tasks, use tools, retrieve internal knowledge through RAG, collaborate with one another, and execute actions within SHB’s operational systems rather than only generating text responses.
+
+Generative AI or LLM reasoning engine such as GPT-4 or Claude; agentic frameworks such as LangGraph, CrewAI, or AutoGen; tool use and function calling; domain-specific RAG for each agent; planner–executor orchestration and routing; memory and state management; multi-agent communication protocols, including MCP where appropriate; FastAPI backend;
+
+• A working demo with at least two or three specialized digital experts, such as Credit, Legal/Compliance, and Operations agents, collaborating on one complex request. • An orchestration mechanism in which a planner agent decomposes work and assigns tasks to specialist executor agents. • Practical tool use, allowing agents to call APIs, query data, or perform concrete actions rather than only return text. • A dashboard showing agent traces, task status, decisions, and collaboration flows.
+
+• Extends GenAI from answering questions to performing work, increasing its operational value. • Enables one coordinated agent system to represent multiple specialist departments and accelerate cross-functional requests. • Reduces dependence on individual experts while preserving domain-specific workflows and controls. • Establishes a technical foundation for future end-to-end banking process automation. • Creates competitive advantage as the banking sector shifts
+
+Current AI use cases such as RAG and anomaly detection often remain focused on question answering or analysis. By 2026, the technology landscape is increasingly oriented toward agentic AI systems that can plan, coordinate, use tools, and take actions. Hack CX Together 2026 therefore needs a challenge that combines foundation-model capabilities with a clear multi-agent architecture and explores practical SHB applications beyond traditional RAG and chatbot solutions.
+
+React-based orchestration interface.
+
+• A performance comparison between a single-agent chatbot
+
+from simple chatbots to action-oriented AI agents.

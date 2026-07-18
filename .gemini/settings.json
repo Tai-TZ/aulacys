@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "BeforeAgent": [
+      {
+        "hooks": [
+          {
+            "name": "log-prompt",
+            "type": "command",
+            "command": "py -3 scripts/log_ai_event.py --tool=antigravity",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "name": "log-session-end",
+            "type": "command",
+            "command": "py -3 scripts/log_ai_event.py --tool=antigravity",
+            "timeout": 10000
+          },
+          {
+            "name": "export-desktop-sessions",
+            "type": "command",
+            "command": "py -3 scripts/export-ai-sessions.py",
+            "timeout": 30000
+          }
+        ]
+      }
+    ]
+  }
+}

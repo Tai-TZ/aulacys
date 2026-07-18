@@ -1,0 +1,101 @@
+{
+  "categories": [
+    {"id": "housing", "name": "Vay mua nhà", "name_en": "Home loans"},
+    {"id": "auto", "name": "Vay mua ô tô", "name_en": "Auto loans"},
+    {"id": "consumer-secured", "name": "Vay tiêu dùng có TSBĐ", "name_en": "Secured consumer"},
+    {"id": "education", "name": "Vay du học", "name_en": "Study abroad"},
+    {"id": "unsecured", "name": "Vay tín chấp", "name_en": "Unsecured"}
+  ],
+  "products": [
+    {
+      "id": "loan-1",
+      "name": "Vay mua nhà đất",
+      "category": "housing",
+      "collateral": true,
+      "slogan": "Mua nhà đất với LTV tối đa 90%",
+      "features": { "ltv_cap": 0.9, "term_years_max": 35, "ceiling_vnd": null },
+      "graph_product": "loan-1",
+      "in_scope": true
+    },
+    {
+      "id": "loan-2",
+      "name": "Vay mua nhà dự án",
+      "category": "housing",
+      "collateral": true,
+      "slogan": "Mua căn hộ dự án, LTV tối đa 90%",
+      "features": { "ltv_cap": 0.9, "term_years_max": 35, "ceiling_vnd": null },
+      "graph_product": "loan-2",
+      "in_scope": true
+    },
+    {
+      "id": "loan-house-repair",
+      "name": "Vay sửa chữa nhà",
+      "category": "housing",
+      "collateral": true,
+      "slogan": "Sửa chữa / cải tạo, LTV tối đa 80%",
+      "features": { "ltv_cap": 0.8, "term_years_max": 10, "ceiling_vnd": null },
+      "graph_product": "loan-house-repair",
+      "in_scope": true
+    },
+    {
+      "id": "loan-5",
+      "name": "Vay mua ô tô",
+      "category": "auto",
+      "collateral": true,
+      "slogan": "Mua xe, LTV tối đa 90%, kỳ hạn đến 8 năm",
+      "features": { "ltv_cap": 0.9, "term_years_max": 8, "ceiling_vnd": null },
+      "graph_product": "loan-5",
+      "in_scope": true
+    },
+    {
+      "id": "loan-3",
+      "name": "Vay tiêu dùng có tài sản bảo đảm",
+      "category": "consumer-secured",
+      "collateral": true,
+      "slogan": "Tài trợ đến 100% nhu cầu, kỳ hạn đến 15 năm",
+      "features": { "ltv_cap": 1.0, "term_years_max": 15, "ceiling_vnd": null },
+      "graph_product": "loan-3",
+      "in_scope": true
+    },
+    {
+      "id": "loan-4",
+      "name": "Vay du học",
+      "category": "education",
+      "collateral": true,
+      "slogan": "Tài trợ học phí đến 100%, kỳ hạn đến 10 năm",
+      "features": { "ltv_cap": 1.0, "term_years_max": 10, "ceiling_vnd": null },
+      "graph_product": "loan-4",
+      "in_scope": true
+    },
+    {
+      "id": "loan-unsecured-term",
+      "name": "Vay tín chấp trả góp",
+      "category": "unsecured",
+      "collateral": false,
+      "slogan": "Trần 500 triệu, kỳ hạn đến 60 tháng",
+      "features": { "ltv_cap": null, "term_months_max": 60, "ceiling_vnd": 500000000 },
+      "graph_product": "loan-unsecured-term",
+      "in_scope": true
+    },
+    {
+      "id": "loan-unsecured-overdraft",
+      "name": "Thấu chi tín chấp",
+      "category": "unsecured",
+      "collateral": false,
+      "slogan": "Trần 1 tỷ, hạn mức quay vòng 12 tháng",
+      "features": { "ltv_cap": null, "term_months_max": 12, "ceiling_vnd": 1000000000 },
+      "graph_product": "loan-unsecured-overdraft",
+      "in_scope": true
+    },
+    {
+      "id": "loan-6",
+      "name": "Vay sản xuất kinh doanh",
+      "category": "housing",
+      "collateral": true,
+      "slogan": "SME — out of retail demo scope",
+      "features": {},
+      "graph_product": null,
+      "in_scope": false
+    }
+  ]
+}

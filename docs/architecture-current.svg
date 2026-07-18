@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">Current SHB Digital Expert Agents Architecture</title>
+  <desc id="desc">Hybrid microservice architecture with frontend, gateway, orchestrator, five agents, permission facades, service tools, data plane, control plane, and knowledge plane.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f7f8fb; }
+      .panel { fill: #ffffff; stroke: #c9d2df; stroke-width: 2; rx: 12; }
+      .panel-title { fill: #24364f; font: 700 22px Arial, sans-serif; }
+      .box { fill: #ffffff; stroke: #64748b; stroke-width: 2; rx: 10; }
+      .box-blue { fill: #e8f1ff; stroke: #2563eb; }
+      .box-green { fill: #eaf7f0; stroke: #16a34a; }
+      .box-red { fill: #fff0f0; stroke: #dc2626; }
+      .box-amber { fill: #fff8e6; stroke: #d97706; }
+      .box-purple { fill: #f3edff; stroke: #7c3aed; }
+      .box-gray { fill: #f8fafc; stroke: #475569; }
+      .label { fill: #0f172a; font: 700 18px Arial, sans-serif; }
+      .small { fill: #334155; font: 14px Arial, sans-serif; }
+      .tiny { fill: #475569; font: 12px Arial, sans-serif; }
+      .arrow { stroke: #334155; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .arrow-soft { stroke: #64748b; stroke-width: 2; fill: none; marker-end: url(#arrow-soft); stroke-dasharray: 6 5; }
+      .arrow-red { stroke: #dc2626; stroke-width: 3; fill: none; marker-end: url(#arrow-red); }
+      .note { fill: #0f172a; font: 700 15px Arial, sans-serif; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155" />
+    </marker>
+    <marker id="arrow-soft" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="1050" />
+  <text x="60" y="60" class="panel-title" style="font-size:30px">SHB Digital Expert Agents - Current Architecture</text>
+  <text x="60" y="90" class="small">Hybrid microservice: gateway + orchestrator keep the veto/replan demo stable; tools, workers, DB owners, control plane, and knowledge plane are separated.</text>
+
+  <rect class="panel" x="40" y="120" width="1520" height="250" />
+  <text x="65" y="155" class="panel-title">Execution Plane</text>
+
+  <rect class="box box-blue" x="70" y="190" width="180" height="90" />
+  <text x="100" y="223" class="label">apps/web</text>
+  <text x="100" y="248" class="small">Next.js UI</text>
+
+  <rect class="box box-blue" x="320" y="190" width="210" height="90" />
+  <text x="350" y="218" class="label">api-gateway</text>
+  <text x="350" y="243" class="small">BFF + status monitor</text>
+  <text x="350" y="264" class="tiny">:8080</text>
+
+  <rect class="box box-purple" x="600" y="175" width="260" height="120" />
+  <text x="632" y="210" class="label">orchestrator</text>
+  <text x="632" y="235" class="small">apps/api + LangGraph</text>
+  <text x="632" y="257" class="tiny">DAG, veto loop, replan, trace</text>
+  <text x="632" y="278" class="tiny">:8000</text>
+
+  <rect class="box box-gray" x="930" y="190" width="220" height="90" />
+  <text x="965" y="223" class="label">agent-worker-svc</text>
+  <text x="965" y="248" class="small">optional remote agents</text>
+
+  <rect class="box box-green" x="1220" y="180" width="270" height="110" />
+  <text x="1255" y="213" class="label">service tools</text>
+  <text x="1255" y="238" class="small">CIC, Income, AML</text>
+  <text x="1255" y="260" class="small">Property, Policy, LOS</text>
+
+  <path class="arrow" d="M250 235 H320" />
+  <path class="arrow" d="M530 235 H600" />
+  <path class="arrow-soft" d="M860 235 H930" />
+  <path class="arrow" d="M860 250 C1010 330 1180 320 1220 265" />
+
+  <rect class="panel" x="40" y="410" width="940" height="380" />
+  <text x="65" y="445" class="panel-title">5-Agent Runtime Contract</text>
+
+  <rect class="box box-purple" x="90" y="490" width="170" height="95" />
+  <text x="125" y="520" class="label">Planner</text>
+  <text x="120" y="545" class="small">strong model</text>
+  <text x="118" y="566" class="tiny">DAG + replan</text>
+
+  <rect class="box box-green" x="340" y="490" width="170" height="95" />
+  <text x="380" y="520" class="label">Credit</text>
+  <text x="370" y="545" class="small">mini model</text>
+  <text x="365" y="566" class="tiny">DTI, limit, rate</text>
+
+  <rect class="box box-amber" x="590" y="490" width="170" height="95" />
+  <text x="620" y="520" class="label">Operations</text>
+  <text x="625" y="545" class="small">mini model</text>
+  <text x="615" y="566" class="tiny">docs, valuation, ticket</text>
+
+  <rect class="box box-red" x="465" y="660" width="185" height="95" />
+  <text x="498" y="690" class="label">Compliance</text>
+  <text x="510" y="715" class="small">mini model</text>
+  <text x="500" y="736" class="tiny">KYC/AML/policy veto</text>
+
+  <rect class="box box-purple" x="760" y="660" width="170" height="95" />
+  <text x="812" y="690" class="label">Critic</text>
+  <text x="795" y="715" class="small">strong model</text>
+  <text x="790" y="736" class="tiny">verify + memo</text>
+
+  <path class="arrow" d="M260 538 H340" />
+  <path class="arrow" d="M260 552 C350 630 430 685 465 702" />
+  <path class="arrow" d="M510 538 H590" />
+  <path class="arrow" d="M675 585 C650 620 610 640 575 660" />
+  <path class="arrow" d="M557 660 C480 620 390 590 260 555" />
+  <path class="arrow-red" d="M465 705 C330 735 170 660 160 585" />
+  <text x="270" y="715" class="note">veto -> Planner replan</text>
+  <path class="arrow" d="M650 708 H760" />
+  <path class="arrow-soft" d="M510 585 C620 625 690 660 760 690" />
+
+  <rect class="panel" x="1020" y="410" width="540" height="380" />
+  <text x="1045" y="445" class="panel-title">Permission Facades</text>
+
+  <rect class="box box-gray" x="1060" y="480" width="205" height="70" />
+  <text x="1090" y="512" class="label">core_banking_read</text>
+  <text x="1090" y="535" class="tiny">CIC, income, KYC, docs, collateral</text>
+
+  <rect class="box box-gray" x="1310" y="480" width="205" height="70" />
+  <text x="1342" y="512" class="label">loan_calculator</text>
+  <text x="1342" y="535" class="tiny">payment, DTI, price_loan</text>
+
+  <rect class="box box-gray" x="1060" y="610" width="205" height="70" />
+  <text x="1102" y="642" class="label">aml_screening</text>
+  <text x="1102" y="665" class="tiny">sanctions, PEP, related-party</text>
+
+  <rect class="box box-gray" x="1310" y="610" width="205" height="70" />
+  <text x="1350" y="642" class="label">workflow_write</text>
+  <text x="1350" y="665" class="tiny">valuation schedule, LOS ticket</text>
+
+  <text x="1055" y="730" class="small">Trace records physical tool calls for audit.</text>
+  <text x="1055" y="752" class="small">Agent specs expose only facade permissions.</text>
+
+  <rect class="panel" x="40" y="830" width="480" height="170" />
+  <text x="65" y="865" class="panel-title">Data Plane</text>
+  <rect class="box box-blue" x="70" y="900" width="95" height="60" />
+  <text x="92" y="925" class="small" style="font-weight:700">orchestrator</text>
+  <text x="102" y="945" class="tiny">run DB</text>
+  <rect class="box box-blue" x="185" y="900" width="95" height="60" />
+  <text x="204" y="925" class="small" style="font-weight:700">application</text>
+  <text x="218" y="945" class="tiny">app DB</text>
+  <rect class="box box-blue" x="300" y="900" width="95" height="60" />
+  <text x="330" y="925" class="small" style="font-weight:700">los</text>
+  <text x="328" y="945" class="tiny">ticket DB</text>
+  <rect class="box box-blue" x="415" y="900" width="80" height="60" />
+  <text x="440" y="925" class="small" style="font-weight:700">audit</text>
+  <text x="430" y="945" class="tiny">ledger</text>
+
+  <rect class="panel" x="560" y="830" width="440" height="170" />
+  <text x="585" y="865" class="panel-title">Control Plane - next</text>
+  <rect class="box box-amber" x="600" y="910" width="150" height="55" />
+  <text x="628" y="943" class="label">identity-svc</text>
+  <rect class="box box-amber" x="800" y="910" width="150" height="55" />
+  <text x="835" y="943" class="label">authz-svc</text>
+  <path class="arrow-soft" d="M750 938 H800" />
+
+  <rect class="panel" x="1040" y="830" width="520" height="170" />
+  <text x="1065" y="865" class="panel-title">Knowledge Plane - next</text>
+  <rect class="box box-green" x="1070" y="910" width="135" height="55" />
+  <text x="1090" y="943" class="label">knowledge-svc</text>
+  <rect class="box box-green" x="1240" y="900" width="95" height="70" />
+  <text x="1260" y="928" class="small" style="font-weight:700">vector DB</text>
+  <text x="1262" y="948" class="tiny">citations</text>
+  <rect class="box box-green" x="1365" y="900" width="95" height="70" />
+  <text x="1385" y="928" class="small" style="font-weight:700">graph DB</text>
+  <text x="1380" y="948" class="tiny">lineage</text>
+  <path class="arrow-soft" d="M1205 938 H1240" />
+  <path class="arrow-soft" d="M1335 938 H1365" />
+</svg>
