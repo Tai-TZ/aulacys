@@ -18,7 +18,8 @@ from src.models.schemas import (
     ProductGroupOut,
     ProductStatusPatch,
 )
-from src.services import applications_proxy, products as products_svc
+from src.services import applications_proxy
+from src.services import products as products_svc
 
 router = APIRouter()
 
