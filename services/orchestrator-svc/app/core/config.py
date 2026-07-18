@@ -1,4 +1,4 @@
-"""Env-driven settings for application-svc — Postgres only (docs/CONFIG.md)."""
+"""Env-driven settings for orchestrator-svc — Postgres only."""
 
 from __future__ import annotations
 
@@ -12,24 +12,20 @@ class Settings(BaseSettings):
 
     database_url: str = ""
     direct_url: str = ""
-    db_schema: str = "application"
-    service_name: str = "application-svc"
+    db_schema: str = "orchestrator"
+    service_name: str = "orchestrator-svc"
     version: str = "0.1.0"
 
     @property
     def alembic_url(self) -> str:
         url = self.direct_url or self.database_url
         if not url.startswith("postgres"):
-            raise RuntimeError(
-                "Set DIRECT_URL or DATABASE_URL (Postgres) — SQLite is removed"
-            )
+            raise RuntimeError("Set DIRECT_URL or DATABASE_URL (Postgres)")
         return url
 
     def require_database_url(self) -> str:
         if not self.database_url.startswith("postgres"):
-            raise RuntimeError(
-                "DATABASE_URL is required for application-svc (Postgres only; see docs/CONFIG.md)"
-            )
+            raise RuntimeError("DATABASE_URL is required for orchestrator-svc")
         return self.database_url
 
 

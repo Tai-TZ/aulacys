@@ -19,3 +19,8 @@ class AgentSpec(BaseModel):
     max_tool_calls: int
     prompt: str
     fallback: Any | None = None
+    # LOAN-SOP §0 invariant: an LLM never produces a number or a veto. It may only
+    # write prose (nhận định). A spec must OPT IN here for the harness to call the LLM
+    # at all; every number/veto-bearing spec leaves this False so its verdict always
+    # comes from the deterministic fallback. Closes the P0-2 inversion.
+    llm_prose: bool = False

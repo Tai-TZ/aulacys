@@ -62,11 +62,27 @@ def operations_fallback(state: AgentState, spec: AgentSpec) -> tuple[OperationsR
     )
 
 
+def write_outcome_ticket(state: AgentState, outcome: str) -> dict:
+    """Operations owns workflow writes; graph only decides when to request one."""
+    compliance = state.get("compliance")
+    rule_ids = ", ".join(compliance.rule_ids) if compliance else "none"
+    summary = f"{state['application'].product}: {outcome}; rules={rule_ids}"
+    return dispatch(
+        OperationsSpec,
+        "write_approval_ticket",
+        {
+            "application_id": state.get("metadata", {}).get("application_id", "retail-demo"),
+            "status": outcome,
+            "summary": summary,
+        },
+    )
+
+
 OperationsSpec = AgentSpec(
     name="operations",
     line=1,
     reads=["application", "metadata"],
-    tools=["property_valuation", "land_registry", "doc_checklist"],
+    tools=["property_valuation", "land_registry", "doc_checklist", "write_approval_ticket"],
     kb="collateral",
     output=OperationsReport,
     model="deterministic-fallback",
