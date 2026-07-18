@@ -34,14 +34,14 @@
 | `PROPERTY_SVC_URL` | addr | `""` | ✅ | Operations |
 | `AML_SVC_URL` | addr | `""` | ✅ | Compliance |
 | `LOS_SVC_URL` | addr | `""` | ✅ | ticket write |
-| `CREDIT_/OPERATIONS_/COMPLIANCE_/CRITIC_AGENT_URL` | addr | `""` | ✅ | agent workers |
+| `AGENT_WORKER_URL` | addr | `""` | ✅ | one agent runtime for Planner/Credit/Operations/Compliance/Critic |
 
 ## api-gateway (:8080)
 
 | Var | Kind | Default | Prod? | Notes |
 |-----|------|---------|-------|-------|
 | `MONOLITH_URL` | addr | `http://127.0.0.1:8000` | ✅ | orchestrator to proxy to |
-| `*_SVC_URL`, `*_AGENT_URL`, `CATALOG_SVC_URL` | addr | localhost ports | ✅ | health-check targets |
+| `*_SVC_URL`, `AGENT_WORKER_URL`, `CATALOG_SVC_URL` | addr | localhost ports | ✅ | health-check targets |
 | `CORS_ORIGINS` | own | `http://localhost:3000` | ✅ | web origin |
 
 ## audit-svc (:8200)
@@ -68,11 +68,11 @@
 | `DIRECT_URL` | own · secret | falls back to `DATABASE_URL` | ✅ | Alembic |
 | `DB_SCHEMA` | own | `application` | — | used if URL has no `search_path` |
 
-## agent-worker-svc (:8400 / 8401–8404)
+## agent-worker-svc (:8400)
 
 | Var | Kind | Default | Prod? | Notes |
 |-----|------|---------|-------|-------|
-| `AGENT_NAME` | own | `credit` | ✅ | `credit\|operations\|compliance\|critic` (until 4→1 merge, §12) |
+| `AGENT_WORKER_URL` | caller addr | `""` | ✅ | Set on orchestrator/gateway, not on the worker itself |
 | `CIC_SVC_URL`, `INCOME_SVC_URL` | addr | `""` | ✅ | Credit tools |
 | `PROPERTY_SVC_URL` | addr | `""` | ✅ | Operations tools |
 | `AML_SVC_URL`, `POLICY_SVC_URL` | addr | `""` | ✅ | Compliance tools |

@@ -117,7 +117,8 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
                         "content": (
                             "The deterministic base output is authoritative. "
                             f"Only write these prose fields in Vietnamese: {', '.join(spec.prose_fields)}. "
-                            "Keep numbers and decisions unchanged."
+                            "Do not change any other field. Do not invent or alter numbers, "
+                            "veto flags, rule IDs, or recommendations."
                         ),
                     },
                     {"role": "user", "content": json.dumps(base_for_llm, ensure_ascii=False, default=str)},

@@ -13,7 +13,7 @@ topology + rationale: `docs/ARCHITECTURE-services.md`.
 | 3b | `catalog-svc` — retail product catalog | 8350 | ✅ |
 | 3c | `legal-svc` — police / court / bank legal blacklist mock | 8370 | ✅ |
 | 4 | `api-gateway` (+ `/catalog` proxy) | 8080 | ✅ |
-| 5 | agent workers (`credit`, `operations`, `compliance`, `critic`) | 84xx | ✅ |
+| 5 | `agent-worker-svc` (`planner`, `credit`, `operations`, `compliance`, `critic`) | 8400 | ✅ |
 | 6 | orchestrator wires to HTTP instead of import | — | ✅ (env-gated) |
 
 DB ownership is documented in `docs/GCP-DATABASES.md`. For the full-microservice

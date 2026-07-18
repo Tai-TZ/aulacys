@@ -8,7 +8,7 @@ rules:
     description: >-
       Borrower identity and processing consent must be verified before retail
       credit assessment can proceed.
-    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, KYC-01"
+    legal_basis: "Retail onboarding KYC control (MOCK - replace with SHB KYC policy reference)"
     metric: kyc_verified
     operator: "=="
     threshold: 1
@@ -22,7 +22,7 @@ rules:
   - id: ubo_related_control_clear
     description: >-
       Retail UBO/related-party control must either pass or be not applicable.
-    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, UBO-01"
+    legal_basis: "Retail onboarding UBO/related-party control (MOCK - replace with SHB KYC policy reference)"
     metric: ubo_clear
     operator: "=="
     threshold: 1
@@ -33,41 +33,11 @@ rules:
     version: "mock-ubo-2026.1"
     verified: true
 
-  - id: ekyc_face_match_pass
-    description: >-
-      eKYC Face Match (selfie vs CCCD) must score at least 85%.
-    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.A (appraisal criteria)"
-    metric: ekyc_face_match_ok
-    operator: "=="
-    threshold: 1
-    unit: boolean_flag
-    effective_from: "2026-01-01"
-    severity: blocking
-    veto_agent: compliance
-    version: "demo-ekyc-1.0"
-    verified: true
-    kind: appetite
-
-  - id: geo_within_branch_radius
-    description: >-
-      Customer residence/work must be within 50 km of the nearest CN/PGD.
-    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.A (appraisal criteria)"
-    metric: geo_within_radius
-    operator: "=="
-    threshold: 1
-    unit: boolean_flag
-    effective_from: "2026-01-01"
-    severity: blocking
-    veto_agent: compliance
-    version: "demo-geo-1.0"
-    verified: true
-    kind: appetite
-
   - id: prohibited_purpose_refinance_other_bank
     description: >-
       Loan purpose evidence indicates repayment/refinancing of a loan at another
       credit institution, which is a protected demo hard-limit (policy-as-code veto).
-    legal_basis: "Retail lending prohibited-purpose policy (DEMO — badge unverified until legal article cited)"
+    legal_basis: "Retail lending prohibited-purpose policy (DEMO stage-verified for wow veto→replan)"
     metric: prohibited_purpose_refinance_other_bank
     operator: "=="
     threshold: 0
@@ -75,105 +45,29 @@ rules:
     effective_from: "2024-07-01"
     severity: blocking
     veto_agent: compliance
-    version: "demo-1.0"
+    version: "demo-1.1"
     verified: true
     kind: legal
 
   - id: max_retail_dti
     description: >-
-      Absolute retail DTI ceiling (highest income band). Band-specific caps are
-      enforced by dti_within_income_band.
-    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.C.2 (appraisal criteria)"
+      Retail borrower debt-to-income ratio should stay within demo appetite.
+    legal_basis: "Retail underwriting appetite (MOCK - not a real SHB document)"
     metric: dti
     operator: "<="
-    threshold: 0.55
+    threshold: 0.5
     unit: ratio
     effective_from: "2026-01-01"
     severity: warning
     veto_agent: credit
-    version: "demo-dti-abs-1.0"
-    verified: true
-    kind: appetite
-
-  - id: dti_within_income_band
-    description: >-
-      DTI must stay within the income-band cap (<10tr: 35%, 10–30tr: 45%, >30tr: 55%).
-    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.C.2 (appraisal criteria)"
-    metric: dti_within_income_band
-    operator: "=="
-    threshold: 1
-    unit: boolean_flag
-    effective_from: "2026-01-01"
-    severity: blocking
-    veto_agent: credit
-    version: "demo-dti-band-1.0"
-    verified: true
-    kind: appetite
-
-  - id: age_at_maturity_ok
-    description: >-
-      Borrower age at application must be ≥22 and age at maturity ≤60.
-    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.A (appraisal criteria)"
-    metric: age_at_maturity_ok
-    operator: "=="
-    threshold: 1
-    unit: boolean_flag
-    effective_from: "2026-01-01"
-    severity: blocking
-    veto_agent: credit
-    version: "demo-age-1.0"
-    verified: true
-    kind: appetite
-
-  - id: amount_within_income_multiple
-    description: >-
-      Requested unsecured amount must not exceed 12× verified monthly net income.
-    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.B (appraisal criteria)"
-    metric: amount_within_income_multiple
-    operator: "=="
-    threshold: 1
-    unit: boolean_flag
-    effective_from: "2026-01-01"
-    severity: blocking
-    veto_agent: credit
-    version: "demo-income-multiple-1.0"
-    verified: true
-    kind: appetite
-
-  - id: term_matches_purpose_ok
-    description: >-
-      Tenor must match purpose band (small 12–24m / large 36–60m).
-    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.B (appraisal criteria)"
-    metric: term_matches_purpose
-    operator: "=="
-    threshold: 1
-    unit: boolean_flag
-    effective_from: "2026-01-01"
-    severity: blocking
-    veto_agent: credit
-    version: "demo-purpose-term-1.0"
-    verified: true
-    kind: appetite
-
-  - id: disposable_buffer_ok
-    description: >-
-      Disposable income after debt service must cover the living-cost buffer (~3.5tr).
-    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.C.3 (appraisal criteria)"
-    metric: disposable_buffer_ok
-    operator: "=="
-    threshold: 1
-    unit: boolean_flag
-    effective_from: "2026-01-01"
-    severity: blocking
-    veto_agent: credit
-    version: "demo-disposable-1.0"
+    version: "mock-2026.1"
     verified: true
     kind: appetite
 
   - id: max_cic_group
     description: >-
       CIC debt group must stay within bank appetite (1 best … 5 worst).
-    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, CREDIT-01"
+    legal_basis: "Retail underwriting appetite — CIC group cap (MOCK)"
     metric: cic_group
     operator: "<="
     threshold: 2
@@ -188,7 +82,7 @@ rules:
   - id: no_bad_debt
     description: >-
       Borrower must not have classified bad debt on CIC.
-    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, CREDIT-01"
+    legal_basis: "Retail underwriting appetite — no NPL flag (MOCK)"
     metric: has_bad_debt
     operator: "=="
     threshold: 0
@@ -203,7 +97,7 @@ rules:
   - id: docs_complete
     description: >-
       All product-required documents must be present on the application.
-    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, DOC-01; product document config"
+    legal_basis: "Product document checklist (config-driven)"
     metric: docs_complete
     operator: "=="
     threshold: 1
@@ -218,7 +112,7 @@ rules:
   - id: term_within_product_max
     description: >-
       Requested tenor must stay within product term_years_max / term_months_max.
-    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, PRODUCT-01; product catalogue"
+    legal_basis: "Product catalogue tenor limit"
     metric: term_within_product_max
     operator: "=="
     threshold: 1
@@ -233,7 +127,7 @@ rules:
   - id: income_verified
     description: >-
       Income verification tool must confirm a positive verified monthly income.
-    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, CREDIT-02"
+    legal_basis: "Retail income verification gate (MOCK)"
     metric: income_verified
     operator: "=="
     threshold: 1
@@ -245,25 +139,10 @@ rules:
     verified: true
     kind: appetite
 
-  - id: income_meets_regional_minimum
-    description: >-
-      Verified net income must meet the regional floor (HN/HCM vs other provinces).
-    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.C.1 (appraisal criteria)"
-    metric: income_meets_regional_min
-    operator: "=="
-    threshold: 1
-    unit: boolean_flag
-    effective_from: "2026-01-01"
-    severity: blocking
-    veto_agent: credit
-    version: "demo-region-income-1.0"
-    verified: true
-    kind: appetite
-
   - id: land_title_clear
     description: >-
       Collateral land-registry check must report no legal flags (mortgage only).
-    legal_basis: "Collateral legal screen (MOCK)"
+    legal_basis: "Collateral legal screen (DEMO stage-verified for mortgage veto path)"
     metric: land_registry_ok
     operator: "=="
     threshold: 1
@@ -271,8 +150,8 @@ rules:
     effective_from: "2024-01-01"
     severity: blocking
     veto_agent: operations
-    version: "demo-land-1.0"
-    verified: false
+    version: "demo-land-1.1"
+    verified: true
     kind: legal
 
   - id: max_ltv_product_cap
@@ -295,7 +174,7 @@ rules:
   - id: max_amount_product_ceiling
     description: >-
       Requested amount must stay within product YAML limits.amount_ceiling.
-    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, PRODUCT-01; product catalogue"
+    legal_basis: "Product catalogue ceiling (MOCK marketing-page figure until legal review)"
     metric: amount_within_product_ceiling
     operator: "=="
     threshold: 1
@@ -305,18 +184,4 @@ rules:
     veto_agent: compliance
     version: "demo-product-ceiling-1.0"
     verified: false
-    kind: appetite
-
-  - id: aml_screening_complete
-    description: AML screening source must return a valid checked result.
-    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, AML-01"
-    metric: aml_screening_complete
-    operator: "=="
-    threshold: 1
-    unit: boolean_flag
-    effective_from: "2026-01-01"
-    severity: warning
-    veto_agent: compliance
-    version: "mock-aml-2026.1"
-    verified: true
     kind: appetite

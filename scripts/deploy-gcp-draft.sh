@@ -414,15 +414,14 @@ read_deployed_urls() {
 }
 
 deploy_agent_workers() {
-  log "Deploying agent workers"
-  deploy_service "credit-svc" "$(image agent-worker-svc)" 8400 \
-    "AGENT_NAME=credit,CIC_SVC_URL=${URLS[cic-svc]},INCOME_SVC_URL=${URLS[income-svc]}"
-  deploy_service "operations-svc" "$(image agent-worker-svc)" 8400 \
-    "AGENT_NAME=operations,PROPERTY_SVC_URL=${URLS[property-svc]}"
-  deploy_service "compliance-svc" "$(image agent-worker-svc)" 8400 \
-    "AGENT_NAME=compliance,AML_SVC_URL=${URLS[aml-svc]},POLICY_SVC_URL=${URLS[policy-svc]}"
-  deploy_service "critic-svc" "$(image agent-worker-svc)" 8400 \
-    "AGENT_NAME=critic"
+  log "Deploying agent runtime"
+  deploy_service "agent-worker-svc" "$(image agent-worker-svc)" 8400 \
+    "$(join_csv \
+      "AML_SVC_URL=${URLS[aml-svc]}" \
+      "CIC_SVC_URL=${URLS[cic-svc]}" \
+      "INCOME_SVC_URL=${URLS[income-svc]}" \
+      "POLICY_SVC_URL=${URLS[policy-svc]}" \
+      "PROPERTY_SVC_URL=${URLS[property-svc]}")"
 }
 
 build_backend_images() {
@@ -457,16 +456,13 @@ deploy_orchestrator_and_gateway() {
       "APPLICATION_SVC_URL=${URLS[application-svc]}" \
       "AUDIT_SVC_URL=${URLS[audit-svc]}" \
       "CIC_SVC_URL=${URLS[cic-svc]}" \
-      "COMPLIANCE_AGENT_URL=${URLS[compliance-svc]}" \
+      "AGENT_WORKER_URL=${URLS[agent-worker-svc]}" \
       "CORS_ORIGINS=$INITIAL_CORS_ORIGIN" \
-      "CREDIT_AGENT_URL=${URLS[credit-svc]}" \
-      "CRITIC_AGENT_URL=${URLS[critic-svc]}" \
       "DB_SCHEMA=orchestrator" \
       "INCOME_SVC_URL=${URLS[income-svc]}" \
       "LEGAL_SVC_URL=${URLS[legal-svc]}" \
       "LLM_PROVIDER=gemini" \
       "LOS_SVC_URL=${URLS[los-svc]}" \
-      "OPERATIONS_AGENT_URL=${URLS[operations-svc]}" \
       "POLICY_SVC_URL=${URLS[policy-svc]}" \
       "PROPERTY_SVC_URL=${URLS[property-svc]}")" \
     "DATABASE_URL=orchestrator-database-url:latest,DIRECT_URL=orchestrator-direct-url:latest,GEMINI_API_KEY=gemini-api-key:latest"
@@ -480,15 +476,12 @@ deploy_orchestrator_and_gateway() {
       "AUDIT_SVC_URL=${URLS[audit-svc]}" \
       "CATALOG_SVC_URL=${URLS[catalog-svc]}" \
       "CIC_SVC_URL=${URLS[cic-svc]}" \
-      "COMPLIANCE_AGENT_URL=${URLS[compliance-svc]}" \
+      "AGENT_WORKER_URL=${URLS[agent-worker-svc]}" \
       "CORS_ORIGINS=$INITIAL_CORS_ORIGIN" \
-      "CREDIT_AGENT_URL=${URLS[credit-svc]}" \
-      "CRITIC_AGENT_URL=${URLS[critic-svc]}" \
       "INCOME_SVC_URL=${URLS[income-svc]}" \
       "LEGAL_SVC_URL=${URLS[legal-svc]}" \
       "LOS_SVC_URL=${URLS[los-svc]}" \
       "MONOLITH_URL=${URLS[orchestrator-svc]}" \
-      "OPERATIONS_AGENT_URL=${URLS[operations-svc]}" \
       "POLICY_SVC_URL=${URLS[policy-svc]}" \
       "PROPERTY_SVC_URL=${URLS[property-svc]}")"
   URLS["api-gateway"]="$(service_url api-gateway)"
@@ -583,10 +576,7 @@ main() {
 
   read_deployed_urls
   deploy_agent_workers
-  URLS["credit-svc"]="$(service_url credit-svc)"
-  URLS["operations-svc"]="$(service_url operations-svc)"
-  URLS["compliance-svc"]="$(service_url compliance-svc)"
-  URLS["critic-svc"]="$(service_url critic-svc)"
+  URLS["agent-worker-svc"]="$(service_url agent-worker-svc)"
 
   deploy_orchestrator_and_gateway
 

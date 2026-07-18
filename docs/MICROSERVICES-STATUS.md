@@ -2,7 +2,7 @@
 
 > Where the split is now and exactly what to do next. Design rationale:
 > `ARCHITECTURE-services.md`. System overview: `OVERVIEW.md`.
-> Immediate pickup guide: `NEXT-STEPS.md`.
+> Current service coding roadmap: `SERVICE-CODING-PLAN.md`.
 
 ## TL;DR
 
@@ -44,67 +44,42 @@ docker compose -f docker-compose.services.yml up --build   # gateway, policy, au
 # then run the monolith with the service URLs (see below)
 ```
 
-**Option B — local (one terminal per service, from repo root):**
-```bash
-# from each service dir:
-cd services/policy-svc && uvicorn app.main:app --port 8100
-cd services/audit-svc  && uvicorn app.main:app --port 8200
-cd services/cic-svc    && uvicorn app.main:app --port 8300
-cd services/los-svc    && uvicorn app.main:app --port 8310
-cd services/aml-svc    && uvicorn app.main:app --port 8320
-cd services/property-svc && uvicorn app.main:app --port 8330
-cd services/income-svc && uvicorn app.main:app --port 8340
-cd services/api-gateway && uvicorn app.main:app --port 8080
-cd services/agent-worker-svc && $env:AGENT_NAME="credit"; python -m uvicorn app.main:app --port 8401
-cd services/agent-worker-svc && $env:AGENT_NAME="operations"; python -m uvicorn app.main:app --port 8402
-cd services/agent-worker-svc && $env:AGENT_NAME="compliance"; python -m uvicorn app.main:app --port 8403
-cd services/agent-worker-svc && $env:AGENT_NAME="critic"; python -m uvicorn app.main:app --port 8404
-```
-**Monolith wired to all services (PowerShell):**
+Manual agent runtime:
+
 ```powershell
-$env:POLICY_SVC_URL="http://127.0.0.1:8100"
-$env:AUDIT_SVC_URL ="http://127.0.0.1:8200"
-$env:CIC_SVC_URL   ="http://127.0.0.1:8300"
-$env:LOS_SVC_URL   ="http://127.0.0.1:8310"
-$env:AML_SVC_URL   ="http://127.0.0.1:8320"
-$env:PROPERTY_SVC_URL="http://127.0.0.1:8330"
-$env:INCOME_SVC_URL="http://127.0.0.1:8340"
-$env:CREDIT_AGENT_URL="http://127.0.0.1:8401"
-$env:OPERATIONS_AGENT_URL="http://127.0.0.1:8402"
-$env:COMPLIANCE_AGENT_URL="http://127.0.0.1:8403"
-$env:CRITIC_AGENT_URL="http://127.0.0.1:8404"
-cd apps/api; python -m uvicorn src.main:app --port 8000
+cd services/agent-worker-svc
+python -m uvicorn app.main:app --port 8400
 ```
-**Gateway env (PowerShell):**
+
+Wire the orchestrator:
+
 ```powershell
-$env:MONOLITH_URL="http://127.0.0.1:8000"
-$env:POLICY_SVC_URL="http://127.0.0.1:8100"
-$env:AUDIT_SVC_URL ="http://127.0.0.1:8200"
-$env:CIC_SVC_URL   ="http://127.0.0.1:8300"
-$env:LOS_SVC_URL   ="http://127.0.0.1:8310"
-$env:AML_SVC_URL   ="http://127.0.0.1:8320"
-$env:PROPERTY_SVC_URL="http://127.0.0.1:8330"
-$env:INCOME_SVC_URL="http://127.0.0.1:8340"
-$env:CREDIT_AGENT_URL="http://127.0.0.1:8401"
-$env:OPERATIONS_AGENT_URL="http://127.0.0.1:8402"
-$env:COMPLIANCE_AGENT_URL="http://127.0.0.1:8403"
-$env:CRITIC_AGENT_URL="http://127.0.0.1:8404"
-cd services/api-gateway; python -m uvicorn app.main:app --port 8080
+$env:AGENT_WORKER_URL="http://127.0.0.1:8400"
+cd apps/api
+python -m uvicorn src.main:app --port 8000
 ```
-**Smoke test:**
+
+Wire the gateway monitor:
+
+```powershell
+$env:AGENT_WORKER_URL="http://127.0.0.1:8400"
+cd services/api-gateway
+python -m uvicorn app.main:app --port 8080
+```
+
+## Smoke Tests
+
 ```bash
+curl -s localhost:8400/health
+curl -s localhost:8080/status
 curl -s localhost:8080/assess -H "content-type: application/json" -d "{\"message\":\"retail mortgage\"}"
-# outcome=vetoed, ticket.source=los-svc, audit.seq=N, trace model=http-worker:* when agent workers are enabled
-curl -s localhost:8080/status        # service board
-curl -s localhost:8200/verify        # {"intact": true, ...}
-curl -s localhost:8310/tickets/retail-demo
 ```
 **Monolith alone (no services):** unset the env vars — everything falls back in-process, `52 tests` still pass.
 
 ## Commit status
 
-The service split, web monitor, and runbook updates are committed on
-`feat/services-gateway-monitor`. See `NEXT-STEPS.md` for the next pickup order.
+The service split, web monitor, and runbook updates are represented in the current
+branch history. See `SERVICE-CODING-PLAN.md` for the next pickup order.
 
 ## Next steps (in order)
 

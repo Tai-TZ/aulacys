@@ -177,6 +177,17 @@ export interface Citation {
   excerpt: string;
 }
 
+export interface LoanProposal {
+  requested_amount: number;
+  proposed_limit: number | null;
+  proposed_rate: number | null;
+  term_months: number;
+  monthly_payment: number | null;
+  dti: number | null;
+  status: "accepted" | "revised" | "rejected";
+  revisions: string[];
+}
+
 export interface CreditAssessment {
   dti: number | null;
   income: number;
@@ -186,6 +197,7 @@ export interface CreditAssessment {
   rationale: string;
   evidence: Citation[];
   tool_results: Record<string, unknown>;
+  proposal?: LoanProposal | null;
 }
 
 export interface OperationsReport {
@@ -203,6 +215,7 @@ export interface AssessResponse {
   response: string;
   outcome: string; // stp_approved | vetoed | ready_for_human_approval
   run_trace: RunTrace;
+  proposal: LoanProposal | null;
   credit: CreditAssessment | null;
   operations: OperationsReport | null;
   compliance: ComplianceVerdict | null;

@@ -161,6 +161,32 @@ function StatusBadge({ tone, children }: { tone: string; children: React.ReactNo
   );
 }
 
+function formatMoney(n?: number | null): string {
+  return n == null || Number.isNaN(n) ? "—" : `${new Intl.NumberFormat("vi-VN").format(n)} ₫`;
+}
+
+function formatRate(n?: number | null): string {
+  return n == null || Number.isNaN(n) ? "—" : `${(Number(n) * 100).toFixed(2)}%/năm`;
+}
+
+function formatRatio(n?: number | null): string {
+  return n == null || Number.isNaN(n) ? "—" : `${(Number(n) * 100).toFixed(1)}%`;
+}
+
+function proposalStatusLabelVi(status?: string): string {
+  if (status === "accepted") return "Chấp nhận";
+  if (status === "revised") return "Điều chỉnh";
+  if (status === "rejected") return "Từ chối";
+  return "Chưa có";
+}
+
+function proposalStatusTone(status?: string): string {
+  if (status === "accepted") return "success";
+  if (status === "revised") return "pending";
+  if (status === "rejected") return "warning";
+  return "active";
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5 text-sm">
@@ -1075,6 +1101,7 @@ export function AssessDashboard() {
 
   const run = result?.run_trace;
   const compliance = result?.compliance;
+  const proposal = result?.proposal ?? result?.credit?.proposal ?? null;
   const veto = Boolean(compliance?.veto);
 
   // Step status — FLOW-BUSINESS-CONFIRMED.md (5 stages)
@@ -1598,6 +1625,55 @@ export function AssessDashboard() {
               </StatusBadge>
             </div>
           </Card>
+
+          {proposal && (
+            <Card className="border border-border/70 p-4 shadow-card text-left">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-navy">Phương án Credit trả ra</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Credit kiểm phương án vay, không phê duyệt và không veto.
+                  </p>
+                </div>
+                <StatusBadge tone={proposalStatusTone(proposal.status)}>
+                  {proposalStatusLabelVi(proposal.status)}
+                </StatusBadge>
+              </div>
+              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm md:grid-cols-6">
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Số tiền xin vay</dt>
+                  <dd className="font-semibold text-navy">{formatMoney(proposal.requested_amount)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Hạn mức đề xuất</dt>
+                  <dd className="font-semibold text-navy">{formatMoney(proposal.proposed_limit)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Lãi suất đề xuất</dt>
+                  <dd className="font-semibold text-navy">{formatRate(proposal.proposed_rate)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Kỳ hạn</dt>
+                  <dd className="font-semibold text-navy">{proposal.term_months} tháng</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Trả hàng tháng</dt>
+                  <dd className="font-semibold text-navy">{formatMoney(proposal.monthly_payment)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">DTI</dt>
+                  <dd className="font-semibold text-navy">{formatRatio(proposal.dti)}</dd>
+                </div>
+              </dl>
+              {proposal.revisions.length > 0 && (
+                <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                  {proposal.revisions.map((item) => (
+                    <li key={item}>· {item}</li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
 
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Values */}

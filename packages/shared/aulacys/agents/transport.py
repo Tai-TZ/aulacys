@@ -10,6 +10,7 @@ from aulacys.agents.state import (
     ComplianceVerdict,
     CreditAssessment,
     CriticVerdict,
+    LoanProposal,
     LoanApplication,
     NodeTrace,
     OperationsReport,
@@ -39,6 +40,8 @@ def hydrate_state(raw: dict[str, Any]) -> AgentState:
         state["application"] = LoanApplication.model_validate(raw["application"])
     if raw.get("plan"):
         state["plan"] = DAG.model_validate(raw["plan"])
+    if raw.get("proposal"):
+        state["proposal"] = LoanProposal.model_validate(raw["proposal"])
     if raw.get("credit"):
         state["credit"] = CreditAssessment.model_validate(raw["credit"])
     if raw.get("operations"):

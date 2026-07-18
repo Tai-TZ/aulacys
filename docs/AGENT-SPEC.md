@@ -151,11 +151,12 @@ OperationsReport
 - doc_status
 - missing[]
 - legal_flags[]
+- rationale
 - evidence[]
 - tool_results{}
 ```
 
-Operations does **not** decide repayment capacity and does **not** issue legal veto.
+Operations does **not** decide repayment capacity and does **not** issue legal veto. `rationale` may be LLM-polished; valuation and flags stay tool-backed.
 
 ### Compliance
 
@@ -189,11 +190,12 @@ ComplianceVerdict
 - rule_ids[]
 - kyc_status
 - ubo_status
+- rationale
 - citations[]
 - tool_results{}
 ```
 
-Compliance is the only current agent with veto power.
+Compliance is the only current agent with veto power. `rationale` may be LLM-polished; veto and rule_ids stay deterministic.
 
 ### Critic
 

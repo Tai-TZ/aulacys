@@ -25,7 +25,6 @@ from pydantic import BaseModel, Field
 
 from aulacys.policy.profiles import (
     PROFILE_RULE_IDS,
-    RULE_SET_RULE_IDS,
     PolicyProfile,
     label_vi,
     profile_from_secured_type,
@@ -166,7 +165,6 @@ def evaluate(
     *,
     profile: PolicyProfile | None = None,
     product_code: str | None = None,
-    rule_sets: list[str] | None = None,
 ) -> list[PolicyViolation]:
     """Check metrics against every rule whose metric is present.
 
@@ -179,11 +177,7 @@ def evaluate(
     """
     active_on = as_of or date.today()
     violations: list[PolicyViolation] = []
-    rules = (
-        rules_for_profile(profile, product_code=product_code, rule_sets=rule_sets)
-        if profile
-        else _rules_with_global_appetite()
-    )
+    rules = rules_for_profile(profile, product_code=product_code) if profile else _rules_with_global_appetite()
 
     for rule in rules:
         effective_from = date.fromisoformat(rule.effective_from)
@@ -304,21 +298,12 @@ def _rules_with_global_appetite() -> list[PolicyRule]:
     return list(load_rules())
 
 
-def rules_for_profile(
-    profile: PolicyProfile,
-    product_code: str | None = None,
-    rule_sets: list[str] | None = None,
-) -> list[PolicyRule]:
+def rules_for_profile(profile: PolicyProfile, product_code: str | None = None) -> list[PolicyRule]:
     """Rules attached to a package family, with appetite overrides applied."""
     by_id = {r.id: r for r in load_rules()}
     overrides = _merged_appetite_map(profile, product_code)
     result: list[PolicyRule] = []
-    configured_ids = PROFILE_RULE_IDS[profile]
-    if rule_sets:
-        configured_ids = tuple(
-            dict.fromkeys(rule_id for name in rule_sets for rule_id in RULE_SET_RULE_IDS.get(name, ()))
-        )
-    for rule_id in configured_ids:
+    for rule_id in PROFILE_RULE_IDS[profile]:
         rule = by_id.get(rule_id)
         if rule is None:
             continue

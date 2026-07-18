@@ -35,6 +35,7 @@ def _to_assess_response(state: dict) -> AssessResponse:
         response=state.get("response", ""),
         outcome=state.get("outcome", ""),
         run_trace=state.get("run_trace") or RunTrace(),
+        proposal=state.get("proposal"),
         credit=state.get("credit"),
         operations=state.get("operations"),
         compliance=state.get("compliance"),
