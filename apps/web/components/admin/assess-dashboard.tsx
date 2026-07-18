@@ -19,7 +19,7 @@ import {
   type AssessResponse,
   type DocumentInput,
 } from "@/lib/api";
-import { enqueueAssessResult } from "@/lib/hitl-queue";
+import { enqueueAssessResult, listHitlCases, type HitlCase } from "@/lib/hitl-queue";
 import { cn } from "@/lib/cn";
 
 const MORTGAGE_DEMO: AssessApplicationRequest = {
@@ -924,6 +924,10 @@ function rememberResult(result: AssessResponse, form: AssessApplicationRequest) 
 }
 
 export function AssessDashboard() {
+  const [viewMode, setViewMode] = useState<"list" | "detail">("list");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   const [form, setForm] = useState<AssessApplicationRequest>(HAPPY_DEMO);
   const [dossier, setDossier] = useState<{ data: AssessApplicationRequest; scenario: string } | null>(
     { data: HAPPY_DEMO, scenario: "happy" },
@@ -932,6 +936,52 @@ export function AssessDashboard() {
   const [result, setResult] = useState<AssessResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const baselineDossiers = [
+    {
+      id: "happy",
+      customer_name: "NGUYỄN THỊ BÉ HOA",
+      product: "retail_unsecured_salary",
+      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
+      amount: 150_000_000,
+      scenario: "happy",
+      data: HAPPY_DEMO,
+    },
+    {
+      id: "veto",
+      customer_name: "TRẦN THỊ VUI",
+      product: "retail_unsecured_salary",
+      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
+      amount: 150_000_000,
+      scenario: "veto",
+      data: VETO_DEMO,
+    },
+    {
+      id: "hitl",
+      customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
+      product: "retail_mortgage",
+      product_label: "Vay thế chấp mua nhà (Mortgage Loan)",
+      amount: 2_500_000_000,
+      scenario: "hitl",
+      data: HITL_DEMO,
+    },
+  ];
+
+  const cases = listHitlCases();
+
+  const getDossierStatusInfo = (scenario: string) => {
+    const match = cases.find((c: HitlCase) =>
+      c.customer_name.toUpperCase().includes(
+        scenario === "happy" ? "BÉ HOA" : scenario === "veto" ? "VUI" : "HUYỀN TRẦN"
+      )
+    );
+    if (!match) return { key: "ingested", label: "Tiếp nhận hồ sơ", tone: "active" as const };
+    if (match.veto) return { key: "vetoed", label: "Bị từ chối (Veto)", tone: "warning" as const };
+    if (match.decision === "approved" || match.ticket_id) return { key: "approved", label: "Đã giải ngân", tone: "success" as const };
+    if (match.decision === "rejected") return { key: "vetoed", label: "Từ chối duyệt", tone: "warning" as const };
+    return { key: "pending", label: "Chờ xét duyệt (HITL)", tone: "pending" as const };
+  };
+
 
 
 
@@ -1051,8 +1101,156 @@ export function AssessDashboard() {
     },
   ];
 
+  if (viewMode === "list") {
+    const filteredDossiers = baselineDossiers.filter((d) => {
+      const statusInfo = getDossierStatusInfo(d.scenario);
+      if (filterStatus !== "all" && statusInfo.key !== filterStatus) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return (
+          d.customer_name.toLowerCase().includes(q) ||
+          d.product_label.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+
+    const fmt = (n?: number | null) =>
+      n == null ? "—" : new Intl.NumberFormat("vi-VN").format(n) + " ₫";
+
+    return (
+      <div className="space-y-6">
+        {/* Header Block */}
+        <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between text-left">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-navy uppercase">Bộ hồ sơ khách hàng bán lẻ</h1>
+            <p className="text-xs text-muted-foreground">
+              Xem chi tiết hồ sơ, đối chiếu chứng từ gốc và thực thi quy trình phê duyệt tự động.
+            </p>
+          </div>
+        </div>
+
+        {/* Filter & Search Bar */}
+        <Card className="border border-border/70 p-4 shadow-sm bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="w-full md:w-80 relative">
+            <Input
+              type="text"
+              placeholder="Tìm kiếm tên khách hàng, sản phẩm..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="text-xs py-2 pr-8"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {[
+              { key: "all", label: "Tất cả" },
+              { key: "ingested", label: "Tiếp nhận" },
+              { key: "pending", label: "Chờ xét duyệt" },
+              { key: "approved", label: "Đã giải ngân" },
+              { key: "vetoed", label: "Từ chối / Veto" },
+            ].map((btn) => (
+              <button
+                key={btn.key}
+                type="button"
+                onClick={() => setFilterStatus(btn.key)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer active:scale-95",
+                  filterStatus === btn.key
+                    ? "bg-[#e8650a] text-white border-[#e8650a] shadow-sm"
+                    : "bg-white text-muted-foreground hover:bg-gray-50 border-border"
+                )}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        {/* Table / List View */}
+        <Card className="border border-border/70 overflow-hidden shadow-card bg-white">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="bg-secondary/20 border-b border-border text-[10px] uppercase font-bold text-navy tracking-wider">
+                  <th className="px-5 py-3.5">Khách hàng</th>
+                  <th className="px-5 py-3.5">Sản phẩm vay</th>
+                  <th className="px-5 py-3.5">Số tiền đề nghị</th>
+                  <th className="px-5 py-3.5">Trạng thái hồ sơ</th>
+                  <th className="px-5 py-3.5 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {filteredDossiers.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-12 text-xs text-muted-foreground italic bg-secondary/5">
+                      Không tìm thấy hồ sơ nào phù hợp với bộ lọc.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredDossiers.map((item) => {
+                    const statusInfo = getDossierStatusInfo(item.scenario);
+                    return (
+                      <tr
+                        key={item.id}
+                        className="hover:bg-secondary/10 transition duration-150 cursor-pointer"
+                        onClick={() => {
+                          setDossier({ data: item.data, scenario: item.scenario });
+                          setForm(item.data);
+                          setResult(null); // Clear previous results when switching
+                          setViewMode("detail");
+                        }}
+                      >
+                        <td className="px-5 py-4">
+                          <p className="text-xs font-bold text-navy uppercase leading-none">{item.customer_name}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">CCCD: {item.data.declared.national_id}</p>
+                        </td>
+                        <td className="px-5 py-4 text-xs font-medium text-gray-700">
+                          {item.product_label}
+                        </td>
+                        <td className="px-5 py-4 text-xs font-bold text-brand">
+                          {fmt(item.amount)}
+                        </td>
+                        <td className="px-5 py-4">
+                          <StatusBadge tone={statusInfo.tone}>
+                            {statusInfo.label}
+                          </StatusBadge>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#e8650a] hover:text-[#c05000] hover:underline"
+                          >
+                            Xử lý hồ sơ <ArrowRight size={12} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Quay lại danh sách hồ sơ header */}
+      <div className="flex items-center justify-between pb-1 text-left">
+        <button
+          type="button"
+          onClick={() => setViewMode("list")}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-navy hover:text-[#e8650a] transition cursor-pointer"
+        >
+          ← Quay lại danh sách bộ hồ sơ
+        </button>
+        <span className="text-[10px] text-muted-foreground">
+          Mã hồ sơ: <code className="bg-gray-100 px-1 py-0.5 rounded border">SHB-{dossier?.scenario.toUpperCase()}-2026</code>
+        </span>
+      </div>
       {/* ── THANH TIẾN TRÌNH WIZARD ── */}
       <Card className="border border-border/70 p-5 shadow-card bg-white">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2">

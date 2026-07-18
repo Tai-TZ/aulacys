@@ -24,7 +24,7 @@ import { BrandMark } from "@/components/client/brand-mark";
 import { Button, Input } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
-export type AdminActiveHref = "/admin" | "/admin/approvals" | "/admin/san-pham/ca-nhan";
+export type AdminActiveHref = "/admin" | "/admin/approvals" | "/admin/san-pham/ca-nhan" | "/admin/bo-ho-so";
 
 function NavItems({
   activeHref,
@@ -97,15 +97,21 @@ function NavItems({
       </div>
 
       {/* 3. Bộ hồ sơ */}
-      <div className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm text-on-primary/35 cursor-not-allowed">
+      <Link
+        href="/admin/bo-ho-so"
+        onClick={onNavigate}
+        className={cn(
+          "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm transition",
+          activeHref === "/admin/bo-ho-so"
+            ? "bg-[#F58220]/20 font-bold text-[#F58220] ring-1 ring-[#F58220]/30"
+            : "text-on-primary/70 hover:bg-on-primary/8 hover:text-on-primary",
+        )}
+      >
         <div className="flex items-center gap-3">
-          <FolderOpen size={18} className="shrink-0 opacity-70" />
+          <FolderOpen size={18} className="shrink-0" />
           <span>Bộ hồ sơ</span>
         </div>
-        <span className="rounded-md bg-on-primary/8 px-1.5 py-0.5 text-[9px] font-semibold text-on-primary/45">
-          Sắp có
-        </span>
-      </div>
+      </Link>
 
       {/* 4. Quy trình xử lý */}
       <div className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm text-on-primary/35 cursor-not-allowed">
