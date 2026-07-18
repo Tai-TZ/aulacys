@@ -71,6 +71,13 @@ function Write-Step([string]$Message) {
     Write-Host "==> $Message" -ForegroundColor Cyan
 }
 
+function Get-GcloudCli {
+    if (Get-Command "gcloud.cmd" -ErrorAction SilentlyContinue) {
+        return "gcloud.cmd"
+    }
+    return "gcloud"
+}
+
 function Invoke-Checked {
     param([string[]]$GcloudArgs)
     $printable = "gcloud " + ($GcloudArgs -join " ")
@@ -79,9 +86,19 @@ function Invoke-Checked {
         return ""
     }
     Write-Host $printable -ForegroundColor DarkGray
-    & gcloud @GcloudArgs
-    if ($LASTEXITCODE -ne 0) {
-        throw "gcloud command failed: $printable"
+    # Windows PowerShell treats gcloud stderr (even info lines) as NativeCommandError
+    # when ErrorActionPreference=Stop. Prefer gcloud.cmd and only fail on exit code.
+    $cli = Get-GcloudCli
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $cli @GcloudArgs
+        if ($LASTEXITCODE -ne 0) {
+            throw "gcloud command failed: $printable"
+        }
+    }
+    finally {
+        $ErrorActionPreference = $oldPreference
     }
 }
 
@@ -184,18 +201,27 @@ function Get-ServiceUrl([string]$Name) {
     if ($DryRun) {
         return "https://$Name-dry-run.run.app"
     }
-    $url = & gcloud run services describe $Name --region $Region --project $ProjectId --format "value(status.url)"
-    if ($LASTEXITCODE -ne 0 -or -not $url) {
-        throw "Cannot read Cloud Run URL for $Name"
+    $cli = Get-GcloudCli
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $url = & $cli run services describe $Name --region $Region --project $ProjectId --format "value(status.url)"
+        if ($LASTEXITCODE -ne 0 -or -not $url) {
+            throw "Cannot read Cloud Run URL for $Name"
+        }
+    }
+    finally {
+        $ErrorActionPreference = $oldPreference
     }
     return $url.TrimEnd("/")
 }
 
 function Test-GcpSecret([string]$Name) {
+    $cli = Get-GcloudCli
     $oldPreference = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try {
-        & gcloud secrets describe $Name --project $ProjectId *> $null
+        & $cli secrets describe $Name --project $ProjectId *> $null
         return ($LASTEXITCODE -eq 0)
     }
     finally {
@@ -331,10 +357,18 @@ function Ensure-ArtifactRepository {
         Write-Host "[dry-run] ensure artifact repo $Repository in $Region" -ForegroundColor DarkYellow
         return
     }
-    & gcloud artifacts repositories describe $Repository --location $Region --project $ProjectId *> $null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "Artifact Registry repo exists: $Repository" -ForegroundColor Green
-        return
+    $cli = Get-GcloudCli
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $cli artifacts repositories describe $Repository --location $Region --project $ProjectId *> $null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Artifact Registry repo exists: $Repository" -ForegroundColor Green
+            return
+        }
+    }
+    finally {
+        $ErrorActionPreference = $oldPreference
     }
     Invoke-Checked -GcloudArgs @(
         "artifacts", "repositories", "create", $Repository,
@@ -529,6 +563,7 @@ function Update-Cors([string]$Origin) {
 }
 
 function Read-DeployedUrls {
+    # Only services already deployed before agent workers (agents are added after Deploy-AgentWorkers).
     $names = @(
         "policy-svc",
         "cic-svc",
@@ -539,11 +574,7 @@ function Read-DeployedUrls {
         "legal-svc",
         "application-svc",
         "audit-svc",
-        "los-svc",
-        "credit-svc",
-        "operations-svc",
-        "compliance-svc",
-        "critic-svc"
+        "los-svc"
     )
     $urls = @{}
     foreach ($name in $names) {
