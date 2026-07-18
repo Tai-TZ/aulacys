@@ -341,7 +341,9 @@ def _serialize(row: LoanApplication) -> dict[str, Any]:
             "data_processing_consent": row.consent.data_processing_consent,
             "marketing_consent": row.consent.marketing_consent,
             "consent_version": row.consent.consent_version,
-            "consent_at": row.consent.consent_at.isoformat() if row.consent.consent_at else None,
+            "consent_at": row.consent.consent_at.isoformat()
+            if row.consent.consent_at
+            else None,
         },
         "purposes": [
             {

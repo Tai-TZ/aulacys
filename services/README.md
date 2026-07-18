@@ -6,6 +6,7 @@ topology + rationale: `docs/ARCHITECTURE-services.md`.
 
 | Phase | Service | Port | Status |
 | ----- | ------- | ---- | ------ |
+| 0 | `orchestrator-svc` — workflow state + DAG/replan run store | 8000/Cloud Run | ✅ DB scaffold |
 | 1 | `policy-svc` — Policy Decision Point (`POST /evaluate`) | 8100 | ✅ standing |
 | 2 | `audit-svc` - append-only ledger (layered) | 8200 | ✅ |
 | 3 | tool/external (`cic`, `aml`, `property`, `income`, `los`) | 83xx | ✅ |
@@ -14,6 +15,11 @@ topology + rationale: `docs/ARCHITECTURE-services.md`.
 | 4 | `api-gateway` (+ `/catalog` proxy) | 8080 | ✅ |
 | 5 | agent workers (`credit`, `operations`, `compliance`, `critic`) | 84xx | ✅ |
 | 6 | orchestrator wires to HTTP instead of import | — | ✅ (env-gated) |
+
+DB ownership is documented in `docs/GCP-DATABASES.md`. For the full-microservice
+runtime, `orchestrator-svc`, `application-svc`, `los-svc`, and `audit-svc` own
+persistence; agent/tool services stay stateless or seed-backed until a real bank
+integration replaces the mock.
 
 ## Run policy-svc
 
