@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from aulacys import db
-from aulacys.api.routes import router
+from app.api.routes import router
 from aulacys.config import get_settings
 
 

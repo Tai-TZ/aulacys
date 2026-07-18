@@ -129,7 +129,7 @@ async def test_assess_by_application_id_maps_and_runs(client, monkeypatch):
     }
 
     monkeypatch.setattr(
-        "aulacys.api.routes.load_loan_application",
+        "app.api.routes.load_loan_application",
         lambda application_id, product_override=None, extra_documents=None: map_to_loan_application(
             raw, product_override=product_override, extra_documents=extra_documents
         ),
@@ -153,7 +153,7 @@ async def test_assess_by_application_id_consent_denied(client, monkeypatch):
     def _deny(*_a, **_k):
         raise ConsentDeniedError("data_processing_consent must be true")
 
-    monkeypatch.setattr("aulacys.api.routes.load_loan_application", _deny)
+    monkeypatch.setattr("app.api.routes.load_loan_application", _deny)
     response = await client.post(
         "/api/v1/assess/application",
         json={"application_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"},
@@ -164,7 +164,7 @@ async def test_assess_by_application_id_consent_denied(client, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_assess_by_application_id_unavailable(client, monkeypatch):
-    monkeypatch.setattr("aulacys.api.routes.load_loan_application", lambda *_a, **_k: None)
+    monkeypatch.setattr("app.api.routes.load_loan_application", lambda *_a, **_k: None)
     response = await client.post(
         "/api/v1/assess/application",
         json={"application_id": "00000000-0000-0000-0000-000000000001"},
