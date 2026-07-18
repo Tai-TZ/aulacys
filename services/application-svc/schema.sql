@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS application_document (
     application_id uuid NOT NULL REFERENCES loan_application(id),
     doc_type       text NOT NULL,
     title          text,
-    status         text NOT NULL DEFAULT 'received',
+    status         text NOT NULL DEFAULT 'missing',
     required_for   text,
     storage_uri    text,
     tier           integer,

@@ -71,7 +71,15 @@ Workflow: define a model → import it in `migrations/env.py` → `make revision
 generated file → `make migrate` → commit the migration. Never edit a DB by hand; migrations
 are the only source of schema truth (this is what "avoid fixing it many times" buys you).
 
-## Adding the first model (example)
+## Tables today
+
+| Domain | Tables | Location |
+|--------|--------|----------|
+| Audit (immutable) | `audit_record`, `audit_violation` | `apps/api` — Alembic `0001` |
+| Product catalog | `product_group`, `loan_product` | `apps/api` — Alembic `0002`; see `docs/PRODUCT-CATALOG-SCHEMA.md` |
+| Application intake | `loan_application` + applicant tree + `application_document` | `services/application-svc` — see `docs/APPLICATION-SCHEMA.md` |
+
+## Adding a model
 
 ```python
 # src/db/models/user.py
@@ -83,5 +91,5 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(unique=True)
 ```
-Then uncomment the models import in `migrations/env.py`, run `make revision m="users"`,
+Import the module from `src/db/models/__init__.py`, run `make revision m="users"`,
 review, `make migrate`.

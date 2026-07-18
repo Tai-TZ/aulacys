@@ -1,8 +1,10 @@
-"""application documents
+"""application_document checklist / uploads
 
 Revision ID: 0002_application_document
 Revises: 0001_application
 Create Date: 2026-07-18
+
+Mirrors workspace DOSSIER_DOCS + assess Document badges (docs/APPLICATION-SCHEMA.md).
 """
 
 from __future__ import annotations
@@ -29,7 +31,7 @@ def upgrade() -> None:
         ),
         sa.Column("doc_type", sa.Text(), nullable=False),
         sa.Column("title", sa.Text(), nullable=True),
-        sa.Column("status", sa.Text(), nullable=False, server_default="received"),
+        sa.Column("status", sa.Text(), nullable=False, server_default="missing"),
         sa.Column("required_for", sa.Text(), nullable=True),
         sa.Column("storage_uri", sa.Text(), nullable=True),
         sa.Column("tier", sa.Integer(), nullable=True),

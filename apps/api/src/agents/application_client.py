@@ -22,7 +22,9 @@ class ConsentDeniedError(ValueError):
 
 def fetch_application(application_id: str) -> dict[str, Any] | None:
     """GET /applications/{id}. Returns None if URL unset or service unreachable."""
-    url = os.getenv("APPLICATION_SVC_URL")
+    from src.config import get_settings
+
+    url = (get_settings().application_svc_url or "").strip() or os.getenv("APPLICATION_SVC_URL", "")
     if not url:
         return None
     try:

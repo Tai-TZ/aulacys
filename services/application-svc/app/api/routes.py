@@ -31,6 +31,11 @@ def create_application(req: ApplicationCreateRequest) -> dict:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.get("/applications")
+def list_applications(limit: int = 100) -> list[dict]:
+    return app_service.list_applications(limit=limit)
+
+
 @router.get("/applications/{application_id}")
 def get_application(application_id: str) -> dict:
     row = app_service.get_application(application_id)

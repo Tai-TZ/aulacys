@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     # Vector Store
     chroma_persist_dir: str = "./data/chroma"
 
+    # Leaf services (empty ⇒ callers fall back / return empty)
+    application_svc_url: str = "http://127.0.0.1:8360"
+
 
 @lru_cache
 def get_settings() -> Settings:
