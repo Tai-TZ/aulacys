@@ -196,6 +196,8 @@ export type Dictionary = {
     agentProcessRunning: string;
     agentProcessDone: string;
     agentProcessVeto: string;
+    agentProcessOffline: string;
+    agentProcessLive: string;
     agentProcessParallel: string;
     agentDisclaimer: string;
     agentFallback: string;
@@ -454,9 +456,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
       agentProcessRunning: "Đang chạy graph…",
       agentProcessDone: "Chuỗi agent hoàn tất",
       agentProcessVeto: "Compliance veto — chờ replan",
+      agentProcessOffline: "API offline — đang chạy animation demo",
+      agentProcessLive: "Live trace từ /assess",
       agentProcessParallel: "Song song",
       agentDisclaimer:
-        "Demo: phản hồi qua API chat có fallback. Không thay thế tư vấn tín dụng chính thức.",
+        "Demo: chat + /assess (fallback animation nếu API down). Không thay thế tư vấn tín dụng chính thức.",
       agentFallback:
         "Hệ thống đang chạy chế độ dự phòng. Yêu cầu đã được ghi nhận — hãy bổ sung sổ đỏ và báo cáo định giá để Compliance tính LTV.",
       goWorkspace: "Vào customer portal",
@@ -704,9 +708,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
       agentProcessRunning: "Graph running…",
       agentProcessDone: "Agent chain complete",
       agentProcessVeto: "Compliance veto — awaiting replan",
+      agentProcessOffline: "API offline — demo animation",
+      agentProcessLive: "Live trace from /assess",
       agentProcessParallel: "Parallel",
       agentDisclaimer:
-        "Demo: chat API with fallback. Not a substitute for formal credit advice.",
+        "Demo: chat + /assess (animation fallback if API down). Not a substitute for formal credit advice.",
       agentFallback:
         "Running in fallback mode. Please add the land title and valuation so Compliance can compute LTV.",
       goWorkspace: "Open customer portal",

@@ -18,12 +18,17 @@ import {
   Sparkles,
   Upload,
 } from "lucide-react";
-import { Button, Card, Textarea } from "@/components/ui";
+import { Button, Card, Textarea, Badge, Alert, AlertDescription, AlertTitle } from "@/components/ui";
 import { BrandMark } from "@/components/client/brand-mark";
 import { DtiGauge, LimitBars, RepaymentBars } from "@/components/client/workspace/charts";
-import { sendChat } from "@/lib/api";
+import { assess, sendChat, type AssessResponse } from "@/lib/api";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
+import {
+  phaseFromAssess,
+  traceToStepStatus,
+  type LiveProcessPhase,
+} from "@/lib/trace-to-steps";
 import {
   ACTIVE_APPLICATION,
   AGENT_RUN_STEPS,
@@ -508,7 +513,9 @@ function AgentTab() {
       AgentRunStepStatus
     >,
   );
-  const [runPhase, setRunPhase] = useState<"idle" | "running" | "done" | "veto">("idle");
+  const [runPhase, setRunPhase] = useState<LiveProcessPhase>("idle");
+  const [lastAssess, setLastAssess] = useState<AssessResponse | null>(null);
+  const [traceSource, setTraceSource] = useState<"live" | "demo" | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -540,20 +547,18 @@ function AgentTab() {
     clearStepTimers();
     resetSteps();
     setRunPhase("running");
+    setTraceSource("demo");
 
     const schedule = (ms: number, fn: () => void) => {
       timersRef.current.push(setTimeout(fn, ms));
     };
 
-    // Planner
     schedule(120, () => setStepStatus((s) => ({ ...s, planner: "running" })));
     schedule(520, () => setStepStatus((s) => ({ ...s, planner: "done" })));
-    // Credit ∥ Operations
     schedule(580, () =>
       setStepStatus((s) => ({ ...s, credit: "running", operations: "running" })),
     );
     schedule(1100, () => setStepStatus((s) => ({ ...s, credit: "done", operations: "done" })));
-    // Compliance
     schedule(1180, () => setStepStatus((s) => ({ ...s, compliance: "running" })));
     if (opts?.highlightVeto) {
       schedule(1700, () => {
@@ -571,25 +576,52 @@ function AgentTab() {
     });
   }
 
+  function applyLiveTrace(result: AssessResponse) {
+    clearStepTimers();
+    setLastAssess(result);
+    setTraceSource("live");
+    setStepStatus(traceToStepStatus(result));
+    setRunPhase(phaseFromAssess(result));
+  }
+
+  /** Prefer mortgage seed when user hints at veto / LTV / mortgage — else use their text. */
+  function assessQueryFor(text: string): string {
+    if (/mortgage|mua nhà|veto|ltv|định giá|compliance|thẩm định/i.test(text)) {
+      return "retail mortgage";
+    }
+    return text;
+  }
+
   async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
     setInput("");
     setMessages((m) => [...m, { role: "user", content: trimmed }]);
     setLoading(true);
-    const wantVeto = /veto|ltv|định giá|compliance/i.test(trimmed);
-    playStepAnimation({ highlightVeto: wantVeto });
+    setRunPhase("running");
+    resetSteps();
+    setStepStatus((s) => ({ ...s, planner: "running" }));
+
+    const wantVeto = /veto|ltv|định giá|compliance|mortgage|mua nhà/i.test(trimmed);
+
     try {
-      const { response } = await sendChat(trimmed);
-      setMessages((m) => [...m, { role: "assistant", content: response }]);
-    } catch {
-      setMessages((m) => [
-        ...m,
-        {
-          role: "assistant",
-          content: w.agentFallback,
-        },
+      const [chatSettled, assessSettled] = await Promise.allSettled([
+        sendChat(trimmed),
+        assess(assessQueryFor(trimmed)),
       ]);
+
+      if (chatSettled.status === "fulfilled") {
+        setMessages((m) => [...m, { role: "assistant", content: chatSettled.value.response }]);
+      } else {
+        setMessages((m) => [...m, { role: "assistant", content: w.agentFallback }]);
+      }
+
+      if (assessSettled.status === "fulfilled") {
+        applyLiveTrace(assessSettled.value);
+      } else {
+        setRunPhase("offline");
+        playStepAnimation({ highlightVeto: wantVeto });
+      }
     } finally {
       setLoading(false);
     }
@@ -600,9 +632,11 @@ function AgentTab() {
       ? w.agentProcessRunning
       : runPhase === "veto"
         ? w.agentProcessVeto
-        : runPhase === "done"
-          ? w.agentProcessDone
-          : w.agentProcessIdle;
+        : runPhase === "offline"
+          ? w.agentProcessOffline
+          : runPhase === "done"
+            ? w.agentProcessDone
+            : w.agentProcessIdle;
 
   return (
     <div className="grid gap-6 animate-fade-up lg:grid-cols-5">
@@ -697,19 +731,35 @@ function AgentTab() {
               <h2 className="text-sm font-bold text-navy">{w.agentProcessTitle}</h2>
               <p className="mt-0.5 text-[11px] text-muted-foreground">{w.agentProcessSub}</p>
             </div>
-            <span
-              className={cn(
-                "shrink-0 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide",
-                runPhase === "running" && "bg-pending-soft text-pending-foreground",
-                runPhase === "veto" && "bg-warning-soft text-warning-foreground",
-                runPhase === "done" && "bg-success-soft text-success-foreground",
-                runPhase === "idle" && "bg-muted text-muted-foreground",
-              )}
+            <Badge
+              variant={
+                runPhase === "running"
+                  ? "pending"
+                  : runPhase === "veto" || runPhase === "offline"
+                    ? "warning"
+                    : runPhase === "done"
+                      ? "success"
+                      : "default"
+              }
             >
               {runPhase === "idle" ? "idle" : runPhase}
-            </span>
+            </Badge>
           </div>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{phaseLabel}</p>
+          {traceSource === "live" && lastAssess && (
+            <p className="mt-1.5 text-[11px] font-medium text-brand">
+              {w.agentProcessLive} · {lastAssess.trace.length} nodes · replan{" "}
+              {lastAssess.run_trace.replan_count}
+            </p>
+          )}
+          {traceSource === "demo" && (
+            <Alert variant="warning" className="mt-2 px-3 py-2">
+              <AlertTitle className="text-xs">{w.agentProcessOffline}</AlertTitle>
+              <AlertDescription className="mt-0.5 text-[11px]">
+                Fallback animation — start API :8000 for live harness trace.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <ol className="flex-1 space-y-0 overflow-y-auto px-4 py-4">
@@ -769,10 +819,11 @@ function AgentTab() {
                       {locale === "vi" ? step.nameVi : step.nameEn}
                     </p>
                     {showParallel && (
-                      <span className="rounded bg-active-soft px-1.5 py-0.5 text-[10px] font-semibold text-active-foreground">
+                      <Badge variant="active" className="text-[10px]">
                         {w.agentProcessParallel}
-                      </span>
+                      </Badge>
                     )}
+                    {status === "veto" && <Badge variant="warning">veto</Badge>}
                   </div>
                   <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                     {locale === "vi" ? step.detailVi : step.detailEn}

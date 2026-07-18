@@ -253,7 +253,7 @@ export const AGENT_RUN_STEPS: {
 }[] = [
   {
     id: "planner",
-    nameVi: "Planner",
+    nameVi: "Điều phối",
     nameEn: "Planner",
     detailVi: "Đọc product config → dựng DAG + cạnh veto",
     detailEn: "Read product config → build DAG + veto edge",
@@ -262,7 +262,7 @@ export const AGENT_RUN_STEPS: {
   },
   {
     id: "credit",
-    nameVi: "Credit",
+    nameVi: "Thẩm định tín dụng",
     nameEn: "Credit",
     detailVi: "DTI · CIC · khuyến nghị hạn mức (tool, không LLM)",
     detailEn: "DTI · CIC · limit recommendation (tools, not LLM)",
@@ -272,7 +272,7 @@ export const AGENT_RUN_STEPS: {
   },
   {
     id: "operations",
-    nameVi: "Operations",
+    nameVi: "Kiểm tra hồ sơ & TSBĐ",
     nameEn: "Operations",
     detailVi: "Chứng từ · định giá TSBĐ (song song với Credit)",
     detailEn: "Documents · collateral valuation (parallel with Credit)",
@@ -282,7 +282,7 @@ export const AGENT_RUN_STEPS: {
   },
   {
     id: "compliance",
-    nameVi: "Compliance",
+    nameVi: "Tuân thủ & Pháp lý",
     nameEn: "Compliance",
     detailVi: "Policy / LTV — có thể veto → replan",
     detailEn: "Policy / LTV — may veto → replan",
@@ -291,7 +291,7 @@ export const AGENT_RUN_STEPS: {
   },
   {
     id: "critic",
-    nameVi: "Critic",
+    nameVi: "Kiểm soát (tuyến 3)",
     nameEn: "Critic",
     detailVi: "Mọi số liệu phải có tool call; claim có citation",
     detailEn: "Every figure needs a tool call; claims need citations",

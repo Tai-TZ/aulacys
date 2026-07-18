@@ -17,8 +17,14 @@ logger = logging.getLogger(__name__)
 _MAX_SCHEMA_RETRIES = 2
 
 
-def _llm_configured() -> bool:
-    return bool(get_settings().openai_api_key.strip())
+def _llm_configured(spec: AgentSpec) -> bool:
+    """LLM runs only for prose specs with a key set.
+
+    A number/veto-bearing spec (`llm_prose=False`) NEVER touches the model — its verdict
+    always comes from the deterministic fallback. This is the structural guard for
+    LOAN-SOP §0 / P0-2: the LLM cannot invent a figure or a veto even when a key exists.
+    """
+    return bool(spec.llm_prose) and bool(get_settings().openai_api_key.strip())
 
 
 def _try_llm(spec: AgentSpec, messages: list[dict[str, Any]]) -> tuple[BaseModel, int]:
@@ -70,7 +76,7 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
     model_label = spec.model
     obj: BaseModel | None = None
 
-    if _llm_configured():
+    if _llm_configured(spec):
         try:
             obj, schema_retries = _try_llm(spec, messages)
             model_label = get_settings().model_name
