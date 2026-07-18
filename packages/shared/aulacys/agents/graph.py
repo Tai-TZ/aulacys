@@ -8,12 +8,11 @@ import yaml
 from langgraph.graph import END, StateGraph
 
 from aulacys.agents.audit_client import post_audit
-from aulacys.agents.harness.runner import run
 from aulacys.agents.nodes.compliance import ComplianceSpec
 from aulacys.agents.nodes.credit import CreditSpec
 from aulacys.agents.nodes.critic import CriticSpec
 from aulacys.agents.nodes.operations import OperationsSpec, write_outcome_ticket
-from aulacys.agents.nodes.planner import PlannerSpec
+from aulacys.agents.nodes.planner import PlannerSpec, topological_agent_order
 from aulacys.agents.state import AgentState, Document, LoanApplication, RunTrace
 from aulacys.agents.worker_client import run_agent
 
@@ -25,6 +24,10 @@ AGENT_SPECS = {
     "operations": OperationsSpec,
     "compliance": ComplianceSpec,
 }
+
+
+def _agent_contracts() -> dict[str, dict[str, list[str]]]:
+    return {name: {"reads": spec.reads} for name, spec in AGENT_SPECS.items()}
 
 
 def load_product_config(product: str) -> dict[str, Any]:
@@ -308,36 +311,13 @@ def _configured_agent_names(config: dict[str, Any]) -> list[str]:
 
 
 def _agent_execution_order(state: AgentState, config: dict[str, Any]) -> list[str]:
-    """Topologically order configured agents from Planner's DAG plus spec read-sets."""
+    """Topologically order configured agents from Planner's DAG."""
     configured = _configured_agent_names(config)
-    dependencies: dict[str, set[str]] = {agent_name: set() for agent_name in configured}
     plan = state.get("plan")
-
-    if plan is not None:
-        for prerequisite, node in plan.edges:
-            if node in dependencies and prerequisite in dependencies:
-                dependencies[node].add(prerequisite)
-
-    for agent_name in configured:
-        for read_key in AGENT_SPECS[agent_name].reads:
-            if read_key in dependencies:
-                dependencies[agent_name].add(read_key)
-
-    remaining = configured.copy()
-    ordered: list[str] = []
-    completed: set[str] = set()
-    while remaining:
-        ready = [agent_name for agent_name in remaining if dependencies[agent_name].issubset(completed)]
-        if not ready:
-            state.setdefault("metadata", {}).setdefault("graph_warnings", []).append(
-                f"DAG dependency cycle or missing prerequisite: {', '.join(remaining)}"
-            )
-            ordered.extend(remaining)
-            break
-        for agent_name in ready:
-            ordered.append(agent_name)
-            completed.add(agent_name)
-            remaining.remove(agent_name)
+    edges = plan.edges if plan is not None else []
+    ordered, warnings = topological_agent_order(configured, edges)
+    for warning in warnings:
+        state.setdefault("metadata", {}).setdefault("graph_warnings", []).append(warning)
     return ordered
 
 
@@ -425,19 +405,20 @@ async def process_application(state: AgentState) -> dict[str, Any]:
     config = load_product_config(next_state["application"].product)
     next_state.setdefault("metadata", {})
     next_state["metadata"]["product_config"] = config
+    next_state["metadata"]["agent_contracts"] = _agent_contracts()
     next_state["metadata"].setdefault("application_id", "retail-demo")
     next_state["metadata"].setdefault("request_id", str(uuid4()))
 
     # Plan -> execute -> (veto -> replan -> RE-EXECUTE)* up to the cap.
     # This loop IS the demo: the veto is an edge back to the planner, and the
     # cap is what stops an infinite veto/replan cycle mid-demo (BUILD-GUIDE §5.2).
-    next_state["plan"] = run(PlannerSpec, next_state)
+    next_state["plan"] = run_agent(PlannerSpec, next_state)
     _run_configured_agents(next_state, config)
     veto_fired = _has_veto(next_state)
 
     while _has_veto(next_state) and next_state["replan_count"] < REPLAN_CAP:
         next_state["replan_count"] += 1
-        next_state["plan"] = run(PlannerSpec, next_state)  # planner reads replan_count
+        next_state["plan"] = run_agent(PlannerSpec, next_state)  # planner reads replan_count
         _run_configured_agents(next_state, config)
 
     escalated = _has_veto(next_state)  # still vetoed after the cap -> human

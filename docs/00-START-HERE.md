@@ -13,7 +13,7 @@ Phiên bản 1.1 — 2026-07-17 · Trạng thái: draft, cần team phản biệ
 | 1 | **Trang này** | Ngay bây giờ. Là kết luận, không phải giới thiệu |
 | 2 | [`reference/problem-statement.txt`](./reference/problem-statement.txt) | Đề bài nguyên văn. **Nguồn duy nhất** cho mọi câu trích đề |
 | 3 | [`../AGENTS.md`](../AGENTS.md) §0–§1 | Trước dòng code đầu tiên |
-| 4 | [`SHB-Digital-Expert-Agents-Solution-Design.md`](./SHB-Digital-Expert-Agents-Solution-Design.md) | Khi cần chi tiết. 1100+ dòng, không đọc một lần |
+| 4 | [`SHB-Digital-Expert-Agents-Solution-Design-v2.md`](./SHB-Digital-Expert-Agents-Solution-Design-v2.md) | Khi cần chi tiết. Bản v2 là nguồn còn hiệu lực |
 
 ---
 
@@ -205,7 +205,7 @@ Hai câu dùng nguyên văn:
 | 1 | **Tra trần cấp tín dụng** Luật các TCTD 2024 Điều 136. `policy/rules/credit_limits.yaml` đang để `0.15` với `verified: false` — **đó là số của luật CŨ**. Luật 2024 thay bằng lộ trình giảm theo năm. **Không hỏi LLM. Mở luật.** | Chủ sở hữu compliance | Trước ngày thi |
 | 2 | Hỏi BTC câu đầy đủ của **Deliverable #5** — bị cụt trong PDF gốc ở `"…between a single-agent chatbot"` | PM | Trước ngày thi |
 | 3 | Hỏi BTC có **rubric chấm** không. Có rubric thì rubric thắng mọi suy luận trong doc này | PM | Trước ngày thi |
-| 4 | **Chốt stack**: `AGENTS.md` §3 khoá `gpt-4o-mini`; Solution Design đề Opus/Haiku. `gpt-4o-mini` làm Planner là yếu — nó phải phân rã DAG và nuốt veto. §1 luật 2: đổi stack = quyết định team | Cả team | Giờ 0 |
+| 4 | **Chốt stack**: `AGENTS.md` §3 hiện khóa Gemini primary (`gemini-3.1-flash-lite`) + OpenAI fallback. Giữ tier strong/mini theo `AGENT-SPEC.md`; số liệu vẫn từ tool. | Cả team | Done |
 | 5 | Log `pyyaml` vào `TEAM_RULES.md` → *Decisions* | Chủ sở hữu backend | Giờ 0 |
 
 ---
