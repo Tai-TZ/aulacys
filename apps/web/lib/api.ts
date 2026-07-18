@@ -405,12 +405,12 @@ export interface LoanProductWriteBody {
   effective_end?: string | null;
 }
 
-async function catalogFetch<T>(path: string, init?: RequestInit): Promise<T> {
+async function catalogFetch<T>(path: string, init?: RequestInit, timeoutMs = 20_000): Promise<T> {
   const bases = apiBases();
   let lastErr: Error | null = null;
   for (const base of bases) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 4000);
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
       const res = await fetch(`${base}/api/v1${path}`, {
         ...init,
@@ -429,7 +429,12 @@ async function catalogFetch<T>(path: string, init?: RequestInit): Promise<T> {
       return (await res.json()) as T;
     } catch (e) {
       clearTimeout(timer);
-      lastErr = e instanceof Error ? e : new Error(String(e));
+      const err = e instanceof Error ? e : new Error(String(e));
+      if (err.name === "AbortError") {
+        lastErr = new Error(`API timeout after ${timeoutMs}ms (${base}/api/v1${path})`);
+      } else {
+        lastErr = err;
+      }
       if (base === bases[bases.length - 1]) break;
     }
   }
