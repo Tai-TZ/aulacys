@@ -6,6 +6,7 @@ action" the brief emphasizes — a real write into a banking workflow system, no
 
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,10 +15,15 @@ from app.api.routes import router
 from app.core.config import get_settings
 from app.services import los as los_service
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    los_service.init()
+    try:
+        los_service.init()
+    except Exception:
+        logger.exception("los-svc init_db failed; starting without schema bootstrap")
     yield
 
 

@@ -7,6 +7,7 @@ service must not break the decision path (the caller treats the write as best-ef
 
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -15,10 +16,15 @@ from app.api.routes import router
 from app.core.config import get_settings
 from app.services import audit as audit_service
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    audit_service.init()
+    try:
+        audit_service.init()
+    except Exception:
+        logger.exception("audit-svc init_db failed; starting without schema bootstrap")
     yield
 
 
