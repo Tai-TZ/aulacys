@@ -32,3 +32,33 @@ rules:
     veto_agent: credit
     version: "mock-2026.1"
     verified: true
+
+  - id: max_ltv_product_cap
+    description: >-
+      Loan-to-value must stay within the product YAML limits.ltv_cap.
+      Compliance emits ltv_within_product_cap (1=ok, 0=breach); the numeric cap
+      itself stays in product config, not hardcoded here.
+    legal_basis: "Product catalogue LTV cap (MOCK marketing-page figure until legal review)"
+    metric: ltv_within_product_cap
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2024-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "demo-product-ltv-1.0"
+    verified: false
+
+  - id: max_amount_product_ceiling
+    description: >-
+      Requested amount must stay within product YAML limits.amount_ceiling.
+    legal_basis: "Product catalogue ceiling (MOCK marketing-page figure until legal review)"
+    metric: amount_within_product_ceiling
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2024-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "demo-product-ceiling-1.0"
+    verified: false

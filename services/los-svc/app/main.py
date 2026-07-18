@@ -6,36 +6,21 @@ action" the brief emphasizes — a real write into a banking workflow system, no
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from pydantic import BaseModel
 
-from app import db
-
-app = FastAPI(title="los-svc", version="0.1.0")
-
-
-class TicketRequest(BaseModel):
-    application_id: str
-    status: str
-    summary: str
-    product: str | None = None
+from app.api.routes import router
+from app.core.config import get_settings
+from app.services import los as los_service
 
 
-@app.on_event("startup")
-def _startup() -> None:
-    db.init_db()
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    los_service.init()
+    yield
 
 
-@app.get("/health")
-def health() -> dict:
-    return {"status": "ok"}
-
-
-@app.post("/tickets")
-def create_ticket(req: TicketRequest) -> dict:
-    return db.upsert_ticket(req.application_id, req.status, req.summary, req.product)
-
-
-@app.get("/tickets/{application_id}")
-def get_tickets(application_id: str) -> dict:
-    return {"application_id": application_id, "tickets": db.tickets_for(application_id)}
+settings = get_settings()
+app = FastAPI(title=settings.service_name, version=settings.version, lifespan=lifespan)
+app.include_router(router)

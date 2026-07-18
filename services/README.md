@@ -7,11 +7,12 @@ topology + rationale: `docs/ARCHITECTURE-services.md`.
 | Phase | Service | Port | Status |
 | ----- | ------- | ---- | ------ |
 | 1 | `policy-svc` — Policy Decision Point (`POST /evaluate`) | 8100 | ✅ standing |
-| 2 | `audit-svc` - append-only ledger | 8200 | done |
-| 3 | tool/external (`cic`, `aml`, `property`, `income`, `los`) | 83xx | done |
-| 4 | `api-gateway` | 8080 | done |
-| 5 | agent workers (`credit`, `operations`, `compliance`, `critic`) | 84xx | ⬜ planned |
-| 6 | orchestrator wires to HTTP instead of import | — | ⬜ planned |
+| 2 | `audit-svc` - append-only ledger (layered) | 8200 | ✅ |
+| 3 | tool/external (`cic`, `aml`, `property`, `income`, `los`) | 83xx | ✅ |
+| 3b | `catalog-svc` — retail product catalog | 8350 | ✅ |
+| 4 | `api-gateway` (+ `/catalog` proxy) | 8080 | ✅ |
+| 5 | agent workers (`credit`, `operations`, `compliance`, `critic`) | 84xx | ✅ |
+| 6 | orchestrator wires to HTTP instead of import | — | ✅ (env-gated) |
 
 ## Run policy-svc
 

@@ -42,4 +42,4 @@ async def test_unsecured_salary_uses_same_graph_without_veto():
     assert result["replan_count"] == 0
     assert result["run_trace"].lane == 1
     assert result.get("critic") is None  # lane 1 -> Critic does not run
-    assert result["ticket"]["status"] == "ready_for_human_approval"
+    assert result["ticket"]["status"] == "stp_approved"

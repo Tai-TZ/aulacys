@@ -113,11 +113,29 @@ def _base_lane(config: dict[str, Any]) -> int:
     return 3 if str(gate.get("stp_when", "")).strip() == "never" else 1
 
 
-def _decide_outcome(state: AgentState, escalated: bool) -> str:
+def _stp_eligible(state: AgentState, config: dict[str, Any]) -> bool:
+    """STP from product gate config — no product-name branching."""
+    gate = config.get("gate", {}) or {}
+    stp_when = str(gate.get("stp_when", "")).strip()
+    if not stp_when or stp_when == "never":
+        return False
+    if "all_rules_pass" not in stp_when:
+        return False
+    if _has_veto(state):
+        return False
+    ceiling = (config.get("limits") or {}).get("amount_ceiling")
+    if ceiling is not None:
+        amount = float(state["application"].declared.amount)
+        if amount > float(ceiling):
+            return False
+    return True
+
+
+def _decide_outcome(state: AgentState, config: dict[str, Any], escalated: bool) -> str:
     if escalated or _has_veto(state):
         return "vetoed"
-    # No blocking veto. STP needs an explicit ceiling (§12); until it is set,
-    # every clean file still goes to a human instead of auto-approving.
+    if _stp_eligible(state, config):
+        return "stp_approved"
     return "ready_for_human_approval"
 
 
@@ -189,7 +207,7 @@ async def process_application(state: AgentState) -> dict[str, Any]:
         if not next_state["critic"].passed:
             escalated = True
 
-    outcome = _decide_outcome(next_state, escalated)
+    outcome = _decide_outcome(next_state, config, escalated)
     next_state["outcome"] = outcome
     next_state["ticket"] = _write_ticket(next_state, outcome)
     next_state["run_trace"] = RunTrace(

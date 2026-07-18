@@ -19,12 +19,13 @@ env var and the monolith runs alone (demo-proof). Full veto flow remains protect
 | api-gateway | 8080 | health aggregation / front door | `MONOLITH_URL` + service URLs | ✅ wired |
 | monolith (orchestrator + agents) | 8000 | — | — | ✅ |
 | policy-svc | 8100 | rules (YAML) | `POLICY_SVC_URL` | ✅ wired |
-| audit-svc | 8200 | audit ledger (SQLite, append-only + hash chain) | `AUDIT_SVC_URL` | ✅ wired |
+| audit-svc | 8200 | audit ledger (Postgres schema `audit`) | `AUDIT_SVC_URL` | ✅ wired |
 | cic-svc | 8300 | cic_records seed (JSON) | `CIC_SVC_URL` | ✅ wired |
-| los-svc | 8310 | loan_ticket (SQLite) | `LOS_SVC_URL` | ✅ wired |
+| los-svc | 8310 | loan_ticket (Postgres schema `los`) | `LOS_SVC_URL` | ✅ wired |
 | aml-svc | 8320 | sanctions/PEP seed (JSON) | `AML_SVC_URL` | ✅ wired |
 | property-svc | 8330 | parcel seed (JSON) | `PROPERTY_SVC_URL` | ✅ wired |
 | income-svc | 8340 | statement verification mock | `INCOME_SVC_URL` | ✅ wired |
+| catalog-svc | 8350 | retail product catalog seed | `CATALOG_SVC_URL` (gateway) | ✅ standing |
 | credit-svc | 8401 | credit worker execution | `CREDIT_AGENT_URL` | ✅ wired |
 | operations-svc | 8402 | operations worker execution | `OPERATIONS_AGENT_URL` | ✅ wired |
 | compliance-svc | 8403 | compliance worker execution | `COMPLIANCE_AGENT_URL` | ✅ wired |

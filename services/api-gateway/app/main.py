@@ -53,11 +53,14 @@ SERVICES = [
     ServiceSpec("aml-svc", "AML_SVC_URL", "http://127.0.0.1:8320"),
     ServiceSpec("property-svc", "PROPERTY_SVC_URL", "http://127.0.0.1:8330"),
     ServiceSpec("income-svc", "INCOME_SVC_URL", "http://127.0.0.1:8340"),
+    ServiceSpec("catalog-svc", "CATALOG_SVC_URL", "http://127.0.0.1:8350"),
     ServiceSpec("credit-svc", "CREDIT_AGENT_URL", "http://127.0.0.1:8401"),
     ServiceSpec("operations-svc", "OPERATIONS_AGENT_URL", "http://127.0.0.1:8402"),
     ServiceSpec("compliance-svc", "COMPLIANCE_AGENT_URL", "http://127.0.0.1:8403"),
     ServiceSpec("critic-svc", "CRITIC_AGENT_URL", "http://127.0.0.1:8404"),
 ]
+
+_CATALOG = ServiceSpec("catalog-svc", "CATALOG_SVC_URL", "http://127.0.0.1:8350")
 
 
 def _now() -> str:
@@ -198,3 +201,37 @@ def assess(request: AssessRequest) -> dict[str, Any]:
 @app.post("/api/v1/assess")
 def api_assess(request: AssessRequest) -> dict[str, Any]:
     return assess(request)
+
+
+def _catalog_fallback(error: str) -> dict[str, Any]:
+    return {
+        "products": [],
+        "categories": [],
+        "gateway": {"error": error, "checked_at": _now()},
+        "degraded": True,
+    }
+
+
+@app.get("/catalog")
+def catalog() -> dict[str, Any]:
+    """Proxy in-scope product list from catalog-svc (degraded empty list if down)."""
+    try:
+        return _get_json(f"{_base_url(_CATALOG)}/products", timeout=3)
+    except Exception as exc:
+        return _catalog_fallback(str(exc))
+
+
+@app.get("/catalog/categories")
+def catalog_categories() -> dict[str, Any]:
+    try:
+        return _get_json(f"{_base_url(_CATALOG)}/categories", timeout=3)
+    except Exception as exc:
+        return _catalog_fallback(str(exc))
+
+
+@app.get("/catalog/products/{product_id}")
+def catalog_product(product_id: str) -> dict[str, Any]:
+    try:
+        return _get_json(f"{_base_url(_CATALOG)}/products/{product_id}", timeout=3)
+    except Exception as exc:
+        return {**_catalog_fallback(str(exc)), "id": product_id}

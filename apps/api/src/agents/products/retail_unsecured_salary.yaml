@@ -1,6 +1,11 @@
+# Alias kept for demo message path + existing tests.
+# Prefer loan-unsecured-term / loan-unsecured-overdraft for new callers.
 agents: [credit, compliance]
 tools: [cic_lookup, salary_verify, compute_annual_debt_service, compute_dti, aml_screen, related_party]
 policy: retail_lending.yaml
+limits:
+  amount_ceiling: 500000000
+  term_months_max: 60
 documents:
   required: [cccd, sao_ke_luong, cic]
 gate:

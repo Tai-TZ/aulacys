@@ -1,4 +1,12 @@
+# DEFAULT = full microservice stack.
+#   docker compose up --build
+# boots the orchestrator (wired to every service), the web app, and all services.
+# The in-process fallback stays as resilience: if a service dies, the orchestrator
+# serves that piece locally and the demo survives — but the DEFAULT path is the
+# real distributed call. For a services-only dev run use docker-compose.services.yml.
+
 services:
+  # ---------- orchestrator (composition root) ----------
   api:
     build:
       context: ./apps/api
@@ -7,8 +15,32 @@ services:
       - "8000:8000"
     env_file:
       - ./apps/api/.env
+    environment:
+      POLICY_SVC_URL: http://policy-svc:8100
+      AUDIT_SVC_URL: http://audit-svc:8200
+      CIC_SVC_URL: http://cic-svc:8300
+      LOS_SVC_URL: http://los-svc:8310
+      AML_SVC_URL: http://aml-svc:8320
+      PROPERTY_SVC_URL: http://property-svc:8330
+      INCOME_SVC_URL: http://income-svc:8340
+      CREDIT_AGENT_URL: http://credit-svc:8400
+      OPERATIONS_AGENT_URL: http://operations-svc:8400
+      COMPLIANCE_AGENT_URL: http://compliance-svc:8400
+      CRITIC_AGENT_URL: http://critic-svc:8400
     volumes:
       - ./apps/api/data:/app/data
+    depends_on:
+      - policy-svc
+      - audit-svc
+      - cic-svc
+      - los-svc
+      - aml-svc
+      - property-svc
+      - income-svc
+      - credit-svc
+      - operations-svc
+      - compliance-svc
+      - critic-svc
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -16,6 +48,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # ---------- frontend ----------
   web:
     build:
       context: ./apps/web
@@ -24,6 +57,124 @@ services:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:8080
+    depends_on:
+      - api
+      - api-gateway
+    restart: unless-stopped
+
+  # ---------- gateway (front door + monitor) ----------
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      MONOLITH_URL: http://api:8000
+      POLICY_SVC_URL: http://policy-svc:8100
+      AUDIT_SVC_URL: http://audit-svc:8200
+      CIC_SVC_URL: http://cic-svc:8300
+      LOS_SVC_URL: http://los-svc:8310
+      AML_SVC_URL: http://aml-svc:8320
+      PROPERTY_SVC_URL: http://property-svc:8330
+      INCOME_SVC_URL: http://income-svc:8340
+      CATALOG_SVC_URL: http://catalog-svc:8350
+      CREDIT_AGENT_URL: http://credit-svc:8400
+      OPERATIONS_AGENT_URL: http://operations-svc:8400
+      COMPLIANCE_AGENT_URL: http://compliance-svc:8400
+      CRITIC_AGENT_URL: http://critic-svc:8400
+      CORS_ORIGINS: http://localhost:3000
     depends_on:
       - api
     restart: unless-stopped
+
+  # ---------- policy / audit / los (stateful or engine) ----------
+  policy-svc:
+    build: ./services/policy-svc
+    ports: ["8100:8100"]
+    restart: unless-stopped
+
+  audit-svc:
+    build: ./services/audit-svc
+    ports: ["8200:8200"]
+    volumes:
+      - audit-data:/data
+    restart: unless-stopped
+
+  los-svc:
+    build: ./services/los-svc
+    ports: ["8310:8310"]
+    volumes:
+      - los-data:/data
+    restart: unless-stopped
+
+  # ---------- external mocks + catalog (seed) ----------
+  cic-svc:
+    build: ./services/cic-svc
+    ports: ["8300:8300"]
+    restart: unless-stopped
+
+  aml-svc:
+    build: ./services/aml-svc
+    ports: ["8320:8320"]
+    restart: unless-stopped
+
+  property-svc:
+    build: ./services/property-svc
+    ports: ["8330:8330"]
+    restart: unless-stopped
+
+  income-svc:
+    build: ./services/income-svc
+    ports: ["8340:8340"]
+    restart: unless-stopped
+
+  catalog-svc:
+    build: ./services/catalog-svc
+    ports: ["8350:8350"]
+    restart: unless-stopped
+
+  # ---------- agent workers (4 processes; see SERVICE-CODING-PLAN §12) ----------
+  credit-svc:
+    build:
+      context: .
+      dockerfile: services/agent-worker-svc/Dockerfile
+    ports: ["8401:8400"]
+    environment:
+      AGENT_NAME: credit
+      CIC_SVC_URL: http://cic-svc:8300
+      INCOME_SVC_URL: http://income-svc:8340
+    restart: unless-stopped
+
+  operations-svc:
+    build:
+      context: .
+      dockerfile: services/agent-worker-svc/Dockerfile
+    ports: ["8402:8400"]
+    environment:
+      AGENT_NAME: operations
+      PROPERTY_SVC_URL: http://property-svc:8330
+    restart: unless-stopped
+
+  compliance-svc:
+    build:
+      context: .
+      dockerfile: services/agent-worker-svc/Dockerfile
+    ports: ["8403:8400"]
+    environment:
+      AGENT_NAME: compliance
+      AML_SVC_URL: http://aml-svc:8320
+      POLICY_SVC_URL: http://policy-svc:8100
+    restart: unless-stopped
+
+  critic-svc:
+    build:
+      context: .
+      dockerfile: services/agent-worker-svc/Dockerfile
+    ports: ["8404:8400"]
+    environment:
+      AGENT_NAME: critic
+    restart: unless-stopped
+
+volumes:
+  audit-data:
+  los-data:

@@ -14,15 +14,24 @@ def test_url_normalization_postgres_scheme():
     assert got == "postgresql+asyncpg://u:p@h:5432/postgres"
 
 
-def test_disabled_by_default():
-    # No DATABASE_URL in test env -> DB layer disabled (in-memory fallback).
-    assert session.is_enabled() is False
+def test_disabled_by_default(monkeypatch):
+    # Empty DATABASE_URL => DB layer disabled (in-memory fallback). Clear .env value too.
+    monkeypatch.setenv("DATABASE_URL", "")
+    get_settings.cache_clear()
+    try:
+        assert session.is_enabled() is False
+    finally:
+        get_settings.cache_clear()
 
 
 @pytest.mark.asyncio
-async def test_ping_never_raises_when_disabled():
-    # Demo-proof: a missing/dead DB must not raise.
-    assert await session.ping() is False
+async def test_ping_never_raises_when_disabled(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "")
+    get_settings.cache_clear()
+    try:
+        assert await session.ping() is False
+    finally:
+        get_settings.cache_clear()
 
 
 def test_db_enabled_reflects_url(monkeypatch):
@@ -35,7 +44,12 @@ def test_db_enabled_reflects_url(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_health_reports_db_disabled(client):
-    resp = await client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json()["db"] == "disabled"
+async def test_health_reports_db_disabled(client, monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "")
+    get_settings.cache_clear()
+    try:
+        resp = await client.get("/health")
+        assert resp.status_code == 200
+        assert resp.json()["db"] == "disabled"
+    finally:
+        get_settings.cache_clear()

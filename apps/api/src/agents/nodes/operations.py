@@ -12,6 +12,12 @@ def operations_fallback(state: AgentState, spec: AgentSpec) -> tuple[OperationsR
     provided = [doc.kind for doc in app.documents]
     declared = app.declared
 
+    parcel_id = None
+    for document in app.documents:
+        if document.kind == "so_do" and document.extracted:
+            parcel_id = document.extracted.get("parcel")
+            break
+
     tool_calls: list[str] = []
     checklist = dispatch(spec, "doc_checklist", {"required": required, "provided": provided})
     tool_calls.append("doc_checklist")
@@ -21,11 +27,17 @@ def operations_fallback(state: AgentState, spec: AgentSpec) -> tuple[OperationsR
     valuation: float | None = None
     if declared.collateral_value_declared is not None and "property_valuation" in spec.tools:
         valuation_result = dispatch(
-            spec, "property_valuation", {"collateral_value": declared.collateral_value_declared}
+            spec,
+            "property_valuation",
+            {"collateral_value": declared.collateral_value_declared, "parcel_id": parcel_id},
         )
         tool_calls.append("property_valuation")
         valuation = valuation_result.get("valuation")
-        registry_result = dispatch(spec, "land_registry", {"has_dispute": False, "zoning_flag": False})
+        registry_result = dispatch(
+            spec,
+            "land_registry",
+            {"has_dispute": False, "zoning_flag": False, "parcel_id": parcel_id},
+        )
         tool_calls.append("land_registry")
 
     return (
