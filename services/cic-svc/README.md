@@ -1,8 +1,10 @@
 # cic-svc — mock CIC (Trung tâm Thông tin Tín dụng)
 
-Government CIC API is not callable in this hackathon. This service is a
-**JSON-seeded mock scorecard** so Credit / Thẩm định can inquire by CCCD
-(with customer consent) and get debt group + CIC score.
+Mock of the national credit bureau. Government CIC API is not callable in this
+hackathon — this service is a **JSON-seeded mock scorecard** so Credit / Thẩm định
+can inquire by CCCD (with customer consent) and get debt group + CIC score.
+
+Read-only structured lookup — **not RAG** (a credit score is a key query, not text search).
 
 - Port: **8300**
 - Storage: `seed/cic_records.json` (no SQL)
@@ -70,6 +72,7 @@ Scores are **computed** from seed fields (not hard-coded). Expect ~650+ for grou
 
 ```bash
 cd services/cic-svc
+pip install -r requirements.txt
 uvicorn app.main:app --port 8300 --reload
 pytest -q
 ```
@@ -78,6 +81,12 @@ pytest -q
 curl -s http://127.0.0.1:8300/lookup -H "content-type: application/json" \
   -d "{\"cccd\":\"001099000001\",\"consent_granted\":true}"
 ```
+
+## Storage / Env
+
+- **Seed:** `seed/cic_records.json` (git-versioned, read-only). No DB.
+- **Env:** none required. Called by the orchestrator via `CIC_SVC_URL`.
+- Production: replace the seed with the real CIC API or a managed reference DB.
 
 ## Agent wiring
 
