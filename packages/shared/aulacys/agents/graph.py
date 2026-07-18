@@ -13,7 +13,7 @@ from aulacys.agents.nodes.compliance import ComplianceSpec
 from aulacys.agents.nodes.credit import CreditSpec
 from aulacys.agents.nodes.critic import CriticSpec
 from aulacys.agents.nodes.operations import OperationsSpec, write_outcome_ticket
-from aulacys.agents.nodes.planner import PlannerSpec
+from aulacys.agents.nodes.planner import PlannerSpec, topological_agent_order
 from aulacys.agents.state import AgentState, Document, LoanApplication, RunTrace
 from aulacys.agents.worker_client import run_agent
 
@@ -312,36 +312,13 @@ def _configured_agent_names(config: dict[str, Any]) -> list[str]:
 
 
 def _agent_execution_order(state: AgentState, config: dict[str, Any]) -> list[str]:
-    """Topologically order configured agents from Planner's DAG plus spec read-sets."""
+    """Topologically order configured agents from Planner's DAG."""
     configured = _configured_agent_names(config)
-    dependencies: dict[str, set[str]] = {agent_name: set() for agent_name in configured}
     plan = state.get("plan")
-
-    if plan is not None:
-        for prerequisite, node in plan.edges:
-            if node in dependencies and prerequisite in dependencies:
-                dependencies[node].add(prerequisite)
-
-    for agent_name in configured:
-        for read_key in AGENT_SPECS[agent_name].reads:
-            if read_key in dependencies:
-                dependencies[agent_name].add(read_key)
-
-    remaining = configured.copy()
-    ordered: list[str] = []
-    completed: set[str] = set()
-    while remaining:
-        ready = [agent_name for agent_name in remaining if dependencies[agent_name].issubset(completed)]
-        if not ready:
-            state.setdefault("metadata", {}).setdefault("graph_warnings", []).append(
-                f"DAG dependency cycle or missing prerequisite: {', '.join(remaining)}"
-            )
-            ordered.extend(remaining)
-            break
-        for agent_name in ready:
-            ordered.append(agent_name)
-            completed.add(agent_name)
-            remaining.remove(agent_name)
+    edges = plan.edges if plan is not None else []
+    ordered, warnings = topological_agent_order(configured, edges)
+    for warning in warnings:
+        state.setdefault("metadata", {}).setdefault("graph_warnings", []).append(warning)
     return ordered
 
 

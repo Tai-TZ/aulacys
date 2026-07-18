@@ -1,7 +1,8 @@
 import pytest
 
 from aulacys.agents import graph as graph_module
-from aulacys.agents.graph import agent
+from aulacys.agents.graph import _agent_execution_order, agent
+from aulacys.agents.state import DAG
 from aulacys.agents.nodes.compliance import ComplianceSpec
 from aulacys.agents.nodes.credit import CreditSpec
 from aulacys.agents.nodes.critic import CriticSpec
@@ -112,3 +113,15 @@ def test_agent_specs_match_role_permission_contract():
     assert ComplianceSpec.tools == ["core_banking_read", "aml_screening"]
     assert OperationsSpec.tools == ["core_banking_read", "workflow_write"]
     assert CriticSpec.tools == []
+
+
+def test_graph_execution_order_uses_planner_dag_only():
+    config = {"agents": ["compliance", "credit"]}
+    state = {
+        "metadata": {},
+        "plan": DAG(
+            nodes=["planner", "compliance", "credit"], edges=[("planner", "compliance"), ("planner", "credit")]
+        ),
+    }
+
+    assert _agent_execution_order(state, config) == ["compliance", "credit"]

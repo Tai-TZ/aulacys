@@ -96,6 +96,35 @@ def _dedupe_edges(edges: list[tuple[str, str]]) -> list[tuple[str, str]]:
     return deduped
 
 
+def topological_agent_order(agent_names: list[str], edges: list[tuple[str, str]]) -> tuple[list[str], list[str]]:
+    """Order configured agents from Planner DAG edges.
+
+    On a cycle, return the original configured order and a warning. The graph uses
+    this same helper so Planner's DAG remains the single ordering source.
+    """
+    configured = list(dict.fromkeys(agent_names))
+    dependencies: dict[str, set[str]] = {agent_name: set() for agent_name in configured}
+    for prerequisite, node in edges:
+        if node in dependencies and prerequisite in dependencies:
+            dependencies[node].add(prerequisite)
+
+    remaining = configured.copy()
+    ordered: list[str] = []
+    completed: set[str] = set()
+    warnings: list[str] = []
+    while remaining:
+        ready = [agent_name for agent_name in remaining if dependencies[agent_name].issubset(completed)]
+        if not ready:
+            warnings.append(f"DAG dependency cycle or missing prerequisite: {', '.join(remaining)}")
+            ordered.extend(remaining)
+            break
+        for agent_name in ready:
+            ordered.append(agent_name)
+            completed.add(agent_name)
+            remaining.remove(agent_name)
+    return ordered, warnings
+
+
 def _build_edges(state: AgentState, config: dict[str, Any], agents: list[str]) -> list[tuple[str, str]]:
     dependency_edges = _config_dependency_edges(state, config, agents)
     dependency_edges.extend(_input_dependency_edges(state, agents))
@@ -114,21 +143,9 @@ def _validate_plan(state: AgentState, nodes: list[str], edges: list[tuple[str, s
     if agent_nodes and not any(source == "planner" for source, _ in edges):
         _warn(state, "Planner DAG has no runnable root edge from planner")
 
-    dependencies: dict[str, set[str]] = {node: set() for node in agent_nodes}
-    for source, target in edges:
-        if target in dependencies and source in dependencies:
-            dependencies[target].add(source)
-
-    remaining = agent_nodes.copy()
-    completed: set[str] = set()
-    while remaining:
-        ready = [node for node in remaining if dependencies[node].issubset(completed)]
-        if not ready:
-            _warn(state, f"Planner DAG dependency cycle: {', '.join(remaining)}")
-            return
-        for node in ready:
-            completed.add(node)
-            remaining.remove(node)
+    _, warnings = topological_agent_order(agent_nodes, edges)
+    for warning in warnings:
+        _warn(state, f"Planner {warning}")
 
 
 def _plan_hash(state: AgentState, nodes: list[str], edges: list[tuple[str, str]]) -> str:
