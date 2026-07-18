@@ -1,148 +1,142 @@
-# Lifecycle Multi-Agent Architecture
+# Lifecycle Architecture With A Five-Agent Core
 
-This document is the shareable architecture note for the upgraded loan lifecycle.
-`docs/AGENT-SPEC.md` remains the binding role contract.
+`docs/AGENT-SPEC.md` is the binding role contract. This file explains how the same
+five agents support the broader loan lifecycle without adding unnecessary agents.
 
-## Executive Summary
+## Core Idea
 
-The system should be explained as a **loan lifecycle multi-agent platform**, not only
-as an underwriting bot. The current production-grade core is the underwriting stage:
-Planner, Credit, Operations, Compliance, and Critic coordinate through a deterministic
-graph with veto and replan. The next layer is to wrap that core with RM Proposal,
-Approval, and Disbursement stages.
+The system should not be:
+
+```text
+5 lifecycle stages = 5 more agents
+```
+
+It should be:
+
+```text
+5 lifecycle stages = one orchestrated workflow
+                 + five specialist agents where judgement/evidence is needed
+                 + deterministic services for numbers, gates, and money movement
+```
+
+The five agents remain:
+
+- Planner
+- Credit
+- Operations
+- Compliance
+- Critic
 
 ## Lifecycle View
 
 ```mermaid
 flowchart LR
-    A["1. Intake<br/>application-svc<br/>seeded/structured dossier"] --> B["2. RM Proposal<br/>CIC, DTI, proposal terms"]
-    B --> C["RM/User edit<br/>amount, term, rate, reason"]
-    C --> D["3. Underwriting<br/>5-agent appraisal core"]
-    D --> E{"4. Approval"}
-    E -->|clean profile / low risk| F["Auto approve"]
-    E -->|risk / missing evidence / veto| G["Human approval"]
-    F --> H["5. Disbursement<br/>auto for eligible unsecured loans"]
-    G --> H
-    H --> I["Audit + monitoring"]
+    A["1. Intake<br/>application-svc + sample data"] --> B["2. Proposal<br/>LoanProposal object"]
+    B --> B2["RM/User edits<br/>amount, term, rate assumptions"]
+    B2 --> C["3. Agent Review<br/>Planner + Credit + Ops + Compliance + Critic"]
+    C --> D{"4. Approval Gate<br/>policy/config"}
+    D -->|clean STP| E["Auto approve"]
+    D -->|risk / missing evidence / veto| H["Human approval"]
+    E --> F["5. Disbursement Action<br/>deterministic service"]
+    H --> F
+    F --> G["Audit trail"]
 ```
 
-## Stage Ownership
+## What Each Stage Means
 
-| Stage | Owner agent/component | Main output |
-|---|---|---|
-| Intake | `application-svc` plus future Intake Agent | validated dossier, document checklist baseline |
-| RM Proposal | future RM Proposal Agent | editable `LoanProposal` with amount, term, rate, DTI, CIC basis |
-| Underwriting | Planner + Credit + Operations + Compliance + Critic | assessment, veto/replan trace, evidence memo |
-| Approval | Approval Gate / future Approval Agent | `stp_approved`, `ready_for_human_approval`, `vetoed`, `approved`, `rejected` |
-| Disbursement | future Disbursement Agent/service | booked disbursement or blocked reason |
+| Stage | What happens | Agent involvement | Main output |
+|---|---|---|---|
+| Intake | Receive structured application and documents. | Usually no agent; Operations later checks completeness. | `LoanApplication`, documents |
+| Proposal | Build/edit proposed amount, term, rate, monthly payment, DTI basis. | Credit owns financial validation; do not create a separate agent yet. | `LoanProposal` |
+| Agent Review | Evaluate proposal, documents, compliance, and evidence. | All five current agents. | assessment result, veto/replan trace, memo |
+| Approval | Decide STP vs HITL. | Deterministic gate; humans approve risky cases. | approval outcome |
+| Disbursement | Re-check final conditions and book disbursement. | Deterministic action/service, not an LLM decision. | disbursement record or blocked reason |
 
-## Underwriting Core
+## Five-Agent Core
 
 ```mermaid
 flowchart TB
-    PL["Planner<br/>strong model<br/>DAG + replan"] --> CR["Credit<br/>mini model<br/>repayment + pricing"]
-    PL --> OP["Operations<br/>mini model<br/>docs + valuation + ticket"]
-    CR --> CO["Compliance<br/>mini model<br/>KYC/UBO + AML + legal veto"]
+    PL["Planner<br/>plans DAG, routes, replans"] --> CR["Credit<br/>validates proposal financials"]
+    PL --> OP["Operations<br/>checks docs and workflow readiness"]
+    CR --> CO["Compliance<br/>KYC/AML/legal veto"]
     OP --> CO
     CO -->|veto edge| PL
-    CR --> CT["Critic<br/>strong model<br/>evidence + memo"]
+    CR --> CT["Critic<br/>verifies evidence + writes memo"]
     OP --> CT
     CO --> CT
 ```
 
-Planner does not calculate DTI, approve, or write tickets. It decides which specialist
-must run and in what order. This prevents a new monolith-in-a-prompt.
+## Agent Outputs
 
-## RM Proposal Stage
-
-RM Proposal should be separate from Credit underwriting:
-
-| Concern | RM Proposal | Credit Underwriting |
+| Agent | Output | Purpose |
 |---|---|---|
-| Purpose | Create first loan plan | Validate whether the plan is reasonable |
-| Inputs | application, CIC, income, product pricing config | proposal, CIC, verified income, policy/risk context |
-| Output | editable `LoanProposal` | `CreditAssessment` and recommendation |
-| Human interaction | RM/user may adjust assumptions | reviewer sees evidence and result |
+| Planner | `DAG(nodes, edges, rationale)` | Shows who must run and why. |
+| Credit | `CreditAssessment(dti, income, proposed_limit, proposed_rate, recommendation, rationale, evidence, tool_results)` | Says whether the proposed loan plan is financially reasonable. |
+| Operations | `OperationsReport(valuation, valuation_task, doc_status, missing, legal_flags, evidence, tool_results)` | Says whether the file can move operationally. |
+| Compliance | `ComplianceVerdict(violations, veto, rule_ids, kyc_status, ubo_status, citations, tool_results)` | Says whether there is a hard legal/compliance stop. |
+| Critic | `CriticVerdict(passed, rejections, memo, remediation_plan)` | Says whether the result is evidence-backed and what to fix/read. |
 
-Proposal fields should include:
+## Credit's Role In The Lifecycle
 
-- requested amount
-- proposed amount/limit
-- term months
-- annual rate
-- monthly payment
-- DTI
+Credit should be described as the owner of **proposal reasonableness**.
+
+Credit receives the proposed plan or declared loan request and checks:
+
 - CIC group/score
-- risk premium breakdown
-- override reason when RM/user edits
+- verified income
+- proposed monthly payment
+- DTI
+- proposed amount/limit
+- proposed annual rate
+- term months
+- risk premium from CIC, DTI, and term
+- whether the proposal should be supported or sent to manual review
 
-## Approval And Disbursement
+Credit output is not an approval. It is a financial recommendation backed by tool
+evidence.
 
-Approval should be a configurable gate:
-
-```mermaid
-flowchart TB
-    ASSESS["Underwriting result"] --> RULE["Approval policy/config"]
-    RULE -->|no veto, clean CIC, low DTI, simple product| AUTO["Auto approval"]
-    RULE -->|warning, missing docs, high DTI, legal issue| HITL["Human approval"]
-    AUTO --> DISB["Disbursement check"]
-    HITL --> DISB
-    DISB -->|eligible unsecured| BOOK["Book disbursement"]
-    DISB -->|blocked| TASK["Create manual task"]
-```
-
-For the retail unsecured salary product, the target happy path is:
-
-`Intake -> RM Proposal -> Underwriting pass -> Auto approval -> Auto disbursement`
-
-For the retail mortgage demo, the protected path is:
-
-`Intake -> RM Proposal -> Underwriting -> Compliance veto -> Planner replan -> Critic -> HITL/ticket`
-
-## Service View
+## Services And Deterministic Stages
 
 ```mermaid
 flowchart TB
     WEB["apps/web"] --> GW["api-gateway"]
-    GW --> ORC["orchestrator-svc / apps API"]
-    ORC --> SHARED["packages/shared/aulacys<br/>agent graph + schemas"]
+    GW --> ORC["orchestrator-svc"]
+    ORC --> AG["five-agent core<br/>packages/shared/aulacys"]
 
-    SHARED --> APP["application-svc"]
-    SHARED --> CIC["cic-svc"]
-    SHARED --> INC["income-svc"]
-    SHARED --> AML["aml-svc"]
-    SHARED --> PROP["property-svc"]
-    SHARED --> POL["policy-svc"]
-    SHARED --> LOS["los-svc"]
-    SHARED --> AUD["audit-svc"]
-    SHARED -. optional .-> WRK["agent-worker-svc"]
+    AG --> CIC["cic-svc"]
+    AG --> INC["income-svc"]
+    AG --> AML["aml-svc"]
+    AG --> PROP["property-svc"]
+    AG --> POL["policy-svc"]
+    AG --> LOS["los-svc"]
+    ORC --> AUD["audit-svc"]
 
-    ORC -. next .-> ID["identity/authz-svc"]
-    SHARED -. next .-> KB["knowledge-svc<br/>vector + graph RAG"]
+    ORC -. next .-> PROPOSAL["LoanProposal stage<br/>object/schema"]
+    ORC -. next .-> APPROVAL["ApprovalGate<br/>policy/config"]
+    ORC -. next .-> DISB["DisbursementAction<br/>deterministic booking"]
 ```
 
-## Data Ownership
+## What Not To Add Yet
 
-| Service | Data owner | Status |
-|---|---|---|
-| `application-svc` | application, applicants, documents, lifecycle snapshots | exists |
-| `orchestrator-svc` | run, node run, event trace | scaffolded |
-| `los-svc` | ticket, ticket history | exists |
-| `audit-svc` | append-only decision ledger | exists |
-| `identity/authz-svc` | users, roles, permissions, approval scopes | target |
-| `knowledge-svc` | documents, chunks, embeddings, graph relationships | target |
+| Do not add yet | Why |
+|---|---|
+| `RM Proposal Agent` | Proposal is mostly deterministic calculation plus editable UI. Use `LoanProposal` first. |
+| `Approval Agent` | Approval is a high-risk decision; use policy/config gate plus HITL. |
+| `Disbursement Agent` | Money movement must be deterministic, idempotent, audited service logic. |
 
-## Build Order
+## Better Next Build Order
 
-1. Add `LoanProposal` schema and RM Proposal stage.
-2. Add proposal override/edit reason to UI and API.
-3. Add explicit Approval Gate config and risk routing.
-4. Add Disbursement request/action for unsecured STP.
-5. Add `knowledge-svc` retrieval for citations, without moving numeric thresholds out of policy.
+1. Add `LoanProposal` schema/object.
+2. Wire Credit to validate proposal reasonableness explicitly.
+3. Add editable proposal fields in UI/API.
+4. Add deterministic `ApprovalGate` config.
+5. Add deterministic `DisbursementAction` for unsecured STP.
+6. Add `knowledge-svc` citations for explanation, without moving numbers/veto into RAG.
 
 ## Guardrails
 
-- Do not move DTI/rate/limit calculation into an LLM.
-- Do not move veto thresholds into prompts or RAG.
-- Do not let Planner become a super-agent.
-- Keep the current veto/replan branch green before adding lifecycle stages.
+- Keep only five agents unless there is a clear new judgement role.
+- Use services/tools for calculations and actions.
+- Use policy/config for approval routing and veto thresholds.
+- Keep human approval for risky or imperfect profiles.
+- Preserve the veto -> replan demo branch.
