@@ -1,113 +1,155 @@
-# AGENT-SPEC — the 5-role multi-agent contract (RULE)
+# AGENT-SPEC - Lifecycle Multi-Agent Contract
 
-> **📌 DECIDED — binding.** This is what each agent IS: model tier, responsibility, tool
-> whitelist, KB, veto power. The graph, nodes, and specs MUST match this table. Points to
-> `AGENTS.md`; obeys `LOAN-SOP.md` §0 invariants and `CLEAN-ARCHITECTURE.md` layering.
-> Change = team decision, logged in `docs/TEAM_RULES.md`.
+> This file is binding for agent roles, model tiers, responsibilities, tool permissions,
+> KB access, and stage ownership. It follows `AGENTS.md`, `LOAN-SOP.md`, and the current
+> shared package layout under `packages/shared/aulacys`.
 
-## 0. Repositioning (one line)
-From *"a compliance-veto demo"* → **a 5-role multi-agent underwriting system with a
-deterministic core: the LLM only reasons and writes prose; every number and every veto comes
-from a tool or from policy.** Multi-agent = 5 specialists with least-privilege tools + a strong
-Planner/Critic pair, not 5 chatbots.
+## 0. Positioning
 
----
+The product is no longer described as only a "5-agent underwriting demo".
 
-## 1. The contract
+It is a **lifecycle multi-agent loan workflow**:
 
-| Agent | Model tier | Trách nhiệm | Tool whitelist | KB | Veto |
+1. Intake - receive the application and seeded/structured documents.
+2. RM Proposal - produce the first loan proposal from customer facts.
+3. Underwriting - run the specialist multi-agent appraisal core.
+4. Approval - route to auto approval or human approval.
+5. Disbursement - auto-book eligible unsecured consumer loans.
+
+The current code already implements the strongest part: **Stage 3 underwriting core**
+with Planner, Credit, Operations, Compliance, and Critic. Stage 2 is partially present
+inside Credit (`price_loan`), Stage 4 exists as outcome/HITL ticketing, and Stage 5 is
+still a target stage.
+
+## 1. Non-Negotiable Invariants
+
+| Rule | Meaning |
+|---|---|
+| LLM never produces numbers | DTI, LTV, payment, limit, rate, risk metrics come from deterministic tools. |
+| LLM never produces veto | Blocking decisions come from policy-as-code and graph edges. |
+| Planner coordinates, not underwrites | Planner creates DAG, routes work, receives veto, and replans. |
+| Tool whitelist is enforced by harness | Permission lives in code (`dispatch` / facade map), not prompt text. |
+| Flow lives in config | Product differences are YAML/config, not `if product == ...` branches. |
+| Critic verifies, not mutates | Critic checks evidence and writes memo/remediation; it does not edit agent outputs. |
+
+## 2. Target Lifecycle Agents
+
+| Stage | Agent / component | Model tier | Responsibility | Tool permissions | KB |
 |---|---|---|---|---|---|
-| **Planner** | **mạnh** | Phân rã request → DAG · định tuyến · nhận veto → **lập lại kế hoạch** | — (none) | — | — |
-| **Credit** | nhỏ/nhanh | Thẩm định tài chính · đề xuất **hạn mức + lãi suất** | core-bank (read), CIC, loan-calculator | Credit KB | — |
-| **Compliance** | nhỏ/nhanh | KYC/UBO · sàng lọc AML · giới hạn luật định | AML screening, core-bank (read) | Compliance KB | **✅ phủ quyết** |
-| **Operations** | nhỏ/nhanh | Checklist chứng từ · đặt lịch định giá · **tạo ticket** | ticket/workflow (**write**), core-bank (read) | Ops KB | — |
-| **Critic** | **mạnh** | Kiểm chứng mọi finding có bằng chứng · **tổng hợp tờ trình** · **lên kế hoạch sửa** | — (đọc tất để verify) | đọc-all | — |
+| 1. Intake | Intake component / future Intake Agent | deterministic or mini | Validate received application and document completeness. OCR is out of scope. | `application_read`, `document_read`, `core_banking_read` | Ops KB |
+| 2. RM Proposal | RM Proposal Agent | mini | Check CIC, compute DTI, create editable loan proposal: amount, term, rate, monthly payment, risk premium. | `core_banking_read`, `loan_calculator` | Credit KB |
+| 3. Underwriting | Planner | strong | Decompose request into DAG, route agents, receive veto, replan. | none | none |
+| 3. Underwriting | Credit | mini | Validate repayment capacity and proposal reasonableness; confirm/revise limit and rate. | `core_banking_read`, `loan_calculator` | Credit KB |
+| 3. Underwriting | Operations | mini | Check documents, schedule valuation, check collateral/registry, create workflow ticket. | `core_banking_read`, `workflow_write` | Ops KB |
+| 3. Underwriting | Compliance | mini | KYC/UBO, AML screening, legal/policy limit checks. Has veto power. | `core_banking_read`, `aml_screening` | Compliance KB |
+| 3. Underwriting | Critic | strong | Verify every finding has evidence; synthesize credit memo and remediation plan. | none | read-all KB |
+| 4. Approval | Approval Gate / future Approval Agent | deterministic or mini | Decide STP auto approval vs HITL based on product gate, risk, missing evidence, and veto state. | `policy_read`, `workflow_write` | Policy/Ops KB |
+| 5. Disbursement | Disbursement Agent / service | deterministic or mini | Re-check final conditions and book disbursement for eligible unsecured consumer loans. | `core_banking_read`, `disbursement_write`, `audit_write` | Ops KB |
 
----
+## 3. Current Implemented Agent Core
 
-## 2. Model tier ⨯ invariant (đọc kỹ — không phá LOAN-SOP §0)
+The code currently implements the Stage 3 underwriting core in `packages/shared/aulacys/agents`.
 
-"Model tier" chỉ quyết định **phần prose/suy luận**. **Số & veto luôn deterministic** (cờ
-`llm_prose`). Model không bao giờ đẻ số hay veto.
-
-| Agent | Model dùng để | Vẫn deterministic (không model) |
+| Agent | Status | Notes |
 |---|---|---|
-| Planner (mạnh) | chọn tuyến khi config có nhiều lựa chọn + viết lý do kế hoạch | **cấu trúc DAG** từ config; trigger replan = **edge** từ veto |
-| Credit (mini) | viết *nhận định* tín dụng | DTI, lãi suất, hạn mức = **tool** |
-| Compliance (mini) | diễn giải vi phạm | **veto + rule eval** = policy-as-code |
-| Operations (mini) | ghi chú tình trạng hồ sơ | checklist, định giá, **ghi ticket** = tool |
-| Critic (mạnh) | **soạn tờ trình** + **draft kế hoạch sửa** | **pass/fail verify** = rule deterministic |
+| Planner | implemented | Strong-tier prose, DAG from product config, replan on veto. |
+| Credit | implemented | Mini tier, CIC/income/payment/DTI/pricing via deterministic tools. Also carries part of Stage 2 RM proposal today. |
+| Operations | implemented | Mini tier, checklist, valuation scheduling, property checks, ticket write ownership. |
+| Compliance | implemented | Mini tier, KYC/UBO, AML, LTV/policy metrics, blocking veto. |
+| Critic | implemented | Strong-tier prose, evidence verification, memo/remediation fields. |
+| RM Proposal Agent | not separate yet | Required for lifecycle architecture; current behavior is folded into Credit. |
+| Approval Agent/Gate | partially implemented | `stp_approved`, `ready_for_human_approval`, `vetoed`, and `/approvals` exist. Needs richer risk routing. |
+| Disbursement Agent | not implemented yet | Application schema has disbursement concepts, but no lifecycle agent/action yet. |
 
-→ `llm_prose=True` chỉ mở **field prose**; output cấu trúc (DAG, `CriticVerdict.passed`, số) vẫn
-từ code. Cắm key = thêm văn, không đổi quyết định.
+## 4. Runtime Flow
 
----
-
-## 3. Vòng lặp Critic → Planner (mới: "lên kế hoạch sửa")
+```mermaid
+flowchart LR
+    A["1. Intake<br/>application + docs"] --> B["2. RM Proposal<br/>CIC + DTI + proposal"]
+    B --> B2["RM/User edits<br/>amount, term, rate reason"]
+    B2 --> C["3. Underwriting core"]
+    C --> D{"4. Approval gate"}
+    D -->|clean / simple / low risk| AUTO["Auto approve"]
+    D -->|warning / missing evidence / veto| HITL["Human approval"]
+    AUTO --> E["5. Disbursement"]
+    HITL --> E
+    E --> AUD["Audit trail"]
 ```
-agents chạy → Critic verify
-   ├─ pass  → tổng hợp Tờ trình (prose, model mạnh) → gate
-   └─ fail  → Critic DRAFT kế hoạch sửa (finding → hành động) 
-              → Planner đọc plan → replan (điều chỉnh phương án / bổ sung tool call)
+
+Stage 3 expands as:
+
+```mermaid
+flowchart TB
+    PL["Planner"] --> CR["Credit"]
+    PL --> OP["Operations"]
+    CR --> CO["Compliance"]
+    OP --> CO
+    CO -->|veto| PL
+    CR --> CT["Critic"]
+    OP --> CT
+    CO --> CT
 ```
-Critic không sửa output của agent (chỉ audit) — nó **đề xuất** sửa; Planner thực thi. Giữ
-separation. Đây là bản nâng của vòng veto→replan hiện có.
 
----
+## 5. Permission Facades
 
-## 4. Đối chiếu hiện trạng (tóm tắt audit)
+Agent specs expose **logical permission facades**, not raw physical tools. The harness
+expands facades at dispatch time while trace records the physical tool calls for audit.
 
-| Tiêu chí | Planner | Credit | Compliance | Operations | Critic |
-|---|---|---|---|---|---|
-| Model tier | ✅ strong | ✅ mini | ✅ mini | ✅ mini | ✅ strong |
-| Trách nhiệm lõi | ✅ DAG + replan | ✅ DTI + hạn mức/lãi suất | ✅ KYC/UBO + AML + veto | ✅ checklist + valuation schedule + ticket | ✅ verify + memo/remediation |
-| Tool whitelist | ✅ none | ✅ facade | ✅ facade | ✅ facade | ✅ none |
-| KB | — ✅ | ❌ rỗng | ❌ rỗng | ❌ rỗng | ✅ đọc-all |
-| Veto | — | — | ✅ | — | — |
-
-Hiện đã có: model-tier infra, DAG execution order, Credit pricing, Compliance KYC/UBO,
-Operations workflow write, Critic memo/remediation, và facade permission enforce trong
-`apps/api/src/agents/harness/permissions.py`.
-
-Tool whitelist trong code dùng **facade** đúng bảng contract:
-
-| Facade | Physical tools |
+| Facade | Physical tools / services |
 |---|---|
 | `core_banking_read` | `cic_lookup`, `income_verify`, `salary_verify`, `sao_ke_parse`, `kyc_check`, `ubo_check`, `compute_ltv`, `doc_checklist`, `property_valuation`, `land_registry` |
 | `loan_calculator` | `compute_annual_debt_service`, `compute_dti`, `price_loan` |
 | `aml_screening` | `aml_screen`, `related_party` |
 | `workflow_write` | `schedule_valuation`, `write_approval_ticket` |
+| `policy_read` | future approval/policy lookup facade |
+| `disbursement_write` | future booking/core-banking write facade |
+| `audit_write` | future explicit audit event facade |
 
-Trace vẫn ghi **physical tool call** để Critic/audit có bằng chứng; permission surface của
-agent thì chỉ là facade.
+Current implementation file:
 
----
+`packages/shared/aulacys/agents/harness/permissions.py`
 
-## 5. Kế hoạch sửa (phân pha — demo-proof, giữ invariant)
+## 6. Model Tier Policy
 
-| Pha | Việc | File | Đạt cột spec |
-|---|---|---|---|
-| **A1 — model-tier infra** | Thêm `model_tier: "strong"\|"mini"` vào `AgentSpec`; `config.py` thêm `strong_model`/`mini_model`; `get_llm(tier)` chọn model; runner truyền tier | `specs/base.py`, `config.py`, `services/llm.py`, `harness/runner.py` | Model cột tất |
-| **A2 — prose fields** | Thêm field prose (`rationale`/`narrative`) cho Planner & Critic; set `llm_prose=True` cho 2 agent này | `state.py`, `nodes/planner.py`, `nodes/critic.py` | Planner/Critic mạnh |
-| **B — Credit pricing** | `price_loan` tool (base+CIC group+kỳ hạn+risk premium, floor/cap PNL) → Credit trả `proposed_rate`+`limit` | `tools/pricing.py`, `nodes/credit.py`, product YAML `pricing:` | Credit: lãi suất |
-| **C — ticket về Ops** | Đưa `write_approval_ticket` vào Ops whitelist + node; graph gọi Ops ghi ticket thay orchestrator | `nodes/operations.py`, `graph.py` | Ops: tạo ticket |
-| **D — Critic soạn tờ trình + plan sửa** | `CreditMemo` (assemble số từ tool + narrative model mạnh); trên fail → `remediation_plan` (finding→action) đẩy Planner | `state.py`, `nodes/critic.py`, `tools/credit_memo.py`, `graph.py` | Critic: tờ trình + plan |
-| **E — Compliance KYC/UBO** | Thêm KYC gate (eKYC mock) + UBO qua `related_party`; screen sớm | `nodes/compliance.py` (hoặc intake) | Compliance: KYC/UBO |
-| **F — KB/RAG** | Namespace KB thật (Credit/Compliance/Ops): retriever + corpus → feed prose + citation (KHÔNG feed số/veto) | mới `agents/kb/*`, `nodes/*` | KB cột 3 agent |
-| **G — DAG execute** | LangGraph node + conditional edge; Credit‖Operations `gather`; veto = edge | `graph.py` | Planner: routing thật |
+The locked stack now says the primary LLM is Gemini:
 
-**Thứ tự đề xuất:** A1→A2 (nền model-tier, rẻ) → B (pricing) → C (ticket) → D (tờ trình+plan sửa,
-đây là "wow" nghiệp vụ) → E → F (lớn nhất) → G.
+| Tier | Intended agents | Default |
+|---|---|---|
+| strong | Planner, Critic | Gemini strong/prose model when configured |
+| mini | RM Proposal, Credit, Operations, Compliance, Approval, Disbursement | `gemini-3.1-flash-lite` default |
+| deterministic | tools, policy, graph decisions | no LLM |
 
-Mỗi pha: fallback deterministic + test + handoff (`AGENTS.md` §2/§7). Không thêm dep chưa duyệt.
+OpenAI remains a fallback provider through `packages/shared/aulacys/services/llm.py` /
+orchestrator service config. Model tier never changes the deterministic source of numbers
+or veto.
 
----
+## 7. What To Build Next
 
-## 6. Ranh giới không đổi (🔒)
-- Số/veto **luôn** tool/policy — model chỉ prose (LOAN-SOP §0).
-- Whitelist enforce ở `dispatch`, không ở prompt.
-- Critic **audit + đề xuất**, không tự sửa output (separation).
-- core-banking thật = out-of-scope (`AGENTS.md` §0) → mock read qua CIC/income seed.
+Keep the existing Stage 3 core stable. Add lifecycle stages around it in this order:
 
-## 7. Wiring (đề xuất — chờ duyệt)
-Trỏ `AGENTS.md` §0/§4 → file này; log `docs/TEAM_RULES.md`.
+| Priority | Work | Why |
+|---|---|---|
+| P1 | Add `LoanProposal` / RM Proposal stage | Separates "RM proposes" from "Credit underwrites"; fixes role clarity. |
+| P2 | Add proposal edit/override fields and reason | Lets RM/user tune amount, term, rate assumptions before underwriting. |
+| P3 | Add Approval Gate model/config | Makes auto approval vs HITL explicit and product-config driven. |
+| P4 | Add Disbursement Agent/service action | Completes unsecured STP: approved -> auto disburse. |
+| P5 | Add Knowledge service namespaces | Credit/Compliance/Ops/Critic can cite KB without moving thresholds out of policy. |
+
+## 8. Current vs Target Summary
+
+| Area | Current | Target |
+|---|---|---|
+| Intake | Seed/application-svc data exists | Intake stage with completeness/accuracy status |
+| RM Proposal | Folded into Credit | Separate RM Proposal Agent and editable `LoanProposal` |
+| Underwriting | Implemented multi-agent core | Keep and harden |
+| Approval | Outcome + HITL ticket | Explicit Approval Gate/Agent with risk routing |
+| Disbursement | Not implemented as agent | Auto disbursement for clean unsecured consumer loans |
+| KB/RAG | Planned, not real | `knowledge-svc` with vector/graph retrieval and citations |
+
+## 9. Boundary Notes
+
+- Real core-banking integration remains out of scope for the hackathon; use mock/read facades.
+- OCR remains out of scope; structured sample data or `application-svc` payloads are accepted input.
+- Production RBAC is out of scope, but lifecycle docs should leave room for `identity-svc` and
+  `authz-svc`.
+- Do not split the veto/replan core if that risks the demo branch.
