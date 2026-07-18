@@ -15,7 +15,7 @@ def test_url_normalization_postgres_scheme():
 
 
 def test_disabled_by_default(monkeypatch):
-    # Empty DATABASE_URL => DB layer disabled (in-memory fallback). Clear .env value too.
+    # No DATABASE_URL in test env -> DB layer disabled (in-memory fallback).
     monkeypatch.setenv("DATABASE_URL", "")
     get_settings.cache_clear()
     try:
@@ -25,13 +25,9 @@ def test_disabled_by_default(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_ping_never_raises_when_disabled(monkeypatch):
-    monkeypatch.setenv("DATABASE_URL", "")
-    get_settings.cache_clear()
-    try:
-        assert await session.ping() is False
-    finally:
-        get_settings.cache_clear()
+async def test_ping_never_raises_when_disabled():
+    # Demo-proof: a missing/dead DB must not raise.
+    assert await session.ping() is False
 
 
 def test_db_enabled_reflects_url(monkeypatch):

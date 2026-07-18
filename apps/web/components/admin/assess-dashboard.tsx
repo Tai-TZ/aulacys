@@ -24,14 +24,48 @@ import { cn } from "@/lib/cn";
 const MORTGAGE_DEMO: AssessApplicationRequest = {
   product: "retail_mortgage",
   declared: {
-    customer_name: "Tran Thi B",
+    customer_name: "TRẦN THỊ BÌNH",
     amount: 2_500_000_000,
     term_months: 240,
     annual_rate: 0.105,
     monthly_income: 85_000_000,
     existing_monthly_debt: 8_000_000,
-    declared_purpose: "mua nhà để ở",
+    declared_purpose: "Mua nhà để ở",
     collateral_value_declared: 4_000_000_000,
+    dob: "15/08/1988",
+    gender: "Nữ",
+    national_id: "001088012345",
+    national_id_issue_date: "10/05/2021",
+    national_id_issue_place: "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
+    phone: "0901234567",
+    zalo_phone: "0901234567",
+    permanent_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+    current_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+    email: "binh.tran@email.com",
+    occupation: "Cán bộ quản lý",
+    company_name: "Công ty Cổ phần Thương mại và Dịch vụ SHB",
+    position: "Trưởng phòng Kinh doanh",
+    company_address: "Tòa nhà Gelex, 52 Lê Đại Hành, Quận Hai Bà Trưng, Hà Nội",
+    salary_payday: "Ngày 10 hàng tháng",
+    personal_expense: 25_000_000,
+    disbursement_method: "Giải ngân cho Bên thụ hưởng",
+    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
+    disbursement_branch: "Chi nhánh Hà Nội",
+    disbursement_account: "101123456789",
+    disbursement_account_name: "NGUYỄN VĂN BÁN",
+    spouse_name: "NGUYỄN VĂN AN",
+    spouse_phone: "0902345678",
+    spouse_national_id: "001085054321",
+    spouse_income: 35_000_000,
+    spouse_company: "Công ty Cổ phần Đầu tư SHB",
+    ref1_name: "Trần Thị Mai",
+    ref1_relationship: "Chị gái",
+    ref1_phone: "0903456789",
+    ref1_same_address: false,
+    ref2_name: "Nguyễn Văn Cường",
+    ref2_relationship: "Bạn thân",
+    ref2_phone: "0904567890",
+    ref2_same_address: false,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true } },
@@ -47,21 +81,154 @@ const MORTGAGE_DEMO: AssessApplicationRequest = {
   ],
 };
 
-const UNSECURED_DEMO: AssessApplicationRequest = {
+// ---------------------------------------------------------------------------
+// Ba kịch bản demo — Vay tiêu dùng tín chấp (retail_unsecured_salary)
+// ---------------------------------------------------------------------------
+
+/** Happy path — NGUYỄN THỊ BÉ HOA (CCCD 074300004128) */
+const HAPPY_DEMO: AssessApplicationRequest = {
   product: "retail_unsecured_salary",
   declared: {
-    customer_name: "Nguyen Van A",
-    amount: 250_000_000,
+    customer_name: "NGUYỄN THỊ BÉ HOA",
+    amount: 150_000_000,
     term_months: 36,
     annual_rate: 0.13,
-    monthly_income: 35_000_000,
-    existing_monthly_debt: 3_000_000,
-    declared_purpose: "tiêu dùng cá nhân",
+    monthly_income: 22_000_000,
+    existing_monthly_debt: 0,
+    declared_purpose: "Mua sắm nội thất, tiêu dùng cá nhân",
+    dob: "10/06/2000",
+    gender: "Nữ",
+    national_id: "074300004128",
+    national_id_issue_date: "21/05/2025",
+    national_id_issue_place: "Bộ Công an",
+    phone: "0912300004",
+    zalo_phone: "0912300004",
+    permanent_address: "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
+    current_address: "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
+    email: "behoa.nguyen@email.com",
+    occupation: "Nhân viên văn phòng",
+    company_name: "Công ty TNHH SX TM Phúc Thịnh",
+    position: "Nhân viên kinh doanh",
+    company_address: "Khu công nghiệp VSIP II, Bình Dương",
+    salary_payday: "Ngày 5 hàng tháng",
+    personal_expense: 8_000_000,
+    disbursement_method: "Giải ngân cho Bên vay",
+    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
+    disbursement_branch: "Chi nhánh Bình Dương",
+    disbursement_account: "104074300004",
+    disbursement_account_name: "NGUYỄN THỊ BÉ HOA",
+    ref1_name: "Nguyễn Thị Kim Loan",
+    ref1_relationship: "Mẹ",
+    ref1_phone: "0912300001",
+    ref1_same_address: true,
+    ref2_name: "Trần Văn Minh",
+    ref2_relationship: "Đồng nghiệp",
+    ref2_phone: "0912300002",
+    ref2_same_address: false,
   },
   documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true } },
-    { kind: "sao_ke_luong", tier: 1, extracted: { monthly_income: 35_000_000 } },
+    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "074300004128" } },
+    { kind: "sao_ke_luong", tier: 1, extracted: { monthly_income: 22_000_000 } },
     { kind: "cic", tier: 1, extracted: { score_band: "A" } },
+  ],
+};
+
+/** Veto path — TRẦN THỊ VUI (CCCD 091185013867) — mục đích thực là tất toán nợ */
+const VETO_DEMO: AssessApplicationRequest = {
+  product: "retail_unsecured_salary",
+  declared: {
+    customer_name: "TRẦN THỊ VUI",
+    amount: 300_000_000,
+    term_months: 24,
+    annual_rate: 0.13,
+    monthly_income: 18_000_000,
+    existing_monthly_debt: 8_500_000,
+    declared_purpose: "Tiêu dùng cá nhân",
+    dob: "10/05/1985",
+    gender: "Nữ",
+    national_id: "091185013867",
+    national_id_issue_date: "02/06/2023",
+    national_id_issue_place: "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
+    phone: "0913000091",
+    zalo_phone: "0913000091",
+    permanent_address: "Mong Thá, Châu Thành, Kiên Giang",
+    current_address: "Thổ Sơn, Hòn Đất, Kiên Giang",
+    email: "vui.tran@email.com",
+    occupation: "Buôn bán tự do",
+    company_name: "Hộ kinh doanh cá thể",
+    position: "Chủ hộ",
+    company_address: "Chợ Thổ Sơn, Hòn Đất, Kiên Giang",
+    salary_payday: "Không cố định",
+    personal_expense: 10_000_000,
+    disbursement_method: "Giải ngân cho Bên vay",
+    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
+    disbursement_branch: "Chi nhánh Kiên Giang",
+    disbursement_account: "109091185013",
+    disbursement_account_name: "TRẦN THỊ VUI",
+    ref1_name: "Trần Văn Thanh",
+    ref1_relationship: "Anh trai",
+    ref1_phone: "0913000092",
+    ref1_same_address: true,
+    ref2_name: "Lê Thị Hồng",
+    ref2_relationship: "Hàng xóm",
+    ref2_phone: "0913000093",
+    ref2_same_address: false,
+  },
+  documents: [
+    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "091185013867" } },
+    { kind: "sao_ke_luong", tier: 1, extracted: { monthly_income: 18_000_000 } },
+    { kind: "cic", tier: 1, extracted: { score_band: "B" } },
+    // purpose_evidence mâu thuẫn → VETO
+    { kind: "purpose_evidence", tier: 2, extracted: { actual_purpose: "tất toán khoản vay ở TCTD khác" } },
+  ],
+};
+
+/** HITL / biên giới — NGUYỄN THỊ HUYỀN TRẦN (CCCD 054301008970) */
+const HITL_DEMO: AssessApplicationRequest = {
+  product: "retail_unsecured_salary",
+  declared: {
+    customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
+    amount: 200_000_000,
+    term_months: 48,
+    annual_rate: 0.135,
+    monthly_income: 15_000_000,
+    existing_monthly_debt: 5_000_000,
+    declared_purpose: "Tiêu dùng cá nhân (sửa chữa nhà)",
+    dob: "19/03/2001",
+    gender: "Nữ",
+    national_id: "054301008970",
+    national_id_issue_date: "05/07/2022",
+    national_id_issue_place: "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
+    phone: "0905400054",
+    zalo_phone: "0905400054",
+    permanent_address: "Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
+    current_address: "Khu Phổ Phú Hòa, Hòa Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
+    email: "huyentran.nguyen@email.com",
+    occupation: "Giáo viên",
+    company_name: "Trường THCS Hòa Hiệp Trung",
+    position: "Giáo viên",
+    company_address: "Thị xã Đông Hòa, Phú Yên",
+    salary_payday: "Ngày 15 hàng tháng",
+    personal_expense: 7_000_000,
+    disbursement_method: "Giải ngân cho Bên vay",
+    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
+    disbursement_branch: "Chi nhánh Phú Yên",
+    disbursement_account: "105054301008",
+    disbursement_account_name: "NGUYỄN THỊ HUYỀN TRẦN",
+    ref1_name: "Nguyễn Thị Lan",
+    ref1_relationship: "Mẹ",
+    ref1_phone: "0905400055",
+    ref1_same_address: true,
+    ref2_name: "Trần Văn Phúc",
+    ref2_relationship: "Đồng nghiệp",
+    ref2_phone: "0905400056",
+    ref2_same_address: false,
+  },
+  documents: [
+    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "054301008970" } },
+    // tier-2: sao kê chưa verify chính thức → HITL
+    { kind: "sao_ke_luong", tier: 2, extracted: { monthly_income: 15_000_000 } },
+    { kind: "cic", tier: 1, extracted: { score_band: "B" } },
   ],
 };
 
@@ -133,6 +300,229 @@ function MoneyInput({
   );
 }
 
+// ---------------------------------------------------------------------------
+// DossierPreviewCard — layout biểu mẫu giống tờ đơn SHBFinance
+// ---------------------------------------------------------------------------
+
+const SCENARIO_META: Record<string, { label: string; border: string }> = {
+  happy: { label: "✅ Happy path — Hồ sơ đầy đủ, dự kiến phê duyệt", border: "border-[#16a34a]" },
+  veto:  { label: "🚫 Veto — Mục đích khai báo mâu thuẫn chứng từ",  border: "border-[#ea580c]" },
+  hitl:  { label: "⏳ Biên giới — Cần nhân viên xem xét thủ công",   border: "border-[#d97706]" },
+};
+
+function FL({ label, value, wide }: { label: string; value?: string | null; wide?: boolean }) {
+  return (
+    <div className={cn("flex flex-col gap-0.5", wide ? "col-span-2" : "")}>
+      <span className="text-[10px] font-medium leading-none text-[#7a5100]">{label}</span>
+      <div className="min-h-[20px] border-b border-[#555] px-1 text-[11px] font-medium text-gray-800">
+        {value ?? <span className="text-gray-300">&nbsp;</span>}
+      </div>
+    </div>
+  );
+}
+
+function CB({ label, checked }: { label: string; checked: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-[11px] text-gray-700">
+      <span className={cn(
+        "inline-flex h-3.5 w-3.5 items-center justify-center border text-[9px] font-bold",
+        checked ? "border-[#c05000] bg-[#c05000] text-white" : "border-gray-400 bg-white",
+      )}>
+        {checked ? "✓" : ""}
+      </span>
+      {label}
+    </span>
+  );
+}
+
+function SBanner({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="col-span-2 -mx-5 bg-[#e8650a] px-5 py-1 text-[11px] font-bold uppercase tracking-wide text-white sm:-mx-6 sm:px-6">
+      {children}
+    </div>
+  );
+}
+
+function GTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="col-span-2 border-b border-[#e8650a]/40 pb-0.5 text-[11px] font-bold text-[#c05000]">
+      {children}
+    </div>
+  );
+}
+
+function SubTitle({ children }: { children: React.ReactNode }) {
+  return <div className="col-span-2 text-[10px] font-semibold text-[#c05000]">{children}</div>;
+}
+
+function DossierPreviewCard({
+  data,
+  scenario,
+}: {
+  data: AssessApplicationRequest;
+  scenario: string | null;
+}) {
+  const meta = scenario ? SCENARIO_META[scenario] : null;
+  const d = data.declared;
+  const fmt = (n?: number | null) =>
+    n == null ? "—" : new Intl.NumberFormat("vi-VN").format(n) + " ₫";
+
+  const occKw = (d.occupation ?? "").toLowerCase();
+  const isOfficer = occKw.includes("công chức") || occKw.includes("giáo viên");
+  const isCorp    = occKw.includes("doanh nghiệp tư") || occKw.includes("văn phòng") || occKw.includes("kinh doanh");
+  const isSelf    = occKw.includes("tự do") || occKw.includes("tự doanh") || occKw.includes("chủ hộ");
+  const isHKD     = occKw.includes("hộ kinh doanh");
+
+  const posKw = (d.position ?? "").toLowerCase();
+  const isMgr   = posKw.includes("quản lý") || posKw.includes("trưởng");
+  const isStaff = !isMgr && !posKw.includes("khác") && posKw.length > 0;
+
+  return (
+    <div className={cn("overflow-hidden rounded-xl border-2 bg-white shadow-card", meta?.border ?? "border-border/70")}>
+      {/* Tiêu đề */}
+      <div className="bg-[#e8650a] px-6 py-3 text-center">
+        <p className="text-sm font-bold uppercase tracking-wide text-white">
+          ĐỀ NGHỊ VAY VỐN KIÊM HỢP ĐỒNG CHO VAY
+        </p>
+        <p className="mt-0.5 text-[10px] italic text-orange-100">
+          (Áp dụng với Khách hàng cá nhân vay không có tài sản bảo đảm tại SHBFinance)
+        </p>
+        {meta && (
+          <span className="mt-1.5 inline-block rounded bg-white/20 px-3 py-0.5 text-[11px] font-medium text-white">
+            {meta.label}
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-6 gap-y-3 p-5 sm:p-6">
+
+        {/* === A === */}
+        <SBanner>A. PHẦN ĐỀ NGHỊ VAY VỐN</SBanner>
+        <div className="col-span-2 -mx-5 bg-[#fef3e8] px-5 py-1 text-[10px] font-semibold text-[#c05000] sm:-mx-6 sm:px-6">
+          I. THÔNG TIN NGƯỜI ĐỀ NGHỊ VAY VỐN (SAU ĐÂY GỌI LÀ &quot;BÊN VAY&quot;)
+        </div>
+
+        <GTitle>1. BÊN VAY:</GTitle>
+        <FL label="Họ và tên (viết in hoa):" value={d.customer_name} wide />
+
+        <FL label="Ngày, tháng, năm sinh:" value={d.dob} />
+        <div className="flex items-end gap-5 pb-0.5">
+          <span className="text-[10px] font-medium text-[#7a5100]">Giới tính:</span>
+          <CB label="Nam" checked={d.gender === "Nam"} />
+          <CB label="Nữ"  checked={d.gender === "Nữ"} />
+        </div>
+
+        <FL label="Số CCCD/CC:" value={d.national_id} />
+        <div className="grid grid-cols-2 gap-3">
+          <FL label="Ngày cấp:" value={d.national_id_issue_date} />
+          <FL label="Nơi cấp:"  value={d.national_id_issue_place} />
+        </div>
+
+        <GTitle>2. THÔNG TIN LIÊN HỆ:</GTitle>
+        <SubTitle>2.1. Số điện thoại:</SubTitle>
+        <FL label="Số điện thoại di động:" value={d.phone} />
+        <FL label="Số Zalo:"               value={d.zalo_phone} />
+
+        <SubTitle>2.2. Địa chỉ:</SubTitle>
+        <FL label="Địa chỉ thường trú:"       value={d.permanent_address} wide />
+        <FL label="Địa chỉ nơi ở hiện tại:"  value={d.current_address}   wide />
+
+        <SubTitle>2.3. Email:</SubTitle>
+        <FL label="Email:" value={d.email} wide />
+
+        <GTitle>3. THÔNG TIN VIỆC LÀM:</GTitle>
+        <div className="col-span-2 space-y-2">
+          <span className="text-[10px] font-medium text-[#7a5100]">Nghề nghiệp:</span>
+          <div className="grid grid-cols-3 gap-x-4 gap-y-1.5 pl-1">
+            <CB label="Lao động tự do"             checked={isSelf && !isHKD} />
+            <CB label="Công chức nhà nước"          checked={isOfficer} />
+            <CB label="Sinh viên"                   checked={false} />
+            <CB label="Tự doanh (không ĐKD)"        checked={isSelf && !isHKD} />
+            <CB label="Cán bộ doanh nghiệp tư"      checked={isCorp} />
+            <CB label="Hưu trí"                     checked={false} />
+            <CB label="Hộ kinh doanh (có ĐKD)"      checked={isHKD} />
+            <CB label="Công nhân"                   checked={false} />
+            <CB label="Nội trợ"                     checked={false} />
+          </div>
+        </div>
+
+        <FL label="Tên đơn vị công tác:" value={d.company_name}    wide />
+        <FL label="Địa chỉ công ty:"     value={d.company_address} wide />
+
+        <div className="col-span-2 space-y-1.5">
+          <span className="text-[10px] font-medium text-[#7a5100]">Chức vụ:</span>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 pl-1">
+            <CB label="Cán bộ quản lý"         checked={isMgr} />
+            <CB label="Nhân viên / Chuyên viên" checked={isStaff} />
+            <CB label="Khác"                    checked={!isMgr && !isStaff} />
+          </div>
+        </div>
+
+        <FL label="Ngày trả lương:"          value={d.salary_payday} />
+        <FL label="Thu nhập hàng tháng:"     value={fmt(d.monthly_income)} />
+        <FL label="Chi phí cá nhân / tháng:" value={fmt(d.personal_expense)} />
+        <FL label="Dư nợ hiện tại:"          value={fmt(d.existing_monthly_debt)} />
+
+        {/* === B === */}
+        <SBanner>B. THÔNG TIN KHOẢN VAY ĐỀ NGHỊ</SBanner>
+        <FL label="Số tiền vay đề nghị:"       value={fmt(d.amount)} />
+        <FL label="Thời hạn vay:"              value={d.term_months ? `${d.term_months} tháng` : undefined} />
+        <FL label="Lãi suất / năm:"            value={d.annual_rate != null ? `${(d.annual_rate * 100).toFixed(1)} %` : undefined} />
+        <FL label="Mục đích sử dụng vốn:"      value={d.declared_purpose} />
+        <FL label="Phương thức giải ngân:"     value={d.disbursement_method} wide />
+        <FL label="Ngân hàng nhận GN:"         value={d.disbursement_bank} />
+        <FL label="Chi nhánh:"                 value={d.disbursement_branch} />
+        <FL label="Số tài khoản:"              value={d.disbursement_account} />
+        <FL label="Chủ tài khoản:"             value={d.disbursement_account_name} />
+
+        {/* === C === */}
+        <SBanner>C. THÔNG TIN NGƯỜI THAM CHIẾU</SBanner>
+
+        <SubTitle>Người tham chiếu 1:</SubTitle>
+        <FL label="Họ và tên:"              value={d.ref1_name} />
+        <FL label="Quan hệ với bên vay:"    value={d.ref1_relationship} />
+        <FL label="Số điện thoại:"          value={d.ref1_phone} />
+        <div className="flex items-end gap-5 pb-0.5">
+          <span className="text-[10px] font-medium text-[#7a5100]">Cùng địa chỉ thường trú:</span>
+          <CB label="Có"   checked={!!d.ref1_same_address} />
+          <CB label="Không" checked={!d.ref1_same_address} />
+        </div>
+
+        <SubTitle>Người tham chiếu 2:</SubTitle>
+        <FL label="Họ và tên:"              value={d.ref2_name} />
+        <FL label="Quan hệ với bên vay:"    value={d.ref2_relationship} />
+        <FL label="Số điện thoại:"          value={d.ref2_phone} />
+        <div className="flex items-end gap-5 pb-0.5">
+          <span className="text-[10px] font-medium text-[#7a5100]">Cùng địa chỉ thường trú:</span>
+          <CB label="Có"   checked={!!d.ref2_same_address} />
+          <CB label="Không" checked={!d.ref2_same_address} />
+        </div>
+
+        {/* === D === */}
+        <SBanner>D. HỒ SƠ TÀI LIỆU KÈM THEO</SBanner>
+        <div className="col-span-2 flex flex-wrap gap-2">
+          {data.documents.map((doc, i) => {
+            const cls = doc.tier >= 2
+              ? "border-green-300 bg-green-50 text-green-700"
+              : "border-yellow-300 bg-yellow-50 text-yellow-700";
+            const tl = ["—", "Đã nộp", "Đã xác minh", "Phê duyệt"];
+            return (
+              <span key={i} className={cn("inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[11px] font-medium", cls)}>
+                <span className={cn("h-2 w-2 rounded-full", doc.tier >= 2 ? "bg-green-500" : "bg-yellow-400")} />
+                {doc.kind}
+                <span className="font-normal opacity-60">· {tl[doc.tier] ?? "?"}</span>
+              </span>
+            );
+          })}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+
+
 function rememberResult(result: AssessResponse, form: AssessApplicationRequest) {
   enqueueAssessResult(result, {
     customer_name: form.declared.customer_name,
@@ -143,36 +533,19 @@ function rememberResult(result: AssessResponse, form: AssessApplicationRequest) 
 }
 
 export function AssessDashboard() {
-  const [form, setForm] = useState<AssessApplicationRequest>(MORTGAGE_DEMO);
+  const [form, setForm] = useState<AssessApplicationRequest>(HAPPY_DEMO);
+  const [dossier, setDossier] = useState<{ data: AssessApplicationRequest; scenario: string } | null>(
+    { data: HAPPY_DEMO, scenario: "happy" },
+  );
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
   const [result, setResult] = useState<AssessResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function updateDeclared<K extends keyof AssessApplicationRequest["declared"]>(
-    key: K,
-    value: AssessApplicationRequest["declared"][K],
-  ) {
-    setForm((prev) => ({ ...prev, declared: { ...prev.declared, [key]: value } }));
-  }
 
-  function updateDocTier(index: number, tier: DocumentInput["tier"]) {
-    setForm((prev) => {
-      const documents = prev.documents.map((doc, i) =>
-        i === index
-          ? {
-              ...doc,
-              tier,
-              confirmed_by: tier === 3 && tier3Confirmed ? "officer-demo" : null,
-            }
-          : doc,
-      );
-      return { ...prev, documents };
-    });
-  }
 
-  async function runSubmitted(event: React.FormEvent) {
-    event.preventDefault();
+  async function runSubmitted(event?: React.FormEvent) {
+    if (event) event.preventDefault();
     setLoading(true);
     setError(null);
     try {
@@ -198,13 +571,13 @@ export function AssessDashboard() {
     }
   }
 
-  async function runSeedDemo() {
+  async function runSeedDemo(keyword: string, fallbackForm: AssessApplicationRequest) {
     setLoading(true);
     setError(null);
     try {
-      const next = await assess("retail mortgage");
+      const next = await assess(keyword);
       setResult(next);
-      rememberResult(next, MORTGAGE_DEMO);
+      rememberResult(next, fallbackForm);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không gọi được API seed.");
     } finally {
@@ -304,167 +677,115 @@ export function AssessDashboard() {
         </Card>
       )}
 
-      <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-        <Card className="border-border/70 p-5 shadow-card sm:p-6">
-          <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold tracking-tight text-navy">Hồ sơ vay bán lẻ</h2>
-              <p className="mt-1.5 text-sm text-muted-foreground">
-                <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">POST /assess/application</code>
-                <span className="mx-1.5 text-border">·</span>
-                <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">
-                  {process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}
-                </code>
-              </p>
+      {/* ── BÀN ĐIỀU KHIỂN THẨM ĐỊNH (CONTROL PANEL) ── */}
+      <Card className="border border-border/70 p-5 shadow-card sm:p-6 bg-secondary/10">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-semibold tracking-tight text-[#c05000]">Bàn làm việc của Nhân viên Thẩm định</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Chọn kịch bản/khách hàng để thực hiện quy trình thẩm định tự động (Graph).
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Profile Selection */}
+            <div className="flex rounded-lg border border-border bg-background p-1 gap-1">
+              <button
+                type="button"
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium rounded-md transition",
+                  dossier?.scenario === "happy" ? "bg-[#e8650a] text-white" : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={() => {
+                  setForm(HAPPY_DEMO);
+                  setDossier({ data: HAPPY_DEMO, scenario: "happy" });
+                  setTier3Confirmed(false);
+                  setResult(null);
+                }}
+              >
+                ✅ Happy — Bé Hoa
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium rounded-md transition",
+                  dossier?.scenario === "veto" ? "bg-[#e8650a] text-white" : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={() => {
+                  setForm(VETO_DEMO);
+                  setDossier({ data: VETO_DEMO, scenario: "veto" });
+                  setTier3Confirmed(false);
+                  setResult(null);
+                }}
+              >
+                🚫 Veto — Trần Vui
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium rounded-md transition",
+                  dossier?.scenario === "hitl" ? "bg-[#e8650a] text-white" : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={() => {
+                  setForm(HITL_DEMO);
+                  setDossier({ data: HITL_DEMO, scenario: "hitl" });
+                  setTier3Confirmed(false);
+                  setResult(null);
+                }}
+              >
+                ⏳ HITL — Huyền Trần
+              </button>
             </div>
-            <div className="flex flex-wrap gap-2">
+
+            {/* Simulation Options */}
+            <label className="flex items-center gap-2 text-xs text-muted-foreground font-medium border-l border-border pl-3 select-none cursor-pointer">
+              <input
+                type="checkbox"
+                className="rounded border-border text-[#e8650a] focus:ring-[#e8650a]"
+                checked={tier3Confirmed}
+                onChange={(e) => setTier3Confirmed(e.target.checked)}
+              />
+              Nhân viên xác nhận Tier-3 (confirmed_by)
+            </label>
+
+            {/* Submit / Trigger Action */}
+            <div className="flex items-center gap-2 border-l border-border pl-3">
               <Button
                 type="button"
-                variant="outline"
+                disabled={loading}
+                onClick={() => runSubmitted()}
                 size="sm"
-                onClick={() => {
-                  setForm(MORTGAGE_DEMO);
-                  setTier3Confirmed(false);
-                }}
+                className="bg-[#e8650a] hover:bg-[#c05000] text-white text-xs font-semibold px-4 py-2"
               >
-                Nạp mortgage (veto)
+                {loading ? "Đang chạy..." : "Chạy Thẩm Định (API)"}
+                <ArrowRight size={14} className="ml-1" />
               </Button>
               <Button
                 type="button"
+                disabled={loading}
                 variant="outline"
+                onClick={() => dossier && runSeedDemo(dossier.scenario, dossier.data)}
                 size="sm"
-                onClick={() => {
-                  setForm(UNSECURED_DEMO);
-                  setTier3Confirmed(false);
-                }}
+                className="text-xs font-semibold px-4 py-2"
               >
-                Nạp tín chấp (HITL)
-              </Button>
-              <Button type="button" variant="outline" size="sm" disabled={loading} onClick={runSeedDemo}>
-                Seed /assess
+                Seed tự động
               </Button>
             </div>
           </div>
+        </div>
+        {error && (
+          <p className="mt-3 rounded-lg bg-warning-soft p-3 text-xs text-warning-foreground">{error}</p>
+        )}
+      </Card>
 
-          <form className="space-y-4" onSubmit={runSubmitted}>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Sản phẩm">
-                <select
-                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
-                  value={form.product}
-                  onChange={(e) => setForm((p) => ({ ...p, product: e.target.value }))}
-                  aria-label="Sản phẩm vay"
-                >
-                  <option value="retail_mortgage">retail_mortgage</option>
-                  <option value="retail_unsecured_salary">retail_unsecured_salary</option>
-                </select>
-              </Field>
-              <Field label="Họ tên khách hàng">
-                <Input
-                  value={form.declared.customer_name}
-                  onChange={(e) => updateDeclared("customer_name", e.target.value)}
-                  required
-                />
-              </Field>
-              <Field label="Số tiền vay">
-                <MoneyInput
-                  value={form.declared.amount}
-                  onChange={(next) => updateDeclared("amount", next ?? 0)}
-                  required
-                  aria-label="Số tiền vay"
-                />
-              </Field>
-              <Field label="Kỳ hạn (tháng)">
-                <Input
-                  type="number"
-                  value={form.declared.term_months}
-                  onChange={(e) => updateDeclared("term_months", Number(e.target.value))}
-                  required
-                />
-              </Field>
-              <Field label="Thu nhập tháng">
-                <MoneyInput
-                  value={form.declared.monthly_income}
-                  onChange={(next) => updateDeclared("monthly_income", next ?? 0)}
-                  required
-                  aria-label="Thu nhập tháng"
-                />
-              </Field>
-              <Field label="Nợ trả tháng hiện có">
-                <MoneyInput
-                  value={form.declared.existing_monthly_debt ?? 0}
-                  onChange={(next) => updateDeclared("existing_monthly_debt", next ?? 0)}
-                  aria-label="Nợ trả tháng hiện có"
-                />
-              </Field>
-              <Field label="Mục đích khai báo">
-                <Input
-                  value={form.declared.declared_purpose}
-                  onChange={(e) => updateDeclared("declared_purpose", e.target.value)}
-                  required
-                />
-              </Field>
-              <Field label="Giá trị TSBĐ khai báo">
-                <MoneyInput
-                  value={form.declared.collateral_value_declared}
-                  onChange={(next) => updateDeclared("collateral_value_declared", next)}
-                  aria-label="Giá trị TSBĐ khai báo"
-                />
-              </Field>
-            </div>
+      <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="space-y-4">
+          {dossier && (
+            <DossierPreviewCard data={dossier.data} scenario={dossier.scenario} />
+          )}
+        </div>
 
-            <div>
-              <p className="mb-2 text-sm font-medium text-navy">Chứng từ (tier 1–3)</p>
-              <div className="space-y-2">
-                {form.documents.map((doc, index) => (
-                  <div
-                    key={`${doc.kind}-${index}`}
-                    className="flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-secondary/50 px-3 py-2.5"
-                  >
-                    <span className="min-w-36 text-sm font-medium text-navy">{doc.kind}</span>
-                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                      Tier
-                      <select
-                        className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
-                        value={doc.tier}
-                        onChange={(e) =>
-                          updateDocTier(index, Number(e.target.value) as DocumentInput["tier"])
-                        }
-                        aria-label={`Tier cho ${doc.kind}`}
-                      >
-                        <option value={1}>1</option>
-                        <option value={2}>2</option>
-                        <option value={3}>3</option>
-                      </select>
-                    </label>
-                    {doc.extracted?.actual_purpose != null && (
-                      <span className="text-xs text-warning-foreground">
-                        evidence: {String(doc.extracted.actual_purpose)}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <label className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={tier3Confirmed}
-                  onChange={(e) => setTier3Confirmed(e.target.checked)}
-                />
-                Nhân viên xác nhận tier-3 (<code>confirmed_by</code> — không phải OCR)
-              </label>
-            </div>
-
-            {error && (
-              <p className="rounded-lg bg-warning-soft p-3 text-sm text-warning-foreground">{error}</p>
-            )}
-
-            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-              {loading ? "Đang chạy graph…" : "Chạy thẩm định"}
-              <ArrowRight size={17} />
-            </Button>
-          </form>
-        </Card>
+        
 
         <Card className="border-border/70 p-5 shadow-card sm:p-6">
           <div className="flex items-center justify-between gap-3">

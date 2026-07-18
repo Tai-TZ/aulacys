@@ -32,6 +32,47 @@ class DeclaredForm(BaseModel):
     existing_exposure: float = 0
     bank_own_capital: float = 200_000_000_000
 
+    # New fields matching the SHBFinance form
+    dob: str | None = None
+    gender: str | None = None
+    national_id: str | None = None
+    national_id_issue_date: str | None = None
+    national_id_issue_place: str | None = None
+    phone: str | None = None
+    zalo_phone: str | None = None
+    permanent_address: str | None = None
+    current_address: str | None = None
+    email: str | None = None
+    occupation: str | None = None
+    company_name: str | None = None
+    position: str | None = None
+    company_address: str | None = None
+    salary_payday: str | None = None
+    personal_expense: float | None = None
+    disbursement_method: str | None = None
+    disbursement_bank: str | None = None
+    disbursement_branch: str | None = None
+    disbursement_account: str | None = None
+    disbursement_account_name: str | None = None
+
+    # Spouse fields
+    spouse_name: str | None = None
+    spouse_phone: str | None = None
+    spouse_national_id: str | None = None
+    spouse_income: float | None = None
+    spouse_company: str | None = None
+
+    # Reference fields
+    ref1_name: str | None = None
+    ref1_relationship: str | None = None
+    ref1_phone: str | None = None
+    ref1_same_address: bool | None = None
+
+    ref2_name: str | None = None
+    ref2_relationship: str | None = None
+    ref2_phone: str | None = None
+    ref2_same_address: bool | None = None
+
 
 class LoanApplication(BaseModel):
     product: str

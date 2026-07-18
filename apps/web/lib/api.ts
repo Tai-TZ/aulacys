@@ -27,6 +27,47 @@ export interface DeclaredForm {
   collateral_value_declared?: number | null;
   existing_exposure?: number;
   bank_own_capital?: number;
+
+  // New fields matching the SHBFinance form
+  dob?: string;
+  gender?: string;
+  national_id?: string;
+  national_id_issue_date?: string;
+  national_id_issue_place?: string;
+  phone?: string;
+  zalo_phone?: string;
+  permanent_address?: string;
+  current_address?: string;
+  email?: string;
+  occupation?: string;
+  company_name?: string;
+  position?: string;
+  company_address?: string;
+  salary_payday?: string;
+  personal_expense?: number | null;
+  disbursement_method?: string;
+  disbursement_bank?: string;
+  disbursement_branch?: string;
+  disbursement_account?: string;
+  disbursement_account_name?: string;
+
+  // Spouse fields
+  spouse_name?: string;
+  spouse_phone?: string;
+  spouse_national_id?: string;
+  spouse_income?: number | null;
+  spouse_company?: string;
+
+  // Reference fields
+  ref1_name?: string;
+  ref1_relationship?: string;
+  ref1_phone?: string;
+  ref1_same_address?: boolean;
+
+  ref2_name?: string;
+  ref2_relationship?: string;
+  ref2_phone?: string;
+  ref2_same_address?: boolean;
 }
 
 export interface DocumentInput {
