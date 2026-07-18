@@ -339,7 +339,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
       if (isDefaultDemoAccount) {
         writeDemoSession({ name: "Nguyễn Văn An", email: "an.nguyen@shb-loan.com" });
         showToast("Đăng nhập thành công.");
-        router.push("/workspace");
+        router.push("/customer-portal");
       } else {
         setErrors(prev => ({ ...prev, general: "Số điện thoại hoặc mật khẩu không chính xác." }));
       }
@@ -955,7 +955,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
 
               <div className="space-y-2 pt-2">
                 <Button 
-                  onClick={() => router.push("/workspace")}
+                  onClick={() => router.push("/customer-portal")}
                   className="w-full h-12 bg-primary text-on-primary rounded-xl font-bold transition shadow-md hover:shadow-[#F58220]/15"
                 >
                   Bắt đầu tư vấn vay

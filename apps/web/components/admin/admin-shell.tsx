@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  ArrowRight,
   Bot,
   FileCheck2,
   LayoutDashboard,
@@ -73,16 +72,9 @@ function NavItems({
   );
 }
 
-function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarFooter() {
   return (
     <div className="mt-auto space-y-1 border-t border-on-primary/12 pt-5">
-      <Link
-        href="/"
-        onClick={onNavigate}
-        className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-on-primary/70 transition hover:bg-on-primary/8 hover:text-on-primary"
-      >
-        <ArrowRight size={18} /> Trang khách hàng
-      </Link>
       <button
         type="button"
         className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-on-primary/40"
@@ -119,7 +111,7 @@ export function AdminShell({
         <div className="pointer-events-none absolute -right-16 top-24 h-48 w-48 rounded-full bg-brand/15 blur-3xl" aria-hidden />
         <div className="relative z-10 flex h-full min-h-0 flex-col overflow-hidden">
           <div className="shrink-0">
-            <BrandMark href="/" variant="light" size="lg" />
+            <BrandMark href="/admin" variant="light" size="lg" />
             <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.2em] text-on-primary/45">
               Digital Expert Admin
             </p>
@@ -148,7 +140,7 @@ export function AdminShell({
             <div className="relative z-10 flex h-full min-h-0 flex-col overflow-hidden">
               <div className="mb-8 flex shrink-0 items-start justify-between gap-3">
                 <div>
-                  <BrandMark href="/" variant="light" size="md" />
+                  <BrandMark href="/admin" variant="light" size="md" />
                   <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-on-primary/45">
                     Digital Expert Admin
                   </p>
@@ -166,7 +158,7 @@ export function AdminShell({
               <div className="min-h-0 flex-1 overflow-hidden">
                 <NavItems activeHref={activeHref} onNavigate={() => setMobileOpen(false)} />
               </div>
-              <SidebarFooter onNavigate={() => setMobileOpen(false)} />
+              <SidebarFooter />
             </div>
           </aside>
         </div>

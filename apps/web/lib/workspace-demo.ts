@@ -72,8 +72,8 @@ export const REPAYMENT_SERIES = [
 
 export const ACTIVE_APPLICATION = {
   id: "HS-2026-118",
-  productVi: "Vay mua nhà · retail_mortgage",
-  productEn: "Home loan · retail_mortgage",
+  productVi: "Vay mua nhà",
+  productEn: "Home loan",
   amountVnd: 2_000_000_000,
   stage: "compliance" as PipelineStage,
   noteVi:
@@ -226,6 +226,86 @@ export const AGENT_SUGGESTIONS = [
       "Giải thích vì sao Compliance phải chờ định giá TSBĐ (LTV) và nhánh veto → replan hoạt động thế nào trong Digital Expert Agents.",
     promptEn:
       "Explain why Compliance waits on collateral valuation (LTV) and how the veto→replan branch works in Digital Expert Agents.",
+  },
+];
+
+/** Wow-flow agent DAG — shown in customer-portal Agent tab (demo process UI). */
+export type AgentRunStepId =
+  | "planner"
+  | "credit"
+  | "operations"
+  | "compliance"
+  | "critic"
+  | "gate";
+
+export type AgentRunStepStatus = "pending" | "running" | "done" | "veto";
+
+export const AGENT_RUN_STEPS: {
+  id: AgentRunStepId;
+  nameVi: string;
+  nameEn: string;
+  detailVi: string;
+  detailEn: string;
+  /** Mock status line under the step (demo copy — not real tool names). */
+  actionVi: string;
+  actionEn: string;
+  parallelGroup?: "underwrite";
+}[] = [
+  {
+    id: "planner",
+    nameVi: "Planner",
+    nameEn: "Planner",
+    detailVi: "Đọc product config → dựng DAG + cạnh veto",
+    detailEn: "Read product config → build DAG + veto edge",
+    actionVi: "Điều hướng…",
+    actionEn: "Routing…",
+  },
+  {
+    id: "credit",
+    nameVi: "Credit",
+    nameEn: "Credit",
+    detailVi: "DTI · CIC · khuyến nghị hạn mức (tool, không LLM)",
+    detailEn: "DTI · CIC · limit recommendation (tools, not LLM)",
+    actionVi: "Thẩm định tín dụng…",
+    actionEn: "Credit underwriting…",
+    parallelGroup: "underwrite",
+  },
+  {
+    id: "operations",
+    nameVi: "Operations",
+    nameEn: "Operations",
+    detailVi: "Chứng từ · định giá TSBĐ (song song với Credit)",
+    detailEn: "Documents · collateral valuation (parallel with Credit)",
+    actionVi: "Xử lý chứng từ…",
+    actionEn: "Processing documents…",
+    parallelGroup: "underwrite",
+  },
+  {
+    id: "compliance",
+    nameVi: "Compliance",
+    nameEn: "Compliance",
+    detailVi: "Policy / LTV — có thể veto → replan",
+    detailEn: "Policy / LTV — may veto → replan",
+    actionVi: "Kiểm tra tuân thủ…",
+    actionEn: "Compliance check…",
+  },
+  {
+    id: "critic",
+    nameVi: "Critic",
+    nameEn: "Critic",
+    detailVi: "Mọi số liệu phải có tool call; claim có citation",
+    detailEn: "Every figure needs a tool call; claims need citations",
+    actionVi: "Đối chiếu số liệu…",
+    actionEn: "Verifying figures…",
+  },
+  {
+    id: "gate",
+    nameVi: "Gate / HITL",
+    nameEn: "Gate / HITL",
+    detailVi: "STP nếu đủ điều kiện, không thì đẩy người phê duyệt",
+    detailEn: "STP when eligible, else human approval",
+    actionVi: "Chờ phê duyệt…",
+    actionEn: "Awaiting approval…",
   },
 ];
 
