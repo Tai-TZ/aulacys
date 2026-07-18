@@ -26,6 +26,7 @@ env var and the monolith runs alone (demo-proof). Full veto flow remains protect
 | property-svc | 8330 | parcel seed (JSON) | `PROPERTY_SVC_URL` | ✅ wired |
 | income-svc | 8340 | statement verification mock | `INCOME_SVC_URL` | ✅ wired |
 | catalog-svc | 8350 | retail product catalog seed | `CATALOG_SVC_URL` (gateway) | ✅ standing |
+| legal-svc | 8370 | police / court / bank legal blacklist seed | `LEGAL_SVC_URL` | ✅ standing (agent tool not wired) |
 | credit-svc | 8401 | credit worker execution | `CREDIT_AGENT_URL` | ✅ wired |
 | operations-svc | 8402 | operations worker execution | `OPERATIONS_AGENT_URL` | ✅ wired |
 | compliance-svc | 8403 | compliance worker execution | `COMPLIANCE_AGENT_URL` | ✅ wired |

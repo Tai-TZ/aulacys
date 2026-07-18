@@ -56,6 +56,7 @@ SERVICES = [
     ServiceSpec("income-svc", "INCOME_SVC_URL", "http://127.0.0.1:8340"),
     ServiceSpec("catalog-svc", "CATALOG_SVC_URL", "http://127.0.0.1:8350"),
     ServiceSpec("application-svc", "APPLICATION_SVC_URL", "http://127.0.0.1:8360"),
+    ServiceSpec("legal-svc", "LEGAL_SVC_URL", "http://127.0.0.1:8370"),
     ServiceSpec("credit-svc", "CREDIT_AGENT_URL", "http://127.0.0.1:8401"),
     ServiceSpec("operations-svc", "OPERATIONS_AGENT_URL", "http://127.0.0.1:8402"),
     ServiceSpec("compliance-svc", "COMPLIANCE_AGENT_URL", "http://127.0.0.1:8403"),

@@ -141,6 +141,9 @@ services:
     ports: ["8360:8360"]
     env_file:
       - ./services/application-svc/.env
+  legal-svc:
+    build: ./services/legal-svc
+    ports: ["8370:8370"]
     restart: unless-stopped
 
   # ---------- agent workers (4 processes; see SERVICE-CODING-PLAN §12) ----------

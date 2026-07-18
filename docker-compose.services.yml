@@ -38,6 +38,7 @@ services:
       INCOME_SVC_URL: http://income-svc:8340
       CATALOG_SVC_URL: http://catalog-svc:8350
       APPLICATION_SVC_URL: http://application-svc:8360
+      LEGAL_SVC_URL: http://legal-svc:8370
       CREDIT_AGENT_URL: http://credit-svc:8400
       OPERATIONS_AGENT_URL: http://operations-svc:8400
       COMPLIANCE_AGENT_URL: http://compliance-svc:8400
@@ -154,8 +155,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  legal-svc:
+    build: ./services/legal-svc
+    ports:
+      - "8370:8370"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8360/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8370/health')"]
       interval: 10s
       timeout: 3s
       retries: 3
