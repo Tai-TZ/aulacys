@@ -51,6 +51,10 @@ def test_planner_builds_parallel_roots_and_data_edges() -> None:
         ("operations", "compliance"),
         ("credit", "compliance"),
     ]
+    assert plan.plan_id.startswith("retail_mortgage:r0:")
+    assert len(plan.plan_hash) == 64
+    assert plan.warnings == []
+    assert state["metadata"]["planner_plan_trace"][-1]["plan_hash"] == plan.plan_hash
     assert "does not compute figures, approve, veto, or call tools" in plan.rationale
 
 
@@ -73,6 +77,7 @@ def test_planner_replan_rationale_carries_veto_rules_without_deciding_outcome() 
     plan, _ = planner_fallback(state, PlannerSpec)
 
     assert plan.edges == [("planner", "credit"), ("credit", "compliance")]
+    assert plan.plan_id.startswith("retail_mortgage:r1:")
     assert "Compliance veto returned control to Planner" in plan.rationale
     assert "max_amount_product_ceiling" in plan.rationale
     assert "approve" in plan.rationale
@@ -95,7 +100,48 @@ def test_planner_warns_and_skips_unknown_dependency() -> None:
 
     assert plan.nodes == ["planner", "credit", "compliance"]
     assert plan.edges == [("planner", "credit"), ("credit", "compliance")]
-    warnings = state["metadata"]["planner_warnings"]
+    warnings = plan.warnings
     assert any("unknown agent" in warning for warning in warnings)
     assert any("prerequisite is not configured" in warning for warning in warnings)
     assert any("target outside configured agents" in warning for warning in warnings)
+
+
+def test_planner_hash_is_stable_for_same_structural_plan() -> None:
+    state = {
+        "application": _application(),
+        "metadata": {
+            "product_config": {
+                "agents": ["credit", "operations", "compliance"],
+                "depends": {"compliance": ["operations"]},
+            },
+            "agent_contracts": AGENT_CONTRACTS,
+        },
+        "replan_count": 0,
+    }
+
+    first, _ = planner_fallback(state, PlannerSpec)
+    second, _ = planner_fallback(state, PlannerSpec)
+
+    assert first.plan_hash == second.plan_hash
+    assert first.plan_id == second.plan_id
+    assert len(state["metadata"]["planner_plan_trace"]) == 2
+
+
+def test_planner_warns_on_cycle_before_graph_execution() -> None:
+    state = {
+        "application": _application("retail_unsecured_salary"),
+        "metadata": {
+            "product_config": {
+                "agents": ["credit", "compliance"],
+                "depends": {"credit": ["compliance"], "compliance": ["credit"]},
+            },
+            "agent_contracts": AGENT_CONTRACTS,
+        },
+        "replan_count": 0,
+    }
+
+    plan, _ = planner_fallback(state, PlannerSpec)
+
+    assert not any(source == "planner" for source, _ in plan.edges)
+    assert any("dependency cycle" in warning for warning in plan.warnings)
+    assert any("no runnable root" in warning for warning in plan.warnings)

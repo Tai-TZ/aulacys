@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Any
 
 from aulacys.agents.specs import AgentSpec
@@ -10,6 +12,10 @@ def _planner_metadata(state: AgentState) -> dict[str, Any]:
     metadata = state.setdefault("metadata", {})
     metadata.setdefault("planner_warnings", [])
     return metadata
+
+
+def _reset_warnings(state: AgentState) -> None:
+    _planner_metadata(state)["planner_warnings"] = []
 
 
 def _warn(state: AgentState, message: str) -> None:
@@ -98,6 +104,67 @@ def _build_edges(state: AgentState, config: dict[str, Any], agents: list[str]) -
     return _dedupe_edges([*root_edges, *dependency_edges])
 
 
+def _validate_plan(state: AgentState, nodes: list[str], edges: list[tuple[str, str]]) -> None:
+    node_set = set(nodes)
+    agent_nodes = [node for node in nodes if node != "planner"]
+    for source, target in edges:
+        if source not in node_set or target not in node_set:
+            _warn(state, f"Planner skipped invalid edge outside DAG nodes: {source} -> {target}")
+
+    if agent_nodes and not any(source == "planner" for source, _ in edges):
+        _warn(state, "Planner DAG has no runnable root edge from planner")
+
+    dependencies: dict[str, set[str]] = {node: set() for node in agent_nodes}
+    for source, target in edges:
+        if target in dependencies and source in dependencies:
+            dependencies[target].add(source)
+
+    remaining = agent_nodes.copy()
+    completed: set[str] = set()
+    while remaining:
+        ready = [node for node in remaining if dependencies[node].issubset(completed)]
+        if not ready:
+            _warn(state, f"Planner DAG dependency cycle: {', '.join(remaining)}")
+            return
+        for node in ready:
+            completed.add(node)
+            remaining.remove(node)
+
+
+def _plan_hash(state: AgentState, nodes: list[str], edges: list[tuple[str, str]]) -> str:
+    app = state.get("application")
+    payload = {
+        "product": getattr(app, "product", "unknown"),
+        "replan_count": int(state.get("replan_count", 0)),
+        "nodes": nodes,
+        "edges": edges,
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def _plan_id(state: AgentState, plan_hash: str) -> str:
+    app = state.get("application")
+    product = getattr(app, "product", "unknown")
+    replan_count = int(state.get("replan_count", 0))
+    return f"{product}:r{replan_count}:{plan_hash[:12]}"
+
+
+def _record_plan_trace(state: AgentState, dag: DAG) -> None:
+    metadata = _planner_metadata(state)
+    metadata.setdefault("planner_plan_trace", [])
+    metadata["planner_plan_trace"].append(
+        {
+            "plan_id": dag.plan_id,
+            "plan_hash": dag.plan_hash,
+            "replan_count": int(state.get("replan_count", 0)),
+            "nodes": dag.nodes,
+            "edges": dag.edges,
+            "warnings": dag.warnings,
+        }
+    )
+
+
 def _rationale(state: AgentState, agents: list[str], edges: list[tuple[str, str]]) -> str:
     app = state.get("application")
     product = getattr(app, "product", "unknown")
@@ -120,10 +187,23 @@ def _rationale(state: AgentState, agents: list[str], edges: list[tuple[str, str]
 
 
 def planner_fallback(state: AgentState, spec: AgentSpec) -> tuple[DAG, list[str]]:
+    _reset_warnings(state)
     config = _planner_metadata(state).get("product_config", {}) or {}
     agents = _configured_agents(state, config)
     edges = _build_edges(state, config, agents)
-    return DAG(nodes=["planner", *agents], edges=edges, rationale=_rationale(state, agents, edges)), []
+    nodes = ["planner", *agents]
+    _validate_plan(state, nodes, edges)
+    digest = _plan_hash(state, nodes, edges)
+    dag = DAG(
+        nodes=nodes,
+        edges=edges,
+        rationale=_rationale(state, agents, edges),
+        plan_id=_plan_id(state, digest),
+        plan_hash=digest,
+        warnings=list(_planner_metadata(state)["planner_warnings"]),
+    )
+    _record_plan_trace(state, dag)
+    return dag, []
 
 
 PlannerSpec = AgentSpec(
