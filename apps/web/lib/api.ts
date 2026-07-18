@@ -188,6 +188,7 @@ export interface OperationsReport {
   doc_status: string;
   missing: string[];
   legal_flags: string[];
+  rationale: string;
   evidence: Citation[];
   tool_results: Record<string, unknown>;
 }

@@ -128,6 +128,7 @@ class OperationsReport(BaseModel):
     doc_status: str
     missing: list[str]
     legal_flags: list[str]
+    rationale: str = ""
     evidence: list[Citation]
     tool_results: dict[str, Any] = Field(default_factory=dict)
 
