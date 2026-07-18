@@ -414,9 +414,9 @@ export const INITIAL_PRODUCTS: LoanProduct[] = [
     status: "ACTIVE",
     updatedAt: "2026-07-18",
     interestRate: 0,
-    segments: ["Cá nhân", "Hộ gia đình"],
+    segments: ["Khách hàng cá nhân phổ thông", "Người nhận lương"],
     purpose: "Phục vụ các nhu cầu tiêu dùng của khách hàng",
-    
+
     // Rich details mapping
     loanStructure: {
       minAmount: null,

@@ -31,6 +31,7 @@ class LookupResponse(BaseModel):
     has_bad_debt: bool
     num_active_loans: int
     total_outstanding_vnd: int
+    monthly_debt_obligation_vnd: int | None = None
     credit_limit_total_vnd: int
     max_overdue_days: int
     overdue_amount_vnd: int

@@ -48,6 +48,11 @@ def lookup(cccd: str, *, consent_granted: bool) -> dict[str, Any]:
         "has_bad_debt": cic_group >= 3,
         "num_active_loans": int(rec.get("num_active_loans", 0)),
         "total_outstanding_vnd": int(rec.get("total_outstanding_vnd", 0)),
+        "monthly_debt_obligation_vnd": (
+            int(rec["monthly_debt_obligation_vnd"])
+            if rec.get("monthly_debt_obligation_vnd") is not None
+            else None
+        ),
         "credit_limit_total_vnd": int(rec.get("credit_limit_total_vnd", 0)),
         "max_overdue_days": int(rec.get("max_overdue_days", 0)),
         "overdue_amount_vnd": int(rec.get("overdue_amount_vnd", 0)),

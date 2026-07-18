@@ -51,7 +51,7 @@ def test_gateway_status_aggregates_service_health(monkeypatch):
     assert any(item["name"] == "catalog-svc" for item in data["services"])
     assert any(item["name"] == "application-svc" for item in data["services"])
     assert any(item["name"] == "legal-svc" for item in data["services"])
-    assert any(item["name"] == "credit-svc" for item in data["services"])
+    assert any(item["name"] == "agent-worker-svc" for item in data["services"])
 
 
 def test_gateway_assess_returns_fallback_when_monolith_is_down(monkeypatch):

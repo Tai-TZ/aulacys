@@ -22,13 +22,13 @@ async def test_agent_status(client):
 
 
 @pytest.mark.asyncio
-async def test_assess_returns_structured_veto(client):
+async def test_assess_unverified_rule_routes_to_human(client):
     response = await client.post("/api/v1/assess", json={"message": "retail mortgage"})
     assert response.status_code == 200
     data = response.json()
-    assert data["outcome"] == "vetoed"
+    assert data["outcome"] == "ready_for_human_approval"
     assert data["run_trace"]["lane"] == 3
-    assert data["run_trace"]["replan_count"] == 2
+    assert data["run_trace"]["replan_count"] == 0
     assert data["credit"]["dti"] == 0.3878
     assert data["credit"]["proposed_limit"] == 2_500_000_000
     assert data["credit"]["proposed_rate"] is not None
@@ -39,7 +39,11 @@ async def test_assess_returns_structured_veto(client):
     assert "overdue_days" in cic  # alias
     assert data["operations"]["valuation"] == 4_000_000_000
     assert data["operations"]["legal_flags"] == []
-    assert data["compliance"]["veto"] is True
+    assert data["compliance"]["veto"] is False
+    purpose = next(
+        v for v in data["compliance"]["violations"] if v["rule_id"] == "prohibited_purpose_refinance_other_bank"
+    )
+    assert purpose["unverified"] is True
     assert data["compliance"]["kyc_status"] == "passed"
     assert data["critic"]["passed"] is True
     assert data["critic"]["memo"]
@@ -53,7 +57,7 @@ async def test_assess_empty_message(client):
 
 
 @pytest.mark.asyncio
-async def test_assess_application_runs_submitted_mortgage_veto(client):
+async def test_assess_application_unverified_rule_routes_to_human(client):
     """POST /assess/application uses the body — not seed_application()."""
     payload = {
         "product": "retail_mortgage",
@@ -85,12 +89,12 @@ async def test_assess_application_runs_submitted_mortgage_veto(client):
     response = await client.post("/api/v1/assess/application", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["outcome"] == "vetoed"
-    assert data["run_trace"]["veto_fired"] is True
-    assert data["run_trace"]["replan_count"] == 2
-    assert data["compliance"]["veto"] is True
+    assert data["outcome"] == "ready_for_human_approval"
+    assert data["run_trace"]["veto_fired"] is False
+    assert data["run_trace"]["replan_count"] == 0
+    assert data["compliance"]["veto"] is False
     assert "prohibited_purpose_refinance_other_bank" in data["compliance"]["rule_ids"]
-    assert sum(1 for item in data["trace"] if item["node"] == "compliance") == 3
+    assert sum(1 for item in data["trace"] if item["node"] == "compliance") == 1
 
 
 @pytest.mark.asyncio

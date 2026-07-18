@@ -6,13 +6,18 @@ from aulacys.agents.harness.dispatch import dispatch
 from aulacys.agents.specs import AgentSpec
 from aulacys.agents.state import AgentState, Citation, ComplianceVerdict
 from aulacys.policy.client import evaluate_policy
+from aulacys.policy.loader import rules_for_profile
+from aulacys.policy.metrics import MetricCollector
 
 
 def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceVerdict, list[str]]:
     app = state["application"]
     declared = app.declared
     operations = state.get("operations")
-    limits = (state.get("metadata", {}) or {}).get("product_config", {}).get("limits") or {}
+    credit = state.get("credit")
+    product_config = (state.get("metadata", {}) or {}).get("product_config", {}) or {}
+    limits = product_config.get("limits") or {}
+    tools = product_config.get("tools") or []
     tool_calls: list[str] = []
     cccd_doc = next((doc for doc in app.documents if doc.kind == "cccd" and doc.extracted), None)
     cccd_verified = bool(cccd_doc and cccd_doc.extracted.get("verified"))
@@ -42,6 +47,12 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
     )
     tool_calls.append("ubo_check")
 
+    # Package profile: valuation / LTV tools ⇒ secured family.
+    if limits.get("ltv_cap") is not None or "compute_ltv" in tools or "property_valuation" in tools:
+        profile = "secured"
+    else:
+        profile = "unsecured"
+
     aml = dispatch(spec, "aml_screen", {"sanctions_match_count": 0, "pep_match_count": 0})
     tool_calls.append("aml_screen")
     related = dispatch(spec, "related_party", {"exposure_ratio_related_group": 0})
@@ -54,8 +65,45 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
         "kyc_verified": 1.0 if kyc.get("status") == "passed" else 0.0,
         "ubo_clear": 1.0 if ubo.get("status") in {"passed", "not_applicable"} else 0.0,
     }
-    if state.get("credit") and state["credit"].dti is not None:
-        metrics["dti"] = float(state["credit"].dti)
+
+    # --- Credit metrics (DTI, CIC, income) ---
+    if credit and credit.dti is not None:
+        metrics["dti"] = float(credit.dti)
+    cic = (credit.tool_results or {}).get("cic_lookup") if credit else None
+    if isinstance(cic, dict):
+        if cic.get("cic_group") is not None:
+            metrics["cic_group"] = float(cic["cic_group"])
+        metrics["has_bad_debt"] = 1.0 if cic.get("has_bad_debt") else 0.0
+    income = (credit.tool_results or {}).get("income_verify") if credit else None
+    if isinstance(income, dict):
+        verified = float(income.get("verified_monthly_income") or 0)
+        metrics["income_verified"] = 1.0 if verified > 0 else 0.0
+    elif credit and credit.income is not None:
+        metrics["income_verified"] = 1.0 if float(credit.income) > 0 else 0.0
+
+    # --- Documents ---
+    required = (product_config.get("documents") or {}).get("required") or []
+    provided = {doc.kind for doc in app.documents}
+    # A successful deterministic CIC lookup is the CIC evidence; it need not be
+    # duplicated as an uploaded document in the application payload.
+    if isinstance(cic, dict) and cic.get("cic_group") is not None:
+        provided.add("cic")
+    if required:
+        metrics["docs_complete"] = 1.0 if all(r in provided for r in required) else 0.0
+    elif operations is not None:
+        metrics["docs_complete"] = 1.0 if operations.doc_status == "complete" else 0.0
+    else:
+        metrics["docs_complete"] = 1.0
+
+    # --- Tenor vs product limits ---
+    term_ok = True
+    if limits.get("term_months_max") is not None:
+        term_ok = declared.term_months <= int(limits["term_months_max"])
+    elif limits.get("term_years_max") is not None:
+        term_ok = declared.term_months <= int(limits["term_years_max"]) * 12
+    metrics["term_within_product_max"] = 1.0 if term_ok else 0.0
+
+    # --- Collateral / LTV (secured) ---
     if operations and operations.valuation:
         ltv = dispatch(spec, "compute_ltv", {"loan_amount": declared.amount, "collateral_value": operations.valuation})
         tool_calls.append("compute_ltv")
@@ -63,8 +111,13 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
             metrics["ltv"] = float(ltv["ltv"])
             ltv_cap = limits.get("ltv_cap")
             if ltv_cap is not None:
-                # Cap lives in product YAML; policy only sees a boolean metric (no if-product in rules).
                 metrics["ltv_within_product_cap"] = 1.0 if metrics["ltv"] <= float(ltv_cap) else 0.0
+        flags = list(operations.legal_flags or [])
+        metrics["land_registry_ok"] = 0.0 if flags else 1.0
+    elif profile == "secured" and operations is not None:
+        # Ops ran but no valuation — still surface land flags if any.
+        flags = list(operations.legal_flags or [])
+        metrics["land_registry_ok"] = 0.0 if flags else 1.0
 
     ceiling = limits.get("amount_ceiling")
     if ceiling is not None:
@@ -73,12 +126,45 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
     purpose_doc = next((doc for doc in app.documents if doc.kind == "purpose_evidence" and doc.extracted), None)
     evidence_purpose = str(purpose_doc.extracted.get("actual_purpose", "")) if purpose_doc else ""
     declared_purpose = declared.declared_purpose.lower()
+    metrics["prohibited_purpose_refinance_other_bank"] = 0.0
     if "tất toán" in evidence_purpose.lower() or "tat toan" in evidence_purpose.lower():
-        metrics["prohibited_purpose_refinance_other_bank"] = 1
+        metrics["prohibited_purpose_refinance_other_bank"] = 1.0
     elif "refinance" in declared_purpose:
-        metrics["prohibited_purpose_refinance_other_bank"] = 1
+        metrics["prohibited_purpose_refinance_other_bank"] = 1.0
 
-    violations = evaluate_policy(metrics, as_of=date.today())
+    product_code = getattr(app, "product", None) or product_config.get("id")
+    metric_sources = {
+        "kyc_verified": "kyc_check",
+        "ubo_clear": "ubo_check",
+        "sanctions_match_count": "aml_screen",
+        "pep_match_count": "aml_screen",
+        "exposure_ratio_related_group": "related_party",
+        "dti": "compute_dti",
+        "cic_group": "cic_lookup",
+        "has_bad_debt": "cic_lookup",
+        "income_verified": "income_verify",
+        "docs_complete": "document_checklist",
+        "term_within_product_max": "product_config",
+        "ltv": "compute_ltv",
+        "ltv_within_product_cap": "compute_ltv+product_config",
+        "land_registry_ok": "land_registry",
+        "amount_within_product_ceiling": "application+product_config",
+        "prohibited_purpose_refinance_other_bank": "purpose_evidence",
+    }
+    collector = MetricCollector()
+    for name, value in metrics.items():
+        collector.record(name, value, source=metric_sources[name])
+    required_metrics = {
+        rule.metric for rule in rules_for_profile(profile, product_code=str(product_code) if product_code else None)
+    }
+    metric_report = collector.report(profile, required_metrics)
+    policy_metrics = metric_report.policy_values()
+    violations = evaluate_policy(
+        policy_metrics,
+        as_of=date.today(),
+        profile=profile,
+        product_code=str(product_code) if product_code else None,
+    )
     return (
         ComplianceVerdict(
             violations=violations,
@@ -95,7 +181,10 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
                 "ubo_check": ubo,
                 "aml_screen": aml,
                 "related_party": related,
-                "metrics": metrics,
+                "metrics": policy_metrics,
+                "metric_report": metric_report.model_dump(),
+                "profile": profile,
+                "product_code": product_code,
             },
         ),
         tool_calls,

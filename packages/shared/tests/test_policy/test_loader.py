@@ -106,10 +106,11 @@ class TestEvaluate:
         violations = evaluate({"dti": 0.9}, as_of=date(2025, 12, 31))
         assert violations == []
 
-    def test_retail_prohibited_purpose_blocks(self):
+    def test_unverified_retail_purpose_requires_human_review(self):
         violations = evaluate({"prohibited_purpose_refinance_other_bank": 1})
         assert violations[0].rule_id == "prohibited_purpose_refinance_other_bank"
-        assert violations[0].is_blocking
+        assert violations[0].unverified
+        assert not violations[0].is_blocking
 
 
 def test_covered_metrics_names_what_policy_can_judge():

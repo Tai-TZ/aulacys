@@ -89,6 +89,7 @@ def _fallback(cccd: str, consent_granted: bool) -> dict[str, Any]:
         "has_bad_debt": False,
         "num_active_loans": 1,
         "total_outstanding_vnd": 0,
+        "monthly_debt_obligation_vnd": 0,
         "credit_limit_total_vnd": 50_000_000,
         "max_overdue_days": 0,
         "overdue_days": 0,

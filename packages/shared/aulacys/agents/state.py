@@ -94,6 +94,9 @@ class DAG(BaseModel):
     nodes: list[str]
     edges: list[tuple[str, str]]
     rationale: str = ""
+    plan_id: str = ""
+    plan_hash: str = ""
+    warnings: list[str] = Field(default_factory=list)
 
 
 class CreditAssessment(BaseModel):

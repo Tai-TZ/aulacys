@@ -45,3 +45,12 @@ def test_health_unverified_list() -> None:
     resp = client.get("/health")
     assert resp.status_code == 200
     assert "prohibited_purpose_refinance_other_bank" in resp.json()["unverified_rules"]
+
+
+def test_unverified_rule_never_auto_vetoes() -> None:
+    violations = engine.evaluate({"prohibited_purpose_refinance_other_bank": 1})
+
+    purpose = next(v for v in violations if v.rule_id == "prohibited_purpose_refinance_other_bank")
+    assert purpose.unverified is True
+    assert purpose.severity == "warning"
+    assert purpose.is_blocking is False
