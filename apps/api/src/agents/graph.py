@@ -53,11 +53,11 @@ _UNSECURED_HAPPY: dict = {
     "declared": {
         # --- Khoản vay ---
         "customer_name": "NGUYỄN THỊ BÉ HOA",
-        "amount": 150_000_000,           # 150 triệu — trong tầm kiểm soát
+        "amount": 150_000_000,  # 150 triệu — trong tầm kiểm soát
         "term_months": 36,
         "annual_rate": 0.13,
         "monthly_income": 22_000_000,
-        "existing_monthly_debt": 0,      # không có nợ cũ → DTI thấp
+        "existing_monthly_debt": 0,  # không có nợ cũ → DTI thấp
         "declared_purpose": "Mua sắm nội thất, tiêu dùng cá nhân",
         # --- CCCD (ảnh thực) ---
         "dob": "10/06/2000",
@@ -65,11 +65,13 @@ _UNSECURED_HAPPY: dict = {
         "national_id": "074300004128",
         "national_id_issue_date": "21/05/2025",
         "national_id_issue_place": "Bộ Công an",
-        "permanent_address": "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
-        "current_address": "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
+        "old_national_id": "074300001234",
         # --- Liên lạc ---
         "phone": "0912300004",
+        "phone_2": "0987654321",
         "zalo_phone": "0912300004",
+        "permanent_address": "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
+        "current_address": "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
         "email": "behoa.nguyen@email.com",
         # --- Việc làm ---
         "occupation": "Nhân viên văn phòng",
@@ -93,6 +95,9 @@ _UNSECURED_HAPPY: dict = {
         "ref2_relationship": "Đồng nghiệp",
         "ref2_phone": "0912300002",
         "ref2_same_address": False,
+        # --- Consent ---
+        "consent_data_processing": True,
+        "consent_advertising": True,
     },
     "documents": [
         Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": "074300004128"}),
@@ -105,7 +110,7 @@ _UNSECURED_VETO: dict = {
     "declared": {
         # --- Khoản vay ---
         "customer_name": "TRẦN THỊ VUI",
-        "amount": 300_000_000,           # 300 triệu, mục đích KHAI là tiêu dùng
+        "amount": 300_000_000,  # 300 triệu, mục đích KHAI là tiêu dùng
         "term_months": 24,
         "annual_rate": 0.13,
         "monthly_income": 18_000_000,
@@ -117,11 +122,13 @@ _UNSECURED_VETO: dict = {
         "national_id": "091185013867",
         "national_id_issue_date": "02/06/2023",
         "national_id_issue_place": "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-        "permanent_address": "Mong Thá, Châu Thành, Kiên Giang",
-        "current_address": "Thổ Sơn, Hòn Đất, Kiên Giang",
+        "old_national_id": "091185002233",
         # --- Liên lạc ---
         "phone": "0913000091",
+        "phone_2": "0922334455",
         "zalo_phone": "0913000091",
+        "permanent_address": "Mong Thá, Châu Thành, Kiên Giang",
+        "current_address": "Thổ Sơn, Hòn Đất, Kiên Giang",
         "email": "vui.tran@email.com",
         # --- Việc làm ---
         "occupation": "Buôn bán tự do",
@@ -145,6 +152,9 @@ _UNSECURED_VETO: dict = {
         "ref2_relationship": "Hàng xóm",
         "ref2_phone": "0913000093",
         "ref2_same_address": False,
+        # --- Consent ---
+        "consent_data_processing": True,
+        "consent_advertising": True,
     },
     # … nhưng purpose_evidence cho thấy thực tế là tất toán khoản vay → VETO
     "documents": [
@@ -152,7 +162,8 @@ _UNSECURED_VETO: dict = {
         Document(kind="sao_ke_luong", tier=1, extracted={"monthly_income": 18_000_000}),
         Document(kind="cic", tier=1, extracted={"score_band": "B"}),
         Document(
-            kind="purpose_evidence", tier=2,
+            kind="purpose_evidence",
+            tier=2,
             extracted={"actual_purpose": "tất toán khoản vay ở TCTD khác"},
         ),
     ],
@@ -162,7 +173,7 @@ _UNSECURED_HITL: dict = {
     "declared": {
         # --- Khoản vay ---
         "customer_name": "NGUYỄN THỊ HUYỀN TRẦN",
-        "amount": 200_000_000,           # 200 triệu — DTI biên giới ~45%
+        "amount": 200_000_000,  # 200 triệu — DTI biên giới ~45%
         "term_months": 48,
         "annual_rate": 0.135,
         "monthly_income": 15_000_000,
@@ -174,11 +185,13 @@ _UNSECURED_HITL: dict = {
         "national_id": "054301008970",
         "national_id_issue_date": "05/07/2022",
         "national_id_issue_place": "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-        "permanent_address": "Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
-        "current_address": "Khu Phổ Phú Hòa, Hòa Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
+        "old_national_id": "054301001111",
         # --- Liên lạc ---
         "phone": "0905400054",
+        "phone_2": "0933445566",
         "zalo_phone": "0905400054",
+        "permanent_address": "Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
+        "current_address": "Khu Phổ Phú Hòa, Hòa Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
         "email": "huyentran.nguyen@email.com",
         # --- Việc làm ---
         "occupation": "Giáo viên",
@@ -202,6 +215,9 @@ _UNSECURED_HITL: dict = {
         "ref2_relationship": "Đồng nghiệp",
         "ref2_phone": "0905400056",
         "ref2_same_address": False,
+        # --- Consent ---
+        "consent_data_processing": True,
+        "consent_advertising": False,
     },
     # Hồ sơ chưa đầy đủ: sao kê chưa verify, CIC hạng B
     "documents": [
@@ -239,7 +255,9 @@ def seed_application(query: str) -> LoanApplication:
                 "national_id": "001088012345",
                 "national_id_issue_date": "10/05/2021",
                 "national_id_issue_place": "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
+                "old_national_id": "001088001122",
                 "phone": "0901234567",
+                "phone_2": "0911223344",
                 "email": "binh.tran@email.com",
                 "occupation": "Cán bộ quản lý",
                 "company_name": "Công ty Cổ phần Thương mại và Dịch vụ SHB",
@@ -255,6 +273,10 @@ def seed_application(query: str) -> LoanApplication:
                 "spouse_phone": "0902345678",
                 "spouse_national_id": "001085054321",
                 "spouse_income": 35_000_000,
+                "spouse_company": "Công ty Cổ phần Đầu tư SHB",
+                "spouse_workplace_phone": "0243123456",
+                "consent_data_processing": True,
+                "consent_advertising": False,
             },
             "documents": [
                 Document(kind="cccd", tier=1, extracted={"verified": True}),
@@ -263,7 +285,8 @@ def seed_application(query: str) -> LoanApplication:
                 Document(kind="hop_dong_mua_ban", tier=2, extracted={"seller": "Demo Seller"}),
                 Document(kind="cic", tier=1, extracted={"score_band": "A"}),
                 Document(
-                    kind="purpose_evidence", tier=2,
+                    kind="purpose_evidence",
+                    tier=2,
                     extracted={"actual_purpose": "tất toán khoản vay ở TCTD khác"},
                 ),
             ],

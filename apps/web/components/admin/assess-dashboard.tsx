@@ -38,7 +38,9 @@ const MORTGAGE_DEMO: AssessApplicationRequest = {
     national_id: "001088012345",
     national_id_issue_date: "10/05/2021",
     national_id_issue_place: "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
+    old_national_id: "001088001122",
     phone: "0901234567",
+    phone_2: "0911223344",
     zalo_phone: "0901234567",
     permanent_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
     current_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
@@ -59,6 +61,9 @@ const MORTGAGE_DEMO: AssessApplicationRequest = {
     spouse_national_id: "001085054321",
     spouse_income: 35_000_000,
     spouse_company: "Công ty Cổ phần Đầu tư SHB",
+    spouse_workplace_phone: "0243123456",
+    consent_data_processing: true,
+    consent_advertising: false,
     ref1_name: "Trần Thị Mai",
     ref1_relationship: "Chị gái",
     ref1_phone: "0903456789",
@@ -102,7 +107,9 @@ const HAPPY_DEMO: AssessApplicationRequest = {
     national_id: "074300004128",
     national_id_issue_date: "21/05/2025",
     national_id_issue_place: "Bộ Công an",
+    old_national_id: "074300001234",
     phone: "0912300004",
+    phone_2: "0987654321",
     zalo_phone: "0912300004",
     permanent_address: "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
     current_address: "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
@@ -126,6 +133,8 @@ const HAPPY_DEMO: AssessApplicationRequest = {
     ref2_relationship: "Đồng nghiệp",
     ref2_phone: "0912300002",
     ref2_same_address: false,
+    consent_data_processing: true,
+    consent_advertising: true,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "074300004128" } },
@@ -150,7 +159,9 @@ const VETO_DEMO: AssessApplicationRequest = {
     national_id: "091185013867",
     national_id_issue_date: "02/06/2023",
     national_id_issue_place: "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
+    old_national_id: "091185002233",
     phone: "0913000091",
+    phone_2: "0922334455",
     zalo_phone: "0913000091",
     permanent_address: "Mong Thá, Châu Thành, Kiên Giang",
     current_address: "Thổ Sơn, Hòn Đất, Kiên Giang",
@@ -174,6 +185,8 @@ const VETO_DEMO: AssessApplicationRequest = {
     ref2_relationship: "Hàng xóm",
     ref2_phone: "0913000093",
     ref2_same_address: false,
+    consent_data_processing: true,
+    consent_advertising: true,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "091185013867" } },
@@ -200,7 +213,9 @@ const HITL_DEMO: AssessApplicationRequest = {
     national_id: "054301008970",
     national_id_issue_date: "05/07/2022",
     national_id_issue_place: "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
+    old_national_id: "054301001111",
     phone: "0905400054",
+    phone_2: "0933445566",
     zalo_phone: "0905400054",
     permanent_address: "Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
     current_address: "Khu Phổ Phú Hòa, Hòa Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
@@ -224,6 +239,8 @@ const HITL_DEMO: AssessApplicationRequest = {
     ref2_relationship: "Đồng nghiệp",
     ref2_phone: "0905400056",
     ref2_same_address: false,
+    consent_data_processing: true,
+    consent_advertising: false,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "054301008970" } },
@@ -356,6 +373,23 @@ function SubTitle({ children }: { children: React.ReactNode }) {
   return <div className="col-span-2 text-[10px] font-semibold text-[#c05000]">{children}</div>;
 }
 
+function parseAddress(addr?: string | null) {
+  if (!addr) return { street: "—", ward: "—", district: "—", province: "—" };
+  const parts = addr.split(",").map(p => p.trim());
+  if (parts.length >= 4) {
+    const province = parts[parts.length - 1];
+    const district = parts[parts.length - 2];
+    const ward = parts[parts.length - 3];
+    const street = parts.slice(0, parts.length - 3).join(", ");
+    return { street, ward, district, province };
+  } else if (parts.length === 3) {
+    return { street: "—", ward: parts[0], district: parts[1], province: parts[2] };
+  } else if (parts.length === 2) {
+    return { street: "—", ward: "—", district: parts[0], province: parts[1] };
+  }
+  return { street: addr, ward: "—", district: "—", province: "—" };
+}
+
 function DossierPreviewCard({
   data,
   scenario,
@@ -379,6 +413,10 @@ function DossierPreviewCard({
   const isMgr   = posKw.includes("quản lý") || posKw.includes("trưởng");
   const isStaff = !isMgr && !posKw.includes("khác") && posKw.length > 0;
 
+  const permAddr = parseAddress(d.permanent_address);
+  const currAddr = parseAddress(d.current_address);
+  const isSameAddress = d.permanent_address === d.current_address;
+
   return (
     <div className={cn("overflow-hidden rounded-xl border-2 bg-white shadow-card relative", meta?.border ?? "border-border/70")}>
       {/* Tiêu đề */}
@@ -396,7 +434,7 @@ function DossierPreviewCard({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-x-6 gap-y-3 p-5 sm:p-6">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-3 p-5 sm:p-6 text-left">
 
         {/* === A === */}
         <SBanner>A. PHẦN ĐỀ NGHỊ VAY VỐN</SBanner>
@@ -419,15 +457,34 @@ function DossierPreviewCard({
           <FL label="Ngày cấp:" value={d.national_id_issue_date} />
           <FL label="Nơi cấp:"  value={d.national_id_issue_place} />
         </div>
+        <FL label="Số CMND/CCCD cũ (Nếu có):" value={d.old_national_id} wide />
 
         <GTitle>2. THÔNG TIN LIÊN HỆ:</GTitle>
         <SubTitle>2.1. Số điện thoại:</SubTitle>
-        <FL label="Số điện thoại di động:" value={d.phone} />
-        <FL label="Số Zalo:"               value={d.zalo_phone} />
+        <FL label="Số điện thoại di động 1:" value={d.phone} />
+        <FL label="Số điện thoại di động 2 (Nếu có):" value={d.phone_2} />
+        <FL label="Số điện thoại đăng ký tài khoản Zalo:" value={d.zalo_phone} wide />
 
         <SubTitle>2.2. Địa chỉ:</SubTitle>
-        <FL label="Địa chỉ thường trú:"       value={d.permanent_address} wide />
-        <FL label="Địa chỉ nơi ở hiện tại:"  value={d.current_address}   wide />
+        <div className="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2.5 pl-2 border-l border-orange-200">
+          <span className="col-span-2 text-[9px] font-bold text-[#7a5100] uppercase">Địa chỉ thường trú:</span>
+          <FL label="Số nhà/đường/dân phố:" value={permAddr.street} />
+          <FL label="Xã/Phường/Thị trấn:" value={permAddr.ward} />
+          <FL label="Quận/Huyện:" value={permAddr.district} />
+          <FL label="Tỉnh/Thành phố:" value={permAddr.province} />
+        </div>
+
+        <div className="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2.5 pl-2 border-l border-orange-200 mt-1">
+          <div className="col-span-2 flex items-center gap-5">
+            <span className="text-[9px] font-bold text-[#7a5100] uppercase">Địa chỉ nơi ở hiện tại:</span>
+            <CB label="Giống địa chỉ thường trú" checked={isSameAddress} />
+            <CB label="Khác (ghi rõ)" checked={!isSameAddress} />
+          </div>
+          <FL label="Số nhà/đường/dân phố:" value={currAddr.street} />
+          <FL label="Xã/Phường/Thị trấn:" value={currAddr.ward} />
+          <FL label="Quận/Huyện:" value={currAddr.district} />
+          <FL label="Tỉnh/Thành phố:" value={currAddr.province} />
+        </div>
 
         <SubTitle>2.3. Email:</SubTitle>
         <FL label="Email:" value={d.email} wide />
@@ -448,8 +505,8 @@ function DossierPreviewCard({
           </div>
         </div>
 
-        <FL label="Tên đơn vị công tác:" value={d.company_name}    wide />
-        <FL label="Địa chỉ công ty:"     value={d.company_address} wide />
+        <FL label="Tên Đơn vị công tác:" value={d.company_name}    wide />
+        <FL label="Địa chỉ nơi công tác/làm việc:"     value={d.company_address} wide />
 
         <div className="col-span-2 space-y-1.5">
           <span className="text-[10px] font-medium text-[#7a5100]">Chức vụ:</span>
@@ -460,13 +517,58 @@ function DossierPreviewCard({
           </div>
         </div>
 
-        <FL label="Ngày trả lương:"          value={d.salary_payday} />
+        <FL label="Ngày nhận lương hàng tháng:"          value={d.salary_payday} />
         <FL label="Thu nhập hàng tháng:"     value={fmt(d.monthly_income)} />
-        <FL label="Chi phí cá nhân / tháng:" value={fmt(d.personal_expense)} />
-        <FL label="Dư nợ hiện tại:"          value={fmt(d.existing_monthly_debt)} />
+
+        <GTitle>4. THÔNG TIN NGƯỜI THAM CHIẾU:</GTitle>
+        <SubTitle>Người liên hệ 1:</SubTitle>
+        <FL label="Họ tên:"              value={d.ref1_name} />
+        <FL label="Mối quan hệ:"    value={d.ref1_relationship} />
+        <FL label="Số điện thoại:"          value={d.ref1_phone} />
+        <div className="flex items-end gap-5 pb-0.5">
+          <span className="text-[10px] font-medium text-[#7a5100]">Cùng địa chỉ thường trú với Khách hàng:</span>
+          <CB label="Có"   checked={!!d.ref1_same_address} />
+          <CB label="Không" checked={!d.ref1_same_address} />
+        </div>
+
+        <SubTitle>Người liên hệ 2:</SubTitle>
+        <FL label="Họ tên:"              value={d.ref2_name} />
+        <FL label="Mối quan hệ:"    value={d.ref2_relationship} />
+        <FL label="Số điện thoại:"          value={d.ref2_phone} />
+        <div className="flex items-end gap-5 pb-0.5">
+          <span className="text-[10px] font-medium text-[#7a5100]">Cùng địa chỉ thường trú với Khách hàng:</span>
+          <CB label="Có"   checked={!!d.ref2_same_address} />
+          <CB label="Không" checked={!d.ref2_same_address} />
+        </div>
+
+        <GTitle>5. THÔNG TIN VỢ/ CHỒNG (NẾU CÓ):</GTitle>
+        <FL label="Họ tên vợ (hoặc chồng):" value={d.spouse_name} />
+        <FL label="Số điện thoại:" value={d.spouse_phone} />
+        <FL label="Số CCCD/CC:" value={d.spouse_national_id} />
+        <FL label="Thu nhập của vợ/ chồng (VNĐ/tháng):" value={d.spouse_income ? fmt(d.spouse_income) : "—"} />
+        <FL label="Đơn vị làm việc:" value={d.spouse_company} />
+        <FL label="Điện thoại nơi làm việc:" value={d.spouse_workplace_phone} />
+
+        <GTitle>6. NĂNG LỰC TÀI CHÍNH:</GTitle>
+        <FL label="Tổng thu nhập (VNĐ/tháng):" value={fmt(d.monthly_income)} />
+        <FL label="Chi phí cá nhân (VNĐ/tháng):" value={d.personal_expense ? fmt(d.personal_expense) : "—"} />
+
+        <GTitle>7. CUNG CẤP THÔNG TIN:</GTitle>
+        <div className="col-span-2 text-[8px] text-gray-500 leading-relaxed bg-gray-50 p-2.5 rounded border border-gray-200">
+          Bên vay xác nhận đã được Công ty Tài chính TNHH Ngân hàng TMCP Sài Gòn – Hà Nội (sau đây gọi là &quot;SHBFinance&quot;) thông báo, biết rõ và hoàn toàn đồng ý với tất cả những nội dung liên quan tới dữ liệu cá nhân (bao gồm dữ liệu cá nhân cơ bản và dữ liệu cá nhân nhạy cảm theo quy định tại Luật bảo vệ dữ liệu cá nhân và các văn bản hướng dẫn, sửa đổi, bổ sung, thay thế từng thời kỳ) của Bên vay để phục vụ mục đích giới thiệu các sản phẩm cấp tín dụng, thẩm định và phê duyệt khoản vay, theo dõi và xử lý nợ...
+        </div>
+        <div className="col-span-2 flex items-center gap-6 mt-1">
+          <CB label="Đồng ý cung cấp dữ liệu" checked={d.consent_data_processing === true} />
+          <CB label="Không đồng ý" checked={d.consent_data_processing === false} />
+        </div>
+        <div className="col-span-2 flex items-center gap-3 mt-1">
+          <span className="text-[10px] font-medium text-[#7a5100]">Bên vay đồng ý nhận thông tin quảng cáo của SHBFinance:</span>
+          <CB label="Có" checked={d.consent_advertising === true} />
+          <CB label="Không" checked={d.consent_advertising === false} />
+        </div>
 
         {/* === B === */}
-        <SBanner>B. THÔNG TIN KHOẢN VAY ĐỀ NGHỊ</SBanner>
+        <SBanner>B. THÔNG TIN KHOẢN VAY ĐỀ NGHỊ (II. NỘI DUNG ĐỀ NGHỊ)</SBanner>
         <FL label="Số tiền vay đề nghị:"       value={fmt(d.amount)} />
         <FL label="Thời hạn vay:"              value={d.term_months ? `${d.term_months} tháng` : undefined} />
         <FL label="Lãi suất / năm:"            value={d.annual_rate != null ? `${(d.annual_rate * 100).toFixed(1)} %` : undefined} />
@@ -477,31 +579,46 @@ function DossierPreviewCard({
         <FL label="Số tài khoản:"              value={d.disbursement_account} />
         <FL label="Chủ tài khoản:"             value={d.disbursement_account_name} />
 
-        {/* === C === */}
-        <SBanner>C. THÔNG TIN NGƯỜI THAM CHIẾU</SBanner>
-
-        <SubTitle>Người tham chiếu 1:</SubTitle>
-        <FL label="Họ và tên:"              value={d.ref1_name} />
-        <FL label="Quan hệ với bên vay:"    value={d.ref1_relationship} />
-        <FL label="Số điện thoại:"          value={d.ref1_phone} />
-        <div className="flex items-end gap-5 pb-0.5">
-          <span className="text-[10px] font-medium text-[#7a5100]">Cùng địa chỉ thường trú:</span>
-          <CB label="Có"   checked={!!d.ref1_same_address} />
-          <CB label="Không" checked={!d.ref1_same_address} />
+        {/* === CAM KẾT CỦA BÊN VAY === */}
+        <div className="col-span-2 border-t border-[#e8650a]/40 pt-4 mt-3">
+          <p className="text-center font-bold text-xs uppercase text-[#c05000]">CAM KẾT CỦA BÊN VAY</p>
+          <p className="text-center italic text-[9px] text-gray-500 mt-1">
+            “Tôi cam kết đã đọc, hiểu rõ, đồng ý đề nghị vay vốn theo các nội dung nêu trên.”
+          </p>
+          <div className="grid grid-cols-2 gap-4 mt-4 text-center">
+            <div>
+              <p className="font-bold text-[10px] text-gray-700">BÊN VAY</p>
+              <p className="text-[8px] text-gray-400 mt-0.5">(Ký và ghi rõ họ tên / Chữ ký số)</p>
+              <div className="h-16 flex items-center justify-center border border-dashed border-gray-300 rounded bg-gray-50 mt-2 text-[10px] text-gray-400">
+                {d.customer_name} (Đã ký số)
+              </div>
+            </div>
+            <div>
+              <p className="font-bold text-[10px] text-gray-700">ĐẠI DIỆN SHBFINANCE</p>
+              <p className="text-[8px] text-gray-400 mt-0.5">(Ký và ghi rõ họ tên, đóng dấu / Chữ ký số)</p>
+              <div className="h-16 flex items-center justify-center border border-dashed border-gray-300 rounded bg-gray-50 mt-2 text-[10px] text-gray-400">
+                Chữ ký điện tử hệ thống
+              </div>
+            </div>
+          </div>
         </div>
 
-        <SubTitle>Người tham chiếu 2:</SubTitle>
-        <FL label="Họ và tên:"              value={d.ref2_name} />
-        <FL label="Quan hệ với bên vay:"    value={d.ref2_relationship} />
-        <FL label="Số điện thoại:"          value={d.ref2_phone} />
-        <div className="flex items-end gap-5 pb-0.5">
-          <span className="text-[10px] font-medium text-[#7a5100]">Cùng địa chỉ thường trú:</span>
-          <CB label="Có"   checked={!!d.ref2_same_address} />
-          <CB label="Không" checked={!d.ref2_same_address} />
+        {/* === PHẦN DÀNH CHO NHÂN VIÊN SHBFINANCE === */}
+        <div className="col-span-2 border-t-2 border-[#e8650a] pt-4 mt-4 bg-orange-50/30 p-3 rounded-lg border border-orange-200/50">
+          <p className="font-bold text-[10px] uppercase text-[#c05000] tracking-wider mb-2">PHẦN DÀNH CHO NHÂN VIÊN SHBFINANCE</p>
+          <p className="text-[8px] text-gray-500 leading-relaxed mb-3">
+            - Tôi cam đoan đã kiểm tra và đối chiếu các thông tin trên giấy tờ photo/hình ảnh scan/ảnh chụp mà Bên vay cung cấp với bản gốc và xác nhận các thông tin Bên vay kê khai nêu trên đều khớp đúng và hoàn toàn chịu trách nhiệm về tính chính xác của hồ sơ thu thập được.
+          </p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <FL label="DSA/Telesales code:" value="DSA-DEMO-2026" />
+            <FL label="SĐT liên hệ người chứng kiến từ SHBFinance:" value="02471098888" />
+            <FL label="Chi nhánh/POS/Hub:" value={d.disbursement_branch || "SHBFinance Hub"} />
+            <FL label="Ngày xác nhận:" value={d.national_id_issue_date} />
+          </div>
         </div>
 
         {/* === D === */}
-        <SBanner>D. HỒ SƠ TÀI LIỆU KÈM THEO</SBanner>
+        <SBanner>D. HỒ SƠ TÀI LIỆU KÈM THEO (CHỨNG TỪ MINH CHỨNG)</SBanner>
         <div className="col-span-2 flex flex-wrap gap-2">
           {data.documents.map((doc, i) => {
             const cls = doc.tier >= 2

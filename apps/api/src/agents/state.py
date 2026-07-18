@@ -38,7 +38,9 @@ class DeclaredForm(BaseModel):
     national_id: str | None = None
     national_id_issue_date: str | None = None
     national_id_issue_place: str | None = None
+    old_national_id: str | None = None
     phone: str | None = None
+    phone_2: str | None = None
     zalo_phone: str | None = None
     permanent_address: str | None = None
     current_address: str | None = None
@@ -61,6 +63,11 @@ class DeclaredForm(BaseModel):
     spouse_national_id: str | None = None
     spouse_income: float | None = None
     spouse_company: str | None = None
+    spouse_workplace_phone: str | None = None
+
+    # Consent fields
+    consent_data_processing: bool | None = None
+    consent_advertising: bool | None = None
 
     # Reference fields
     ref1_name: str | None = None

@@ -34,7 +34,9 @@ export interface DeclaredForm {
   national_id?: string;
   national_id_issue_date?: string;
   national_id_issue_place?: string;
+  old_national_id?: string;
   phone?: string;
+  phone_2?: string;
   zalo_phone?: string;
   permanent_address?: string;
   current_address?: string;
@@ -57,6 +59,11 @@ export interface DeclaredForm {
   spouse_national_id?: string;
   spouse_income?: number | null;
   spouse_company?: string;
+  spouse_workplace_phone?: string;
+
+  // Consent fields
+  consent_data_processing?: boolean;
+  consent_advertising?: boolean;
 
   // Reference fields
   ref1_name?: string;

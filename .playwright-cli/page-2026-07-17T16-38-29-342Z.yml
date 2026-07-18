@@ -1,0 +1,339 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - generic [ref=e11] [cursor=pointer]:
+            - generic [ref=e12]: Bạn đang ở
+            - generic [ref=e13]: Khách hàng cá nhân
+          - link "Giới thiệu SHB" [ref=e19] [cursor=pointer]:
+            - /url: /about-us
+        - generic [ref=e23]:
+          - link "Tìm ATM & Chi nhánh" [ref=e26] [cursor=pointer]:
+            - /url: https://www.shb.com.vn/mangluoi/mang-luoi-hoat-dong/
+          - link "Nhắn tin với SHB" [ref=e29] [cursor=pointer]:
+            - /url: https://support.shb.com.vn/csportalclient/refimplementation/chat.html?fbLoginType=guest#
+          - generic [ref=e30] [cursor=pointer]: "*6688"
+          - generic [ref=e33]: Tiếng Việt
+      - generic [ref=e40]:
+        - generic [ref=e44]:
+          - link [ref=e45] [cursor=pointer]:
+            - /url: /home
+          - link "Vay" [ref=e49] [cursor=pointer]:
+            - /url: /retail-banking
+        - generic [ref=e56]: Đăng nhập
+    - generic [ref=e64]:
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - generic [ref=e74]:
+            - generic [ref=e75] [cursor=pointer]: KHÁCH HÀNG CÁ NHÂN
+            - generic [ref=e77]: VAY
+          - generic [ref=e81]:
+            - paragraph [ref=e82]: Đồng hành cùng bạn với
+            - paragraph [ref=e83]: mọi kế hoạch tương lai
+          - paragraph [ref=e84]: Bạn cần hỗ trợ tài chính?
+        - generic [ref=e85]:
+          - paragraph [ref=e87] [cursor=pointer]: Mua - xây sửa nhà
+          - paragraph [ref=e89] [cursor=pointer]: Học tập
+          - paragraph [ref=e91] [cursor=pointer]: Mua xe
+          - paragraph [ref=e93] [cursor=pointer]: Tiêu dùng
+          - paragraph [ref=e95] [cursor=pointer]: Sản xuất kinh doanh
+      - generic [ref=e97]:
+        - generic [ref=e98]: KHÁM PHÁ SẢN PHẨM
+        - paragraph [ref=e104]:
+          - generic [ref=e105]: Lựa chọn tối ưu cho
+          - generic [ref=e106]: Mọi nhu cầu tài chính
+        - generic [ref=e111]:
+          - generic [ref=e113]:
+            - generic [ref=e114]: Gợi ý cho bạn
+            - generic [ref=e118]: Sản phẩm khác
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e127] [cursor=pointer]:
+                - link "Vay mua nhà đất thổ cư Sở hữu nhà đẹp - Trọn vẹn ước mơ Lãi suất ưu đãi linh hoạt theo thời gian vay Vay đến 90% giá trị nhà trong 35 năm Ân hạn gốc lên tới 60 tháng" [ref=e128]:
+                  - /url: ""
+                  - generic [ref=e130]:
+                    - paragraph [ref=e131]: Vay mua nhà đất thổ cư
+                    - paragraph [ref=e132]: Sở hữu nhà đẹp - Trọn vẹn ước mơ
+                    - generic [ref=e133]:
+                      - paragraph [ref=e139]: Lãi suất ưu đãi linh hoạt theo thời gian vay
+                      - paragraph [ref=e145]: Vay đến 90% giá trị nhà trong 35 năm
+                      - paragraph [ref=e151]: Ân hạn gốc lên tới 60 tháng
+                - link [ref=e154]:
+                  - /url: /loan-1
+                  - button "Xem chi tiết" [ref=e155]
+              - generic [ref=e159] [cursor=pointer]:
+                - link "Vay mua nhà dự án Căn hộ mơ ước trong tầm tay Lãi suất ưu đãi linh hoạt theo thời gian vay Vay đến 90% giá trị nhà trong 35 năm Ân hạn gốc lên tới 60 tháng" [ref=e160]:
+                  - /url: ""
+                  - generic [ref=e162]:
+                    - paragraph [ref=e163]: Vay mua nhà dự án
+                    - paragraph [ref=e164]: Căn hộ mơ ước trong tầm tay
+                    - generic [ref=e165]:
+                      - paragraph [ref=e171]: Lãi suất ưu đãi linh hoạt theo thời gian vay
+                      - paragraph [ref=e177]: Vay đến 90% giá trị nhà trong 35 năm
+                      - paragraph [ref=e183]: Ân hạn gốc lên tới 60 tháng
+                - link [ref=e186]:
+                  - /url: /loan-2
+                  - button "Xem chi tiết" [ref=e187]
+              - generic [ref=e191] [cursor=pointer]:
+                - link "Vay mua ô tô Thêm tiện nghi - Thêm yêu cuộc sống Tài trợ tới 90% phương án bao gồm giá trị xe và các loại thuế phí Thời hạn vay lên đến 8 năm Giải ngân ngay khi có giấy hẹn đăng ký xe" [ref=e192]:
+                  - /url: ""
+                  - generic [ref=e194]:
+                    - paragraph [ref=e195]: Vay mua ô tô
+                    - paragraph [ref=e196]: Thêm tiện nghi - Thêm yêu cuộc sống
+                    - generic [ref=e197]:
+                      - paragraph [ref=e203]: Tài trợ tới 90% phương án bao gồm giá trị xe và các loại thuế phí
+                      - paragraph [ref=e209]: Thời hạn vay lên đến 8 năm
+                      - paragraph [ref=e215]: Giải ngân ngay khi có giấy hẹn đăng ký xe
+                - link [ref=e218]:
+                  - /url: /loan-5
+                  - button "Xem chi tiết" [ref=e219]
+              - generic [ref=e223] [cursor=pointer]:
+                - link "Vay bổ sung vốn kinh doanh thường xuyên Vay vốn dễ dàng - Vững vàng kinh doanh Tài trợ tới 85% phương án kinh doanh Đa dạng hình thức vay có tài sản bảo đảm/không có tài sản bảo đảm Lịch trả nợ linh hoạt theo dòng tiền Hỗ trợ luồng vay nhanh, giải ngân online trên ứng dụng SHB SAHA" [ref=e224]:
+                  - /url: ""
+                  - generic [ref=e226]:
+                    - paragraph [ref=e227]: Vay bổ sung vốn kinh doanh thường xuyên
+                    - paragraph [ref=e228]: Vay vốn dễ dàng - Vững vàng kinh doanh
+                    - generic [ref=e229]:
+                      - paragraph [ref=e235]: Tài trợ tới 85% phương án kinh doanh
+                      - paragraph [ref=e241]: Đa dạng hình thức vay có tài sản bảo đảm/không có tài sản bảo đảm
+                      - paragraph [ref=e247]: Lịch trả nợ linh hoạt theo dòng tiền
+                      - paragraph [ref=e253]: Hỗ trợ luồng vay nhanh, giải ngân online trên ứng dụng SHB SAHA
+                - link [ref=e256]:
+                  - /url: /loan-6
+                  - button "Xem chi tiết" [ref=e257]
+              - generic [ref=e261] [cursor=pointer]:
+                - link "Vay tiêu dùng có tài sản bảo đảm Nâng tầm chuẩn sống - Vươn tầm ước mơ Đáp ứng mọi nhu cầu phục vụ đời sống từ cơ bản đến nâng cao Tài sản bảo đảm đa dạng giúp khách hàng tiếp cận vốn dễ dàng Tài trợ vay đến 85% giá trị tài sản bảo đảm Thời hạn vay lên đến 15 năm giúp giảm áp lực trả nợ hàng tháng" [ref=e262]:
+                  - /url: ""
+                  - generic [ref=e264]:
+                    - paragraph [ref=e265]: Vay tiêu dùng có tài sản bảo đảm
+                    - paragraph [ref=e266]: Nâng tầm chuẩn sống - Vươn tầm ước mơ
+                    - generic [ref=e267]:
+                      - paragraph [ref=e273]: Đáp ứng mọi nhu cầu phục vụ đời sống từ cơ bản đến nâng cao
+                      - paragraph [ref=e279]: Tài sản bảo đảm đa dạng giúp khách hàng tiếp cận vốn dễ dàng
+                      - paragraph [ref=e285]: Tài trợ vay đến 85% giá trị tài sản bảo đảm
+                      - paragraph [ref=e291]: Thời hạn vay lên đến 15 năm giúp giảm áp lực trả nợ hàng tháng
+                - link [ref=e294]:
+                  - /url: /loan-3
+                  - button "Xem chi tiết" [ref=e295]
+              - generic [ref=e299] [cursor=pointer]:
+                - link "Vay đầu tư tài sản cố định, máy móc TB Mở rộng quy mô, kinh doanh bứt phá Tài trợ đến 90% nhu cầu đầu tư tài sản cố định, máy móc thiết bị Thời gian vay lên tới 25 năm, lịch trả nợ linh hoạt theo dòng tiền Quy trình vay nhanh, hồ sơ đơn giản, phê duyệt nhanh chóng" [ref=e300]:
+                  - /url: ""
+                  - generic [ref=e302]:
+                    - paragraph [ref=e303]: Vay đầu tư tài sản cố định, máy móc TB
+                    - paragraph [ref=e304]: Mở rộng quy mô, kinh doanh bứt phá
+                    - generic [ref=e305]:
+                      - paragraph [ref=e311]: Tài trợ đến 90% nhu cầu đầu tư tài sản cố định, máy móc thiết bị
+                      - paragraph [ref=e317]: Thời gian vay lên tới 25 năm, lịch trả nợ linh hoạt theo dòng tiền
+                      - paragraph [ref=e323]: Quy trình vay nhanh, hồ sơ đơn giản, phê duyệt nhanh chóng
+                - link [ref=e326]:
+                  - /url: https://www.shb.com.vn/cho-vay-bo-sung-von-luu-dong-phuc-vu-san-xuat-kinh-doanh/
+                  - button "Xem chi tiết" [ref=e327]
+            - button "Xem thêm sản phẩm" [ref=e330] [cursor=pointer]
+      - generic [ref=e332]:
+        - generic [ref=e333]:
+          - paragraph [ref=e338]: loan
+          - generic [ref=e339]:
+            - paragraph [ref=e340]: Tính toán khoản vay
+            - paragraph [ref=e341]: phù hợp với bạn
+        - generic [ref=e342]:
+          - generic [ref=e343]:
+            - paragraph [ref=e345] [cursor=pointer]: Khoản vay tối đa
+            - paragraph [ref=e347] [cursor=pointer]: Số tiền phải trả hàng tháng
+          - generic [ref=e348]:
+            - generic [ref=e349]:
+              - generic [ref=e351]:
+                - text: Thu nhập hàng tháng của gia đình bạn
+                - textbox "VND" [ref=e352]
+              - generic [ref=e354]:
+                - text: Tổng chi phí hàng tháng của gia đình bạn
+                - textbox "VND" [ref=e355]
+              - generic [ref=e357]:
+                - generic [ref=e358]:
+                  - paragraph [ref=e359]: Thời hạn vay
+                  - textbox "tháng" [ref=e362]
+                - generic [ref=e363]:
+                  - slider [ref=e365] [cursor=pointer]: "1"
+                  - generic [ref=e377]:
+                    - paragraph [ref=e378]: "1"
+                    - paragraph [ref=e379]: "75"
+                    - paragraph [ref=e380]: "150"
+                    - paragraph [ref=e381]: "225"
+                    - paragraph [ref=e382]: "300"
+              - generic [ref=e384]:
+                - paragraph [ref=e385]: Lãi suất tham khảo
+                - paragraph [ref=e386]: 10.39%/ năm
+              - button "Xem kết quả" [disabled]
+            - generic [ref=e399]:
+              - paragraph [ref=e400]: Đồng hành cùng bạn với mọi kế hoạch tương lai
+              - paragraph [ref=e401]: Nhập thông tin vay để tính toán khoản vay và lịch thanh toán chi tiết của khoản vay
+      - generic [ref=e403]:
+        - generic [ref=e404]:
+          - generic [ref=e405]: lợi ích đem lại
+          - generic [ref=e410]:
+            - paragraph [ref=e411]: Tại sao nên chọn
+            - generic [ref=e412]: sản phẩm vay của SHB
+        - generic [ref=e413]:
+          - generic [ref=e415]:
+            - paragraph [ref=e416]: Hồ sơ đơn giản, thủ tục linh hoạt
+            - paragraph [ref=e417]: Thủ tục đăng ký đơn giản, phương thức xử lý hồ sơ linh hoạt, giúp Quý khách tiết kiệm thời gian và thuận tiện trong quá trình vay vốn
+          - generic [ref=e419]:
+            - paragraph [ref=e420]: Phê duyệt nhanh chóng
+            - paragraph [ref=e421]: Quy trình xét duyệt thuận tiện, giúp Quý khách sớm có kết quả và chủ động kế hoạch tài chính
+          - generic [ref=e423]:
+            - paragraph [ref=e424]: Lãi suất ưu đãi
+            - paragraph [ref=e425]: Mức lãi suất hấp dẫn, nhiều chương trình ưu đãi được thiết kế phù hợp với nhu cầu đa dạng của khách hàng
+          - generic [ref=e427]:
+            - paragraph [ref=e428]: Quản lý khoản vay dễ dàng
+            - paragraph [ref=e429]: Dễ dàng theo dõi thông tin khoản vay và lịch trả nợ qua ứng dụng ngân hàng số SHB SAHA
+      - generic [ref=e437]:
+        - paragraph [ref=e438]:
+          - generic [ref=e439]: Ưu đãi khi đăng ký vay
+        - generic [ref=e448]:
+          - generic [ref=e450]:
+            - generic [ref=e451]:
+              - paragraph [ref=e452]: Tặng kèm thẻ tín dụng
+              - paragraph [ref=e453]: Hạn mức lên đến 5% giá trị khoản vay
+              - paragraph [ref=e454]: Giúp khách hàng chi tiêu linh hoạt, tối ưu kế hoạch dòng tiền
+            - paragraph [ref=e455]: "* Áp dụng đến 31/12/2026"
+          - generic [ref=e456]: số lương có hạn
+      - generic [ref=e458]:
+        - generic [ref=e459]:
+          - paragraph [ref=e460]: Bạn cần
+          - paragraph [ref=e461]: hỗ trợ từ SHB?
+        - generic [ref=e462]:
+          - generic [ref=e465]:
+            - generic [ref=e466]:
+              - paragraph [ref=e467]: Dự tính khoản vay của bạn
+              - paragraph [ref=e468]: Công cụ ước tính khoản vay
+            - button "Khám phá" [ref=e469] [cursor=pointer]
+          - generic [ref=e473]:
+            - generic [ref=e474]:
+              - paragraph [ref=e475]: Bạn cần trợ giúp?
+              - paragraph [ref=e476]: SHB hỗ trợ 24/7
+            - link [ref=e477] [cursor=pointer]:
+              - /url: https://support.shb.com.vn/csportalclient/refimplementation/chat.html?fbLoginType=guest#
+              - button "Liên hệ ngay" [ref=e478]
+          - generic [ref=e482]:
+            - generic [ref=e483]:
+              - paragraph [ref=e484]: Bạn cần đến SHB?
+              - paragraph [ref=e485]: Tìm điểm giao dịch gần nhất
+            - link [ref=e486] [cursor=pointer]:
+              - /url: https://www.shb.com.vn/mangluoi/mang-luoi-hoat-dong/
+              - button "Mở bản đồ" [ref=e487]
+    - contentinfo [ref=e489]:
+      - generic [ref=e490]:
+        - button "Quay lại phía trên" [ref=e494] [cursor=pointer]
+        - generic [ref=e499]:
+          - generic [ref=e500]:
+            - generic [ref=e501]:
+              - generic [ref=e503]:
+                - link:
+                  - /url: /home
+              - generic [ref=e505]:
+                - generic [ref=e507]:
+                  - generic [ref=e508]: TRỤ SỞ CHÍNH
+                  - generic [ref=e509]: Số 77, Phố Trần Hưng Đạo, Phường Cửa Nam, Thành Phố Hà Nội
+                - generic [ref=e511]:
+                  - generic [ref=e512]: HOTLINE
+                  - generic [ref=e513]: "*6688 (24/7)"
+                - generic [ref=e515]:
+                  - generic [ref=e516]: EMAIL
+                  - generic [ref=e517]: info@shb.com.vn card@shb.com.vn
+                - generic [ref=e518]:
+                  - generic [ref=e519]: KẾT NỐI SHB
+                  - generic [ref=e520]:
+                    - generic:
+                      - generic:
+                        - link:
+                          - /url: https://www.youtube.com/@nganhangshbofficial
+                      - generic:
+                        - link:
+                          - /url: https://www.facebook.com/fanpageshb
+                      - generic:
+                        - link:
+                          - /url: https://www.tiktok.com/@nganhangshbofficial
+            - generic [ref=e521]:
+              - generic [ref=e530]:
+                - generic [ref=e532]:
+                  - heading "Ngân hàng số SHB SAHA" [level=3] [ref=e533]
+                  - paragraph [ref=e534]: Dành cho khách hàng cá nhân
+                - generic [ref=e536]:
+                  - link [ref=e537] [cursor=pointer]:
+                    - /url: https://apps.apple.com/us/app/shb-saha/id1661457183?l=vi
+                  - link [ref=e544] [cursor=pointer]:
+                    - /url: https://play.google.com/store/apps/details?id=vn.shb.saha.mbanking&amp;hl=vi
+              - generic [ref=e559]:
+                - generic [ref=e561]:
+                  - heading "SHB Corporate Mobile" [level=3] [ref=e562]
+                  - paragraph [ref=e563]: Dành cho khách hàng doanh nghiệp
+                - generic [ref=e565]:
+                  - link [ref=e566] [cursor=pointer]:
+                    - /url: https://apps.apple.com/vn/app/shb-corporate/id6476347310
+                  - link [ref=e573] [cursor=pointer]:
+                    - /url: https://play.google.com/store/apps/details?id=vn.shb.dn&hl=vi
+            - generic [ref=e580]:
+              - button "Thu gọn" [ref=e581] [cursor=pointer]
+              - generic [ref=e588]:
+                - generic [ref=e589]:
+                  - generic [ref=e590]: CÁ NHÂN
+                  - generic [ref=e591]:
+                    - link "Thẻ" [ref=e592] [cursor=pointer]:
+                      - /url: /cards
+                    - link "Ngân hàng số" [ref=e593] [cursor=pointer]:
+                      - /url: /digital-banking
+                    - link "Tài khoản" [ref=e594] [cursor=pointer]:
+                      - /url: /transactions
+                    - link "Vay" [ref=e595] [cursor=pointer]:
+                      - /url: /loan
+                    - link "Đầu tư" [ref=e596] [cursor=pointer]:
+                      - /url: /investments
+                    - link "Tiết kiệm" [ref=e597] [cursor=pointer]:
+                      - /url: /savings
+                    - link "Bảo hiểm" [ref=e598] [cursor=pointer]:
+                      - /url: /insurance
+                - generic [ref=e599]:
+                  - generic [ref=e600]: DOANH NGHIỆP
+                  - generic [ref=e601]:
+                    - link "Tài khoản và Quản lý tài khoản" [ref=e602] [cursor=pointer]:
+                      - /url: /account-management
+                    - link "Tiền gửi" [ref=e603] [cursor=pointer]:
+                      - /url: /deposits
+                    - link "Giải pháp số" [ref=e604] [cursor=pointer]:
+                      - /url: /digital-solutions
+                    - link "Tín dụng" [ref=e605] [cursor=pointer]:
+                      - /url: /credit
+                    - link "Bảo lãnh" [ref=e606] [cursor=pointer]:
+                      - /url: /guarantees
+                    - link "Thanh toán quốc tế & Tài trợ thương mại" [ref=e607] [cursor=pointer]:
+                      - /url: /trade-finance
+                    - link "Giải pháp ngoại hối" [ref=e608] [cursor=pointer]:
+                      - /url: /foreign-exchange
+                    - link "Thẻ" [ref=e609] [cursor=pointer]:
+                      - /url: /corporate-cards
+                - generic [ref=e610]:
+                  - generic [ref=e611]: NHÀ ĐẦU TƯ
+                  - generic [ref=e612]:
+                    - link "Tài liệu Nhà đầu tư" [ref=e613] [cursor=pointer]:
+                      - /url: /investor-documents
+                    - link "Công bố thông tin" [ref=e614] [cursor=pointer]:
+                      - /url: /information-disclosure
+                    - link "Đại hội đồng cổ đông" [ref=e615] [cursor=pointer]:
+                      - /url: /agm
+                    - link "Tin tức & Sự kiện" [ref=e616] [cursor=pointer]:
+                      - /url: /news-events
+                    - link "Quản trị ngân hàng" [ref=e617] [cursor=pointer]:
+                      - /url: /governance
+                - generic [ref=e618]:
+                  - generic [ref=e619]: LIÊN HỆ & HỖ TRỢ
+                  - generic [ref=e620]:
+                    - link "Công cụ thông minh" [ref=e621] [cursor=pointer]:
+                      - /url: /credit-card?overlay=suggestion-input-1
+                    - link "Lãi suất" [ref=e622] [cursor=pointer]:
+                      - /url: https://www.shb.com.vn/category/lien-ket-nhanh/lai-suat/
+                    - link "Biểu phí" [ref=e623] [cursor=pointer]:
+                      - /url: https://www.shb.com.vn/category/lien-ket-nhanh/bieu-phi-va-quy-dinh-shb/
+                    - link "Tuyển dụng" [ref=e624] [cursor=pointer]:
+                      - /url: https://tuyendung.shb.com.vn/
+          - generic [ref=e625]: © Bản quyền thuộc về Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)
+  - alert [ref=e627]
