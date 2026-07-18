@@ -1,5 +1,5 @@
-import { WorkspacePage } from "@/components/client/workspace/workspace-page";
+import { redirect } from "next/navigation";
 
-export default function WorkspaceRoute() {
-  return <WorkspacePage />;
+export default function WorkspaceRedirect() {
+  redirect("/admin");
 }

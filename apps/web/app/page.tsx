@@ -1,5 +1,6 @@
-import { LandingPage } from "@/components/client/landing-page";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
-  return <LandingPage />;
+/** Client UI hidden — demo focuses on admin monitor. */
+export default function Home() {
+  redirect("/admin");
 }
