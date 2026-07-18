@@ -1,7 +1,13 @@
 from __future__ import annotations
 
+from typing import Any
+
 from aulacys.agents.specs import AgentSpec
 from aulacys.agents.state import AgentState, CriticVerdict
+
+
+def _has_tool(tool_results: dict[str, Any] | None, name: str) -> bool:
+    return isinstance(tool_results, dict) and name in tool_results
 
 
 def _pct(value: float | None) -> str:
@@ -17,40 +23,80 @@ def _money(value: float | None) -> str:
 
 
 def critic_fallback(state: AgentState, spec: AgentSpec) -> tuple[CriticVerdict, list[str]]:
-    """Evidence audit + Vietnamese synthesis memo (base for LLM prose polish)."""
+    """Evidence audit + Vietnamese synthesis memo (base for LLM remediation polish)."""
     rejections: list[str] = []
     credit = state.get("credit")
     compliance = state.get("compliance")
     operations = state.get("operations")
     application = state.get("application")
-    outcome = ""
+    proposal = state.get("proposal") or (credit.proposal if credit else None)
+
+    if credit:
+        tools = credit.tool_results or {}
+        if credit.dti is not None and not _has_tool(tools, "compute_dti"):
+            rejections.append("DTI is present without compute_dti tool evidence.")
+        if credit.proposed_limit is not None and not _has_tool(tools, "price_loan"):
+            rejections.append("Proposed credit limit is present without price_loan tool evidence.")
+        if credit.proposed_rate is not None and not _has_tool(tools, "price_loan"):
+            rejections.append("Proposed rate is present without price_loan tool evidence.")
+        if credit.income is not None and not (_has_tool(tools, "income_verify") or _has_tool(tools, "salary_verify")):
+            rejections.append("Income is present without income_verify/salary_verify tool evidence.")
+        if not _has_tool(tools, "cic_lookup"):
+            rejections.append("Credit assessment lacks cic_lookup tool evidence.")
+        annual = tools.get("compute_annual_debt_service") if isinstance(tools, dict) else None
+        if isinstance(annual, dict) and annual.get("monthly_payment") is None and "error" not in annual:
+            rejections.append("compute_annual_debt_service ran without monthly_payment.")
+
+    if proposal is not None:
+        if proposal.dti is not None and credit is not None and proposal.dti != credit.dti:
+            rejections.append("LoanProposal.dti does not match CreditAssessment.dti.")
+        if (
+            proposal.proposed_limit is not None
+            and credit is not None
+            and credit.proposed_limit is not None
+            and proposal.proposed_limit != credit.proposed_limit
+        ):
+            rejections.append("LoanProposal.proposed_limit does not match CreditAssessment.proposed_limit.")
+        if proposal.monthly_payment is not None and credit is not None:
+            annual = (credit.tool_results or {}).get("compute_annual_debt_service")
+            tool_payment = annual.get("monthly_payment") if isinstance(annual, dict) else None
+            if tool_payment is not None and float(tool_payment) != float(proposal.monthly_payment):
+                rejections.append("LoanProposal.monthly_payment is not backed by compute_annual_debt_service.")
+        if proposal.status not in {"accepted", "revised", "rejected"}:
+            rejections.append(f"LoanProposal.status is invalid: {proposal.status}")
+
+    if operations:
+        tools = operations.tool_results or {}
+        if operations.valuation is not None and not _has_tool(tools, "property_valuation"):
+            rejections.append("Valuation is present without property_valuation tool evidence.")
+        if operations.legal_flags and not _has_tool(tools, "land_registry"):
+            rejections.append("legal_flags are present without land_registry tool evidence.")
+        if operations.doc_status and not _has_tool(tools, "doc_checklist"):
+            rejections.append("doc_status is present without doc_checklist tool evidence.")
+
+    if compliance:
+        tools = compliance.tool_results or {}
+        for violation in compliance.violations:
+            if violation.rule_id not in compliance.rule_ids:
+                rejections.append(f"Violation {violation.rule_id} missing from rule_ids.")
+        if compliance.veto and not compliance.citations:
+            rejections.append("Compliance veto has no citation.")
+        if compliance.veto and not any(
+            getattr(c, "source", "") == "policy.evaluate" for c in (compliance.citations or [])
+        ):
+            rejections.append("Compliance veto citations must include policy.evaluate.")
+        if not _has_tool(tools, "kyc_check"):
+            rejections.append("Compliance verdict has no kyc_check evidence.")
+        if not _has_tool(tools, "ubo_check"):
+            rejections.append("Compliance verdict has no ubo_check evidence.")
+        if compliance.veto and not _has_tool(tools, "metrics"):
+            rejections.append("Compliance veto has no metrics package for audit replay.")
+
+    outcome = "manual_review_candidate"
     if compliance and compliance.veto:
         outcome = "vetoed"
     elif credit and credit.recommendation == "support":
         outcome = "stp_candidate"
-    else:
-        outcome = "manual_review_candidate"
-
-    if credit:
-        if credit.dti is not None and "compute_dti" not in credit.tool_results:
-            rejections.append("DTI xuất hiện nhưng không có bằng chứng tool compute_dti.")
-        if credit.proposed_limit is not None and "price_loan" not in credit.tool_results:
-            rejections.append("Hạn mức đề nghị không có bằng chứng tool price_loan.")
-        if credit.proposed_rate is not None and "price_loan" not in credit.tool_results:
-            rejections.append("Lãi suất đề nghị không có bằng chứng tool price_loan.")
-    if operations:
-        if operations.valuation is not None and "property_valuation" not in operations.tool_results:
-            rejections.append("Giá trị TSBĐ không có bằng chứng tool property_valuation.")
-    if compliance:
-        for violation in compliance.violations:
-            if violation.rule_id not in compliance.rule_ids:
-                rejections.append(f"Vi phạm {violation.rule_id} thiếu trong rule_ids.")
-        if compliance.veto and not compliance.citations:
-            rejections.append("Compliance veto nhưng không có citation policy.")
-        if "kyc_check" not in compliance.tool_results:
-            rejections.append("Thiếu bằng chứng kyc_check.")
-        if "ubo_check" not in compliance.tool_results:
-            rejections.append("Thiếu bằng chứng ubo_check.")
 
     customer = ""
     product = ""
@@ -86,6 +132,16 @@ def critic_fallback(state: AgentState, spec: AgentSpec) -> tuple[CriticVerdict, 
         )
     else:
         lines.append("- Chưa có output Credit.")
+
+    if proposal is not None:
+        lines.extend(
+            [
+                "",
+                "2b) LoanProposal",
+                f"- Status: {proposal.status} · revisions={len(proposal.revisions)}",
+                f"- Limit / rate: {_money(proposal.proposed_limit)} / {_pct(proposal.proposed_rate)}",
+            ]
+        )
 
     lines.extend(["", "3) Tóm tắt Operations"])
     if operations:
@@ -131,36 +187,44 @@ def critic_fallback(state: AgentState, spec: AgentSpec) -> tuple[CriticVerdict, 
     else:
         lines.append("- Cần thẩm định tay / HITL trước khi giải ngân.")
 
-    remediation = rejections or [
-        "Người phê duyệt đọc memo Critic + ticket; Critic không phát hiện lỗ hổng bằng chứng.",
-        "Đối chiếu rule_ids / DTI / CIC trong tool_results trước khi quyết định cuối.",
-    ]
+    if rejections:
+        remediation = [
+            "Repair evidence gaps before human approval.",
+            *[f"Fix: {item}" for item in rejections],
+        ]
+    else:
+        remediation = [
+            "Người phê duyệt đọc memo Critic + ticket; Critic không phát hiện lỗ hổng bằng chứng.",
+            "Đối chiếu rule_ids / DTI / CIC trong tool_results trước khi quyết định cuối.",
+        ]
 
-    return CriticVerdict(
-        passed=not rejections,
-        rejections=rejections,
-        memo="\n".join(lines),
-        remediation_plan=remediation,
-    ), []
+    return (
+        CriticVerdict(
+            passed=not rejections,
+            rejections=rejections,
+            memo="\n".join(lines),
+            remediation_plan=remediation,
+        ),
+        [],
+    )
 
 
 CriticSpec = AgentSpec(
     name="critic",
     line=None,
-    reads=["application", "credit", "operations", "compliance"],
+    reads=["application", "credit", "operations", "compliance", "proposal"],
     tools=[],
     output=CriticVerdict,
     model="deterministic-fallback",
     model_tier="strong",
     max_tool_calls=0,
     prompt=(
-        "Bạn là Critic (tuyến phòng thủ 3). Nhiệm vụ: kiểm chứng bằng chứng và viết "
-        "BÁO CÁO TỔNG HỢP bằng tiếng Việt cho người phê duyệt. "
-        "Giữ nguyên số liệu/veto đã có trong base — chỉ viết lại memo rõ ràng, có cấu trúc "
-        "(kết luận bằng chứng, tóm tắt Credit/Operations/Compliance, đề xuất HITL). "
-        "Không bịa số, không đổi recommendation/veto, không sửa output agent khác."
+        "Bạn là Critic (tuyến phòng thủ 3). Nhiệm vụ: kiểm chứng bằng chứng. "
+        "Memo giữ nguyên số liệu từ base — chỉ polish remediation_plan nếu cần, "
+        "không bịa số, không đổi recommendation/veto, không sửa output agent khác."
     ),
     fallback=critic_fallback,
     llm_prose=True,
-    prose_fields=["memo", "remediation_plan"],
+    # Memo keeps tool-backed figures for audit; only remediation prose may be polished.
+    prose_fields=["remediation_plan"],
 )

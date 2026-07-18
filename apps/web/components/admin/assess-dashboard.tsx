@@ -44,73 +44,6 @@ import {
 /** Dashboard always edits a full body (id path is API-only for now). */
 type AssessFormState = MappedAssessForm;
 
-const MORTGAGE_DEMO: AssessFormState = {
-  product: "retail_mortgage",
-  declared: {
-    customer_name: "TRẦN THỊ BÌNH",
-    amount: 2_500_000_000,
-    term_months: 240,
-    annual_rate: 0.105,
-    monthly_income: 85_000_000,
-    existing_monthly_debt: 8_000_000,
-    declared_purpose: "Mua nhà để ở",
-    collateral_value_declared: 4_000_000_000,
-    dob: "15/08/1988",
-    gender: "Nữ",
-    national_id: "001088012345",
-    national_id_issue_date: "10/05/2021",
-    national_id_issue_place: "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-    old_national_id: "001088001122",
-    phone: "0901234567",
-    phone_2: "0911223344",
-    zalo_phone: "0901234567",
-    permanent_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-    current_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-    email: "binh.tran@email.com",
-    occupation: "Cán bộ quản lý",
-    company_name: "Công ty Cổ phần Thương mại và Dịch vụ SHB",
-    position: "Trưởng phòng Kinh doanh",
-    company_address: "Tòa nhà Gelex, 52 Lê Đại Hành, Quận Hai Bà Trưng, Hà Nội",
-    salary_payday: "Ngày 10 hàng tháng",
-    personal_expense: 25_000_000,
-    disbursement_method: "Giải ngân cho Bên thụ hưởng",
-    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-    disbursement_branch: "Chi nhánh Hà Nội",
-    disbursement_account: "101123456789",
-    disbursement_account_name: "NGUYỄN VĂN BÁN",
-    spouse_name: "NGUYỄN VĂN AN",
-    spouse_phone: "0902345678",
-    spouse_national_id: "001085054321",
-    spouse_income: 35_000_000,
-    spouse_company: "Công ty Cổ phần Đầu tư SHB",
-    spouse_workplace_phone: "0243123456",
-    consent_data_processing: true,
-    consent_advertising: false,
-    ref1_name: "Trần Thị Mai",
-    ref1_relationship: "Chị gái",
-    ref1_phone: "0903456789",
-    ref1_same_address: false,
-    ref2_name: "Nguyễn Văn Cường",
-    ref2_relationship: "Bạn thân",
-    ref2_phone: "0904567890",
-    ref2_same_address: false,
-    id_number: "001099000003",
-    cic_consent: true,
-  },
-  documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true } },
-    { kind: "sao_ke_tai_khoan", tier: 1, extracted: { monthly_income: 85_000_000 } },
-    { kind: "so_do", tier: 2, extracted: { parcel: "DEMO-001" } },
-    { kind: "hop_dong_mua_ban", tier: 2, extracted: { seller: "Demo Seller" } },
-    { kind: "cic", tier: 1, extracted: { score_band: "A" } },
-    {
-      kind: "purpose_evidence",
-      tier: 2,
-      extracted: { actual_purpose: "tất toán khoản vay ở TCTD khác" },
-    },
-  ],
-};
-
 // ---------------------------------------------------------------------------
 // Form placeholder — list luôn lấy từ database (application-svc via orchestrator)
 // ---------------------------------------------------------------------------
@@ -243,8 +176,16 @@ function MoneyInput({
 
 const SCENARIO_META: Record<string, { label: string; border: string }> = {
   happy: { label: "✅ Happy path — Hồ sơ đầy đủ, dự kiến phê duyệt", border: "border-[#16a34a]" },
-  veto:  { label: "🚫 Veto — Mục đích khai báo mâu thuẫn chứng từ",  border: "border-[#ea580c]" },
-  hitl:  { label: "⏳ Biên giới — Cần nhân viên xem xét thủ công",   border: "border-[#d97706]" },
+  veto: { label: "🚫 Veto — Mục đích khai báo mâu thuẫn chứng từ", border: "border-[#ea580c]" },
+  hitl: { label: "⏳ Biên giới — Cần nhân viên xem xét thủ công", border: "border-[#d97706]" },
+  mortgage: {
+    label: "🏠 Mortgage HITL — Mục đích khớp, chờ phê duyệt người",
+    border: "border-[#2563eb]",
+  },
+  "mortgage-veto": {
+    label: "🚫 Mortgage veto — Purpose contradiction → replan",
+    border: "border-[#ea580c]",
+  },
 };
 
 function FL({ label, value, wide }: { label: string; value?: string | null; wide?: boolean }) {
@@ -1671,6 +1612,74 @@ export function AssessDashboard() {
                     <li key={item}>· {item}</li>
                   ))}
                 </ul>
+              )}
+            </Card>
+          )}
+
+          {(result.credit?.rationale ||
+            result.operations?.rationale ||
+            result.compliance?.rationale ||
+            result.critic) && (
+            <Card className="border border-border/70 p-4 shadow-card text-left">
+              <h3 className="text-sm font-semibold text-navy">Lý do agent &amp; Critic</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Prose từ Credit / Operations / Compliance; Critic chỉ xác minh số liệu có tool
+                call.
+              </p>
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                {[
+                  { title: "Credit", text: result.credit?.rationale },
+                  { title: "Operations", text: result.operations?.rationale },
+                  { title: "Compliance", text: result.compliance?.rationale },
+                ].map((item) =>
+                  item.text ? (
+                    <div
+                      key={item.title}
+                      className="rounded-lg border border-border/60 bg-muted/30 p-3"
+                    >
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {item.title}
+                      </p>
+                      <p className="mt-1.5 whitespace-pre-wrap text-sm text-foreground">{item.text}</p>
+                    </div>
+                  ) : null,
+                )}
+              </div>
+              {result.critic && (
+                <div className="mt-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Critic
+                    </p>
+                    <StatusBadge tone={result.critic.passed ? "success" : "warning"}>
+                      {result.critic.passed ? "Passed" : "Rejected"}
+                    </StatusBadge>
+                  </div>
+                  {result.critic.memo && (
+                    <p className="mt-1.5 whitespace-pre-wrap text-sm text-foreground">
+                      {result.critic.memo}
+                    </p>
+                  )}
+                  {result.critic.rejections.length > 0 && (
+                    <ul className="mt-2 space-y-1 text-xs text-warning-foreground">
+                      {result.critic.rejections.map((item) => (
+                        <li key={item}>· {item}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {result.critic.remediation_plan.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Remediation
+                      </p>
+                      <ul className="mt-1 space-y-1 text-xs text-foreground">
+                        {result.critic.remediation_plan.map((item) => (
+                          <li key={item}>· {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               )}
             </Card>
           )}
