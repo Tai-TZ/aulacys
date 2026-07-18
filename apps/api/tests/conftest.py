@@ -4,7 +4,17 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
+from src.config import get_settings
 from src.main import app
+
+
+@pytest.fixture(autouse=True)
+def disable_openai_for_tests(monkeypatch):
+    """Never let a local .env key make tests call the network."""
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 @pytest_asyncio.fixture

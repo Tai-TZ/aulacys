@@ -50,6 +50,22 @@ def property_valuation(collateral_value: float, parcel_id: str | None = None) ->
 
 
 @tool
+def schedule_valuation(application_id: str, parcel_id: str | None = None) -> dict:
+    """Schedule collateral valuation. Calls property-svc when set, else fallback."""
+    from_svc = _from_service("schedule-valuation", {"application_id": application_id, "parcel_id": parcel_id})
+    if from_svc is not None:
+        return from_svc
+
+    return {
+        "task_id": f"VAL-{application_id.upper()}",
+        "status": "scheduled",
+        "parcel_id": parcel_id,
+        "scheduled_at": _now(),
+        "inputs": {"application_id": application_id, "parcel_id": parcel_id},
+    }
+
+
+@tool
 def land_registry(
     has_dispute: bool = False,
     zoning_flag: bool = False,

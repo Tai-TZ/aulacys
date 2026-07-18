@@ -24,6 +24,7 @@ def _to_assess_response(state: dict) -> AssessResponse:
         credit=state.get("credit"),
         operations=state.get("operations"),
         compliance=state.get("compliance"),
+        critic=state.get("critic"),
         trace=state.get("trace", []),
         ticket=state.get("ticket"),
         audit=state.get("audit"),

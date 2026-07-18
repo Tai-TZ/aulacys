@@ -25,10 +25,19 @@ async def test_mortgage_demo_veto_replans_and_writes_ticket():
     assert result["application"].product == "retail_mortgage"
     assert result["compliance"].veto is True
     assert "prohibited_purpose_refinance_other_bank" in result["compliance"].rule_ids
+    assert result["credit"].proposed_limit == 2_500_000_000
+    assert result["credit"].proposed_rate is not None
+    assert "price_loan" in result["credit"].tool_results
+    assert result["operations"].valuation_task["status"] == "scheduled"
+    assert result["compliance"].kyc_status == "passed"
+    assert result["compliance"].ubo_status in {"passed", "not_applicable"}
+    assert "kyc_check" in result["compliance"].tool_results
     # Hard veto never clears -> loop re-executes up to the cap, then escalates.
     assert result["replan_count"] == 2
     assert result["run_trace"].lane == 3
     assert result["critic"].passed is True  # lane 3 -> Critic runs
+    assert result["critic"].memo
+    assert result["critic"].remediation_plan
     assert result["run_trace"].veto_fired is True
     assert result["ticket"]["status"] == "vetoed"
     assert "write_approval_ticket" in OperationsSpec.tools
@@ -46,6 +55,8 @@ async def test_unsecured_salary_uses_same_graph_without_veto():
     assert result["run_trace"].lane == 1
     assert result.get("critic") is None  # lane 1 -> Critic does not run
     assert result["ticket"]["status"] == "stp_approved"
+    assert result["credit"].proposed_limit == 150_000_000
+    assert "price_loan" in result["credit"].tool_results
 
 
 @pytest.mark.asyncio

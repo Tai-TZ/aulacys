@@ -46,5 +46,5 @@ python -m pytest -q
 | `AML_SVC_URL` | Compliance screening service |
 | `LOS_SVC_URL` | write the approval ticket |
 | `CREDIT_/OPERATIONS_/COMPLIANCE_/CRITIC_AGENT_URL` | run agents as network workers |
-| `OPENAI_API_KEY`, `MODEL_NAME` | LLM (agents are deterministic until wired) |
+| `OPENAI_API_KEY`, `STRONG_MODEL`, `MINI_MODEL`, `MODEL_NAME` | LLM tiers (agents fall back deterministically when unset) |
 | `DATABASE_URL` / `DIRECT_URL` | Supabase Postgres (runtime / migrations); empty ⇒ in-memory |
