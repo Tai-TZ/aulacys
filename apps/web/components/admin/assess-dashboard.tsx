@@ -3,7 +3,9 @@
 import { useState, Fragment, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
+  ArrowLeft,
   ArrowRight,
+  Loader2,
   X,
 } from "lucide-react";
 import { Button, Card, Input } from "@/components/ui";
@@ -30,11 +32,13 @@ import { NodeTimeline } from "@/components/admin/node-timeline";
 import { cn } from "@/lib/cn";
 import {
   docKindLabelVi,
+  fieldSlugLabelVi,
   laneLabelVi,
   outcomeLabelVi,
   productLabelVi,
   recommendationLabelVi,
   ruleLabelVi,
+  sanitizeBusinessText,
   toolLabelVi,
 } from "@/lib/labels";
 
@@ -413,6 +417,169 @@ function parseAddress(addr?: string | null) {
   return { street: addr, ward: "—", district: "—", province: "—" };
 }
 
+const EXTRACT_FIELD_LABELS: Record<string, string> = {
+  monthly_income: "Thu nhập tháng",
+  score_band: "Nhóm điểm CIC",
+  full_name: "Họ và tên",
+  national_id: "Số CCCD",
+  id_number: "Số CCCD",
+  verified: "Đã xác minh eKYC",
+  date_of_birth: "Ngày sinh",
+  employer: "Đơn vị công tác",
+  purpose: "Mục đích vay",
+  actual_purpose: "Mục đích thực tế",
+  account_number: "Số tài khoản",
+  bank_name: "Ngân hàng",
+  parcel: "Thửa đất",
+  seller: "Bên bán",
+};
+
+function extractFieldLabel(key: string): string {
+  return EXTRACT_FIELD_LABELS[key] ?? key.replaceAll("_", " ");
+}
+
+function formatExtractValue(key: string, val: unknown): string {
+  if (typeof val === "boolean") return val ? "Có" : "Không";
+  if (typeof val === "number") {
+    if (key.includes("income") || key.includes("amount") || key.includes("salary")) {
+      return `${new Intl.NumberFormat("vi-VN").format(val)} ₫`;
+    }
+    return String(val);
+  }
+  if (typeof val === "string" && /^\d+$/.test(val) && (key.includes("income") || key.includes("amount"))) {
+    return `${new Intl.NumberFormat("vi-VN").format(Number(val))} ₫`;
+  }
+  return String(val);
+}
+
+function cccdImageForCustomer(name?: string | null): string | null {
+  if (!name) return null;
+  const n = name.toUpperCase();
+  if (n.includes("BÉ HOA") || n.includes("BE HOA")) return "/aulacys/cccd-be-hoa.png";
+  if (n.includes("VUI")) return "/aulacys/cccd-tran-vui.png";
+  if (n.includes("HUYỀN") || n.includes("HUYEN")) return "/aulacys/cccd-huyen-tran.png";
+  return null;
+}
+
+const TIER_STATUS = ["—", "Đã nộp", "Đã xác minh", "Phê duyệt"] as const;
+
+/** Document detail: CCCD shows real ID image; other kinds = status + OCR only. */
+function DocumentDetailModal({
+  doc,
+  customerName,
+  onClose,
+}: {
+  doc: DocumentInput;
+  customerName?: string | null;
+  onClose: () => void;
+}) {
+  const tierLabel = TIER_STATUS[doc.tier] ?? "—";
+  const entries = Object.entries(doc.extracted ?? {});
+  const cccdSrc = doc.kind === "cccd" ? cccdImageForCustomer(customerName) : null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/50 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="doc-detail-title"
+      onClick={onClose}
+    >
+      <div
+        className={cn(
+          "flex max-h-[85vh] w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-elevated",
+          cccdSrc ? "max-w-lg" : "max-w-md",
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+          <div className="min-w-0 text-left">
+            <h3 id="doc-detail-title" className="text-sm font-semibold text-navy">
+              {docKindLabelVi(doc.kind)}
+            </h3>
+            {customerName ? (
+              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{customerName}</p>
+            ) : null}
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Đóng"
+            onClick={onClose}
+            className="shrink-0 text-muted-foreground"
+          >
+            <X size={18} />
+          </Button>
+        </div>
+
+        <div className="space-y-4 overflow-y-auto p-5 text-left">
+          {cccdSrc && (
+            <div className="overflow-hidden rounded-lg border border-border bg-secondary/30 p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element -- demo static CCCD assets */}
+              <img
+                src={cccdSrc}
+                alt={`CCCD ${customerName ?? ""}`}
+                className="mx-auto max-h-[280px] w-full object-contain"
+              />
+            </div>
+          )}
+
+          <div className="rounded-lg border border-border bg-secondary/40 px-3.5 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Trạng thái xác minh
+            </p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              <span
+                className={cn(
+                  "inline-flex h-2 w-2 rounded-full",
+                  doc.tier >= 2 ? "bg-success-foreground" : "bg-warning-foreground",
+                )}
+              />
+              <span className="text-sm font-medium text-navy">
+                Tầng {doc.tier} · {tierLabel}
+              </span>
+            </div>
+            {doc.confirmed_by ? (
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                Xác nhận bởi: {doc.confirmed_by}
+              </p>
+            ) : null}
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Dữ liệu trích xuất
+            </p>
+            {entries.length > 0 ? (
+              <dl className="divide-y divide-border rounded-lg border border-border">
+                {entries.map(([key, val]) => (
+                  <div key={key} className="flex items-baseline justify-between gap-3 px-3.5 py-2.5">
+                    <dt className="text-[11px] text-muted-foreground">{extractFieldLabel(key)}</dt>
+                    <dd className="text-right text-sm font-semibold text-navy">
+                      {formatExtractValue(key, val)}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="rounded-lg border border-dashed border-border px-3.5 py-6 text-center text-xs text-muted-foreground">
+                Không có dữ liệu trích xuất.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end border-t border-border px-5 py-3">
+          <Button type="button" variant="outline" size="sm" onClick={onClose}>
+            Đóng
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DossierPreviewCard({
   data,
   scenario,
@@ -665,125 +832,12 @@ function DossierPreviewCard({
 
       </div>
 
-      {/* Modal Popup Chi tiết tài liệu */}
       {activeDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-border max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-gray-50">
-              <div className="text-left">
-                <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
-                  Chi tiết chứng từ: {docKindLabelVi(activeDoc.kind)}
-                </h3>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  Hồ sơ khách hàng: {d.customer_name}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveDoc(null)}
-                className="text-gray-400 hover:text-gray-600 transition p-1 hover:bg-gray-200 rounded-lg"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="flex flex-col md:flex-row gap-6 p-5 overflow-y-auto min-h-0 text-left">
-              {/* Left column: Document Preview */}
-              <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-xl border border-border overflow-hidden min-h-[300px] md:min-h-0 relative">
-                {activeDoc.kind === "cccd" ? (
-                  <img
-                    src={
-                      d.customer_name.includes("BÉ HOA")
-                        ? "/aulacys/cccd-be-hoa.png"
-                        : d.customer_name.includes("VUI")
-                        ? "/aulacys/cccd-tran-vui.png"
-                        : "/aulacys/cccd-huyen-tran.png"
-                    }
-                    alt="CCCD"
-                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
-                  />
-                ) : activeDoc.kind === "sao_ke_luong" || activeDoc.kind === "sao_ke_tai_khoan" ? (
-                  <img
-                    src="/aulacys/help-1.png"
-                    alt="Sao kê lương"
-                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
-                  />
-                ) : activeDoc.kind === "purpose_evidence" ? (
-                  <img
-                    src="/aulacys/help-2.png"
-                    alt="Minh chứng mục đích"
-                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
-                  />
-                ) : activeDoc.kind === "cic" ? (
-                  <img
-                    src="/aulacys/help-3.png"
-                    alt="CIC Report"
-                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
-                  />
-                ) : (
-                  <div className="text-center text-xs text-muted-foreground p-6">
-                    Không có hình ảnh đính kèm cho loại hồ sơ này
-                  </div>
-                )}
-              </div>
-
-              {/* Right column: OCR Data Panel */}
-              <div className="w-full md:w-[320px] shrink-0 flex flex-col gap-4">
-                <div className="rounded-xl border border-border p-4 bg-secondary/10">
-                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide mb-2">Trạng thái xác minh</h4>
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "inline-flex h-2.5 w-2.5 rounded-full",
-                      activeDoc.tier >= 2 ? "bg-green-500 animate-pulse" : "bg-yellow-400"
-                    )} />
-                    <span className="text-xs font-semibold text-gray-700">
-                      Tier {activeDoc.tier} · {activeDoc.tier === 1 ? "Đã nộp" : activeDoc.tier === 2 ? "Đã xác minh" : "Phê duyệt"}
-                    </span>
-                  </div>
-                  {activeDoc.confirmed_by && (
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      Xác nhận bởi: <code className="bg-white px-1 py-0.5 rounded border">{activeDoc.confirmed_by}</code>
-                    </p>
-                  )}
-                </div>
-
-                <div className="rounded-xl border border-border p-4 bg-secondary/10 flex-1 min-h-[180px]">
-                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide mb-3">Dữ liệu trích xuất (OCR)</h4>
-                  {activeDoc.extracted && Object.keys(activeDoc.extracted).length > 0 ? (
-                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                      {Object.entries(activeDoc.extracted).map(([key, val]) => (
-                        <div key={key} className="border-b border-border/50 pb-1.5 last:border-0 text-left">
-                          <span className="text-[10px] text-muted-foreground block font-mono">{key}</span>
-                          <span className="text-xs font-semibold text-gray-800 break-all">
-                            {typeof val === "boolean" ? (val ? "True ✅" : "False ❌") : String(val)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic">Không có dữ liệu trích xuất tự động.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex justify-end border-t border-border px-5 py-3 bg-gray-50">
-              <Button
-                type="button"
-                onClick={() => setActiveDoc(null)}
-                size="sm"
-                className="px-4 text-xs font-medium"
-              >
-                Đóng
-              </Button>
-            </div>
-
-          </div>
-        </div>
+        <DocumentDetailModal
+          doc={activeDoc}
+          customerName={d.customer_name}
+          onClose={() => setActiveDoc(null)}
+        />
       )}
     </div>
   );
@@ -793,10 +847,12 @@ function DossierSummaryCard({
   data,
   scenario,
   ingested = false,
+  dossierCode,
 }: {
   data: AssessFormState;
   scenario: string | null;
   ingested?: boolean;
+  dossierCode?: string | null;
 }) {
   const [activeDoc, setActiveDoc] = useState<DocumentInput | null>(null);
   const d = data.declared;
@@ -804,22 +860,37 @@ function DossierSummaryCard({
     n == null ? "—" : new Intl.NumberFormat("vi-VN").format(n) + " ₫";
 
   const productName = productLabelVi(data.product);
+  const code =
+    dossierCode ||
+    (scenario ? `SHB-${scenario.toUpperCase()}-2026` : null);
 
   return (
     <div className="overflow-hidden rounded-xl border border-border/85 bg-white shadow-card relative">
       {/* Title Banner */}
       <div className="bg-orange-50/70 border-b border-border px-6 py-4 text-left">
-        <h3 className="text-sm font-bold uppercase tracking-wide text-[#e8650a]">
-          Thông tin tiếp nhận hồ sơ & Gói vay đề nghị
-        </h3>
-        <p className="mt-0.5 text-[10px] text-muted-foreground">
-          Trạng thái:{" "}
-          <span className={cn("font-semibold", ingested ? "text-green-600" : "text-brand")}>
-            {ingested
-              ? "Đã tiếp nhận · multi-agent đang / đã xử lý"
-              : "Data mẫu sẵn · chờ bấm Tiếp nhận"}
-          </span>
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wide text-brand">
+              Thông tin tiếp nhận hồ sơ & Gói vay đề nghị
+            </h3>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">
+              Trạng thái:{" "}
+              <span className={cn("font-semibold", ingested ? "text-success-foreground" : "text-brand")}>
+                {ingested
+                  ? "Đã tiếp nhận · multi-agent đang / đã xử lý"
+                  : "Chờ tiếp nhận"}
+              </span>
+            </p>
+          </div>
+          {code && (
+            <p className="text-[11px] text-muted-foreground">
+              Mã hồ sơ:{" "}
+              <code className="rounded border border-border bg-card px-1.5 py-0.5 font-mono text-[11px] font-semibold text-navy">
+                {code}
+              </code>
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="p-5 sm:p-6 space-y-6">
@@ -855,7 +926,11 @@ function DossierSummaryCard({
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Công việc / Chức vụ:</span>
                 <span className="font-medium text-gray-800">
-                  {d.occupation ? `${d.occupation} (${d.position || "Nhân viên"})` : "—"}
+                  {d.occupation
+                    ? `${fieldSlugLabelVi(d.occupation)}${
+                        d.position ? ` (${fieldSlugLabelVi(d.position)})` : ""
+                      }`
+                    : "—"}
                 </span>
               </div>
               <div className="flex justify-between text-xs">
@@ -891,11 +966,15 @@ function DossierSummaryCard({
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Mục đích vay vốn:</span>
-                <span className="font-medium text-gray-800">{d.declared_purpose || "—"}</span>
+                <span className="font-medium text-gray-800">
+                  {fieldSlugLabelVi(d.declared_purpose)}
+                </span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Phương thức nhận:</span>
-                <span className="font-medium text-gray-800">{d.disbursement_method || "—"}</span>
+                <span className="font-medium text-gray-800">
+                  {fieldSlugLabelVi(d.disbursement_method)}
+                </span>
               </div>
             </div>
           </div>
@@ -934,125 +1013,12 @@ function DossierSummaryCard({
 
       </div>
 
-      {/* Modal Popup Chi tiết tài liệu */}
       {activeDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-border max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-gray-50">
-              <div className="text-left">
-                <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
-                  Chi tiết chứng từ: {docKindLabelVi(activeDoc.kind)}
-                </h3>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  Hồ sơ khách hàng: {d.customer_name}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveDoc(null)}
-                className="text-gray-400 hover:text-gray-600 transition p-1 hover:bg-gray-200 rounded-lg"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="flex flex-col md:flex-row gap-6 p-5 overflow-y-auto min-h-0 text-left">
-              {/* Left column: Document Preview */}
-              <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-xl border border-border overflow-hidden min-h-[300px] md:min-h-0 relative">
-                {activeDoc.kind === "cccd" ? (
-                  <img
-                    src={
-                      d.customer_name.includes("BÉ HOA")
-                        ? "/aulacys/cccd-be-hoa.png"
-                        : d.customer_name.includes("VUI")
-                        ? "/aulacys/cccd-tran-vui.png"
-                        : "/aulacys/cccd-huyen-tran.png"
-                    }
-                    alt="CCCD"
-                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
-                  />
-                ) : activeDoc.kind === "sao_ke_luong" || activeDoc.kind === "sao_ke_tai_khoan" ? (
-                  <img
-                    src="/aulacys/help-1.png"
-                    alt="Sao kê lương"
-                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
-                  />
-                ) : activeDoc.kind === "purpose_evidence" ? (
-                  <img
-                    src="/aulacys/help-2.png"
-                    alt="Minh chứng mục đích"
-                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
-                  />
-                ) : activeDoc.kind === "cic" ? (
-                  <img
-                    src="/aulacys/help-3.png"
-                    alt="CIC Report"
-                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
-                  />
-                ) : (
-                  <div className="text-center text-xs text-muted-foreground p-6">
-                    Không có hình ảnh đính kèm cho loại hồ sơ này
-                  </div>
-                )}
-              </div>
-
-              {/* Right column: OCR Data Panel */}
-              <div className="w-full md:w-[320px] shrink-0 flex flex-col gap-4">
-                <div className="rounded-xl border border-border p-4 bg-secondary/10">
-                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide mb-2">Trạng thái xác minh</h4>
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "inline-flex h-2.5 w-2.5 rounded-full",
-                      activeDoc.tier >= 2 ? "bg-green-500 animate-pulse" : "bg-yellow-400"
-                    )} />
-                    <span className="text-xs font-semibold text-gray-700">
-                      Tier {activeDoc.tier} · {activeDoc.tier === 1 ? "Đã nộp" : activeDoc.tier === 2 ? "Đã xác minh" : "Phê duyệt"}
-                    </span>
-                  </div>
-                  {activeDoc.confirmed_by && (
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      Xác nhận bởi: <code className="bg-white px-1 py-0.5 rounded border">{activeDoc.confirmed_by}</code>
-                    </p>
-                  )}
-                </div>
-
-                <div className="rounded-xl border border-border p-4 bg-secondary/10 flex-1 min-h-[180px]">
-                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide mb-3">Dữ liệu trích xuất (OCR)</h4>
-                  {activeDoc.extracted && Object.keys(activeDoc.extracted).length > 0 ? (
-                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                      {Object.entries(activeDoc.extracted).map(([key, val]) => (
-                        <div key={key} className="border-b border-border/50 pb-1.5 last:border-0 text-left">
-                          <span className="text-[10px] text-muted-foreground block font-mono">{key}</span>
-                          <span className="text-xs font-semibold text-gray-800 break-all">
-                            {typeof val === "boolean" ? (val ? "True ✅" : "False ❌") : String(val)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic">Không có dữ liệu trích xuất tự động.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex justify-end border-t border-border px-5 py-3 bg-gray-50">
-              <Button
-                type="button"
-                onClick={() => setActiveDoc(null)}
-                size="sm"
-                className="px-4 text-xs font-medium"
-              >
-                Đóng
-              </Button>
-            </div>
-
-          </div>
-        </div>
+        <DocumentDetailModal
+          doc={activeDoc}
+          customerName={d.customer_name}
+          onClose={() => setActiveDoc(null)}
+        />
       )}
     </div>
   );
@@ -1090,7 +1056,6 @@ export function AssessDashboard() {
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
   const [result, setResult] = useState<AssessResponse | null>(null);
   const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
-  const [listSource, setListSource] = useState<"db" | "mock">("mock");
   const [listLoading, setListLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1176,14 +1141,11 @@ export function AssessDashboard() {
             fromDb: true,
           })),
         );
-        setListSource("db");
       } else {
         setDossiers(mockDossiers);
-        setListSource("mock");
       }
     } catch {
       setDossiers(mockDossiers);
-      setListSource("mock");
     } finally {
       setListLoading(false);
     }
@@ -1227,9 +1189,28 @@ export function AssessDashboard() {
     return { key: "ingested", label: "Tiếp nhận hồ sơ", tone: "active" as const };
   };
 
-  async function runSubmitted(event?: React.FormEvent) {
-    if (event) event.preventDefault();
+  /** Stage 1 only — tiếp nhận; RM proposal panel appears after this. */
+  function acceptIntake() {
     setIngested(true);
+    setError(null);
+    setResult(null);
+    // Demo: agent RM “đề xuất” = giữ số liệu hồ sơ; điền LS mặc định nếu trống
+    setForm((prev) => {
+      if (prev.declared.annual_rate != null) return prev;
+      return {
+        ...prev,
+        declared: { ...prev.declared, annual_rate: 0.13 },
+      };
+    });
+  }
+
+  /** Stage 3 — gửi phương án RM (JSON form) vào multi-agent thẩm định. */
+  async function runAppraisal(event?: React.FormEvent) {
+    if (event) event.preventDefault();
+    if (!ingested) {
+      setError("Cần tiếp nhận hồ sơ trước khi chạy thẩm định.");
+      return;
+    }
     setLoading(true);
     setError(null);
     setResult(null);
@@ -1298,13 +1279,10 @@ export function AssessDashboard() {
   if (!ingested) {
     step1Status = "active";
   } else if (loading) {
+    // Thẩm định đang chạy — panel agent chỉ thuộc stage 3
     step1Status = "complete";
-    if (agentStepIndex <= 1) {
-      step2Status = "active";
-    } else {
-      step2Status = "complete";
-      step3Status = "active";
-    }
+    step2Status = "complete";
+    step3Status = "active";
   } else if (result) {
     step1Status = "complete";
     if (veto || result.outcome === "vetoed") {
@@ -1339,16 +1317,14 @@ export function AssessDashboard() {
   const steps = [
     {
       title: "Tiếp nhận hồ sơ",
-      desc: ingested ? "Đã tiếp nhận" : "Chờ bấm Tiếp nhận",
+      desc: ingested ? "Đã tiếp nhận" : "Chờ tiếp nhận",
       status: step1Status,
     },
     {
       title: "RM đề xuất",
       desc:
         step2Status === "active"
-          ? loading
-            ? "Agent lập phương án…"
-            : "Chỉnh phương án (CIC · DTI · LS)"
+          ? "Xem / chỉnh phương án agent"
           : step2Status === "complete"
             ? productLabelVi(dossier?.data.product)
             : "Sau tiếp nhận",
@@ -1360,9 +1336,9 @@ export function AssessDashboard() {
         step3Status === "failed"
           ? "Compliance veto"
           : step3Status === "complete"
-            ? "Credit · Ops · Compliance"
+            ? "Credit · Compliance · Critic"
             : step3Status === "active"
-              ? "Multi-agent đang chạy…"
+              ? "Multi-agent đang thẩm định…"
               : "Chờ phương án RM",
       status: step3Status,
     },
@@ -1382,13 +1358,41 @@ export function AssessDashboard() {
       title: "Giải ngân",
       desc:
         step5Status === "complete"
-          ? "Auto (tín chấp tiêu dùng)"
+          ? "Hoàn tất"
           : step5Status === "active"
             ? "Sẵn sàng giải ngân"
             : "Sau phê duyệt",
       status: step5Status,
     },
   ];
+
+  const isDisbursed = step5Status === "complete";
+  const isRejected = Boolean(result && (veto || result.outcome === "vetoed"));
+  const rejectionReasons: string[] = (() => {
+    if (!isRejected || !compliance) return [];
+    const fromViolations = (compliance.violations ?? [])
+      .map((v) => sanitizeBusinessText(v.description || ruleLabelVi(v.rule_id)))
+      .filter(Boolean);
+    if (fromViolations.length > 0) return fromViolations;
+    const fromRules = (compliance.rule_ids ?? []).map((id) => ruleLabelVi(id));
+    return fromRules.length > 0 ? fromRules : ["Vi phạm hạn mức tuân thủ cứng — không được giải ngân"];
+  })();
+
+  const resultHeadline = (() => {
+    if (!result) return "";
+    if (isRejected) return "Từ chối — không giải ngân";
+    if (isDisbursed) return "Đã giải ngân";
+    if (result.outcome === "ready_for_human_approval") return "Chờ người phê duyệt";
+    return outcomeLabelVi(result.outcome);
+  })();
+
+  const resultBadge = (() => {
+    if (!result) return "";
+    if (isRejected) return "Từ chối";
+    if (isDisbursed) return "Đã giải ngân";
+    if (result.outcome === "ready_for_human_approval") return "Chờ HITL";
+    return laneLabelVi(run?.lane ?? 3);
+  })();
 
   if (viewMode === "list") {
     const filteredDossiers = dossiers.filter((d) => {
@@ -1413,15 +1417,9 @@ export function AssessDashboard() {
         {/* Header Block */}
         <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between text-left">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-navy uppercase">Bộ hồ sơ khách hàng bán lẻ</h1>
+            <h1 className="text-xl font-bold tracking-tight text-navy uppercase">Yêu cầu vay từ khách hàng</h1>
             <p className="text-xs text-muted-foreground">
               Xem chi tiết hồ sơ, đối chiếu chứng từ gốc và thực thi quy trình phê duyệt tự động.
-              {" · "}
-              {listLoading
-                ? "Đang tải…"
-                : listSource === "db"
-                  ? `Nguồn: database (${dossiers.length} hồ sơ)`
-                  : "Nguồn: mock local (API/application-svc trống hoặc offline)"}
             </p>
           </div>
         </div>
@@ -1477,7 +1475,20 @@ export function AssessDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {filteredDossiers.length === 0 ? (
+                {listLoading ? (
+                  <tr>
+                    <td colSpan={5} className="bg-secondary/5 px-5 py-16 text-center">
+                      <div className="inline-flex flex-col items-center gap-3">
+                        <Loader2
+                          size={28}
+                          className="animate-spin text-brand"
+                          aria-hidden
+                        />
+                        <p className="text-sm font-medium text-navy">Đang tải danh sách yêu cầu vay…</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredDossiers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-12 text-xs text-muted-foreground italic bg-secondary/5">
                       Không tìm thấy hồ sơ nào phù hợp với bộ lọc.
@@ -1538,23 +1549,38 @@ export function AssessDashboard() {
 
   return (
     <div className="space-y-4">
-      {/* Quay lại danh sách hồ sơ header */}
-      <div className="flex items-center justify-between text-left">
-        <button
+      {/* Quay lại + CTA — cùng hệ Button (outline | primary), size sm */}
+      <div className="flex items-center justify-between gap-3">
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => setViewMode("list")}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-navy transition hover:text-brand cursor-pointer"
         >
-          ← Quay lại danh sách bộ hồ sơ
-        </button>
-        <span className="text-[10px] text-muted-foreground">
-          Mã hồ sơ:{" "}
-          <code className="rounded border border-border bg-secondary px-1 py-0.5">
-            {dossier?.applicationId
-              ? dossier.applicationId.slice(0, 8).toUpperCase()
-              : `SHB-${dossier?.scenario.toUpperCase()}-2026`}
-          </code>
-        </span>
+          <ArrowLeft size={14} />
+          Quay lại danh sách
+        </Button>
+        {!isDisbursed && (
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            disabled={loading}
+            onClick={() => {
+              if (!ingested) acceptIntake();
+              else void runAppraisal();
+            }}
+          >
+            {loading
+              ? "Đang thẩm định…"
+              : result
+                ? "Chạy lại thẩm định"
+                : !ingested
+                  ? "Tiếp nhận hồ sơ"
+                  : "Chạy thẩm định"}
+            <ArrowRight size={14} />
+          </Button>
+        )}
       </div>
 
       {/* Stepper */}
@@ -1603,45 +1629,25 @@ export function AssessDashboard() {
         </div>
       </Card>
 
-      {/* CTA */}
-      <Card className="border border-border/70 bg-card p-4 shadow-card">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-left">
-            <h2 className="text-sm font-semibold text-navy">
-              {dossier?.data.declared.customer_name}
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {productLabelVi(form.product)}
-              {form.declared.amount != null
-                ? ` · ${new Intl.NumberFormat("vi-VN").format(form.declared.amount)} ₫`
-                : ""}
-            </p>
-          </div>
-          <Button type="button" disabled={loading} onClick={() => runSubmitted()} size="sm">
-            {loading ? "Đang xử lý…" : result ? "Chạy lại" : "Tiếp nhận"}
-            <ArrowRight size={14} />
-          </Button>
-        </div>
-        {error && (
-          <p className="mt-3 rounded-lg bg-warning-soft p-2.5 text-xs text-warning-foreground">{error}</p>
-        )}
-        {loading && (
-          <AgentRunProgress
-            activeIndex={agentStepIndex}
-            customerName={dossier?.data.declared.customer_name}
-          />
-        )}
-        {!result && !loading && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Chỉnh phương án bên dưới, rồi bấm <strong>Tiếp nhận</strong> để chạy agent.
-          </p>
-        )}
-      </Card>
+      {error && (
+        <p className="rounded-lg bg-warning-soft p-2.5 text-xs text-warning-foreground">{error}</p>
+      )}
 
-      {/* RM đề xuất */}
-      {!result && !loading && (
+      {loading && (
+        <AgentRunProgress
+          activeIndex={agentStepIndex}
+          customerName={dossier?.data.declared.customer_name}
+        />
+      )}
+
+      {/* RM đề xuất — chỉ sau tiếp nhận; agent lập PA, user chỉnh rồi gửi thẩm định */}
+      {ingested && !result && !loading && (
         <Card className="border border-border/70 bg-card p-4 shadow-card">
-          <h3 className="mb-3 text-left text-sm font-semibold text-navy">Phương án đề xuất (RM)</h3>
+          <h3 className="mb-1 text-left text-sm font-semibold text-navy">Phương án đề xuất (RM)</h3>
+          <p className="mb-3 text-left text-[11px] text-muted-foreground">
+            Agent đã lập phương án từ hồ sơ. Chỉnh nếu cần, rồi bấm <strong>Chạy thẩm định</strong> —
+            JSON phương án này là input cho multi-agent.
+          </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-left text-[11px] text-muted-foreground">
               Số tiền đề nghị (₫)
@@ -1697,13 +1703,14 @@ export function AssessDashboard() {
       {/* Kết quả — gọn: outcome + values + agent process + hồ sơ */}
       {result && (
         <div className="space-y-4">
-          {/* Outcome banner */}
+          {/* Outcome banner — nghiệp vụ: đã giải ngân | từ chối + lý do | chờ HITL */}
           <Card
             className={cn(
               "border p-4 shadow-card",
-              veto && "border-warning-foreground/25 bg-warning-soft/40",
-              !veto && result.outcome === "stp_approved" && "border-brand/25 bg-accent/50",
-              !veto &&
+              isRejected && "border-warning-foreground/25 bg-warning-soft/40",
+              isDisbursed && "border-success-foreground/25 bg-success-soft/40",
+              !isRejected &&
+                !isDisbursed &&
                 result.outcome === "ready_for_human_approval" &&
                 "border-active-foreground/20 bg-active-soft/40",
             )}
@@ -1716,27 +1723,30 @@ export function AssessDashboard() {
                 <p
                   className={cn(
                     "mt-1 text-lg font-bold",
-                    veto ? "text-warning-foreground" : "text-navy",
+                    isRejected ? "text-warning-foreground" : "text-navy",
                   )}
                 >
-                  {outcomeLabelVi(result.outcome)}
+                  {resultHeadline}
                 </p>
-                {veto && (
-                  <ul className="mt-2 space-y-1 text-sm text-warning-foreground">
-                    {(compliance?.rule_ids ?? []).map((id) => (
-                      <li key={id}>· {ruleLabelVi(id)}</li>
-                    ))}
-                    {(compliance?.rule_ids ?? []).length === 0 && (
-                      <li>· Vi phạm hạn mức tuân thủ</li>
-                    )}
-                  </ul>
-                )}
-                {veto && (run?.replan_count ?? 0) > 0 && (
-                  <p className="mt-2 text-xs text-warning-foreground/80">
-                    Hệ thống đã điều chỉnh phương án {run?.replan_count} lần nhưng vẫn bị chặn.
+                {isDisbursed && result.outcome !== "stp_approved" && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Đã phê duyệt và hoàn tất giải ngân.
                   </p>
                 )}
-                {!veto && result.outcome === "ready_for_human_approval" && (
+                {isRejected && (
+                  <ul className="mt-2 space-y-1 text-sm text-warning-foreground">
+                    {rejectionReasons.map((reason) => (
+                      <li key={reason}>· {reason}</li>
+                    ))}
+                  </ul>
+                )}
+                {isRejected && (run?.replan_count ?? 0) > 0 && (
+                  <p className="mt-2 text-xs text-warning-foreground/80">
+                    Hệ thống đã điều chỉnh phương án {run?.replan_count} lần nhưng vẫn bị chặn
+                    bởi hạn mức cứng — không giải ngân.
+                  </p>
+                )}
+                {!isRejected && result.outcome === "ready_for_human_approval" && (
                   <Link
                     href="/admin/approvals"
                     className="mt-3 inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-on-primary"
@@ -1745,8 +1755,10 @@ export function AssessDashboard() {
                   </Link>
                 )}
               </div>
-              <StatusBadge tone={veto ? "warning" : result.outcome === "stp_approved" ? "success" : "pending"}>
-                {laneLabelVi(run?.lane ?? 3)}
+              <StatusBadge
+                tone={isRejected ? "warning" : isDisbursed ? "success" : "pending"}
+              >
+                {resultBadge}
               </StatusBadge>
             </div>
           </Card>
@@ -1807,17 +1819,17 @@ export function AssessDashboard() {
 
             {/* Agent process */}
             <Card className="border border-border/70 p-4 shadow-card text-left">
-              <h3 className="text-sm font-semibold text-navy">Tiến trình agent</h3>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                {result.trace.length} bước · Planner → Credit / Compliance → Critic
-              </p>
-              <div className="mt-3">
-                <NodeTimeline
-                  trace={result.trace}
-                  vetoFired={Boolean(run?.veto_fired)}
-                  emptyHint="Chưa có tiến trình."
-                />
+              <div className="mb-3 flex items-baseline justify-between gap-2">
+                <h3 className="text-sm font-semibold text-navy">Tiến trình agent</h3>
+                <span className="text-[11px] text-muted-foreground">
+                  {result.trace.length} bước
+                </span>
               </div>
+              <NodeTimeline
+                trace={result.trace}
+                vetoFired={Boolean(run?.veto_fired)}
+                emptyHint="Chưa có tiến trình."
+              />
             </Card>
           </div>
 
@@ -1827,6 +1839,11 @@ export function AssessDashboard() {
               data={dossier.data}
               scenario={dossier.scenario}
               ingested={true}
+              dossierCode={
+                dossier.applicationId
+                  ? dossier.applicationId.slice(0, 8).toUpperCase()
+                  : `SHB-${dossier.scenario.toUpperCase()}-2026`
+              }
             />
           )}
         </div>
@@ -1838,6 +1855,11 @@ export function AssessDashboard() {
           data={dossier.data}
           scenario={dossier.scenario}
           ingested={ingested}
+          dossierCode={
+            dossier.applicationId
+              ? dossier.applicationId.slice(0, 8).toUpperCase()
+              : `SHB-${dossier.scenario.toUpperCase()}-2026`
+          }
         />
       )}
     </div>
