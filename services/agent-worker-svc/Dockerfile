@@ -1,11 +1,12 @@
 FROM python:3.12-slim
 WORKDIR /svc
 
-COPY services/agent-worker-svc/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY packages/shared/requirements.txt /tmp/shared-requirements.txt
+COPY services/agent-worker-svc/requirements.txt /tmp/agent-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/shared-requirements.txt -r /tmp/agent-requirements.txt
 
 COPY services/agent-worker-svc/app ./app
-COPY apps/api/src ./src
+COPY packages/shared/aulacys ./aulacys
 
 ENV PYTHONPATH=/svc
 EXPOSE 8400

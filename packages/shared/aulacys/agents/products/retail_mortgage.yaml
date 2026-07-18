@@ -1,0 +1,28 @@
+# Alias kept for demo message path + existing tests.
+# Prefer catalog ids (loan-1, …) for new callers.
+agents: [credit, operations, compliance]
+depends:
+  compliance: [operations]
+tools: [core_banking_read, loan_calculator, aml_screening, workflow_write]
+policy: retail_lending.yaml
+limits:
+  ltv_cap: 0.9
+  term_years_max: 35
+pricing:
+  base_rate: 0.105
+  min_rate: 0.095
+  max_rate: 0.14
+  max_dti: 0.5
+  income_multiple: 48
+  cic_group_premium_bps: 75
+  dti_premium_threshold: 0.4
+  dti_premium_bps: 50
+  term_premium_threshold_months: 180
+  term_premium_bps: 30
+  bad_debt_premium_bps: 250
+documents:
+  required: [cccd, sao_ke_tai_khoan, so_do, hop_dong_mua_ban, cic, purpose_evidence]
+  optional: [dang_ky_ket_hon]
+gate:
+  stp_when: never
+  else: hitl

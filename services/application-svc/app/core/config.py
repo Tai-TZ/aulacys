@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     db_schema: str = "application"
     service_name: str = "application-svc"
     version: str = "0.1.0"
+    # Comma-separated browser origins (Cloud Run web has two URL forms).
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     @property
     def alembic_url(self) -> str:

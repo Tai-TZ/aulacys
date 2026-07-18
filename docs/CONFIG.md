@@ -19,9 +19,12 @@
 | `APP_ENV` | own | `development` | ✅ | `production` on deploy |
 | `APP_PORT` | own | `8000` | — | |
 | `CORS_ORIGINS` | own | `http://localhost:3000` | ✅ | exact web origin(s) |
-| `OPENAI_API_KEY` | own · secret | `""` | ✅ (when LLM wired) | agents deterministic until set |
-| `MODEL_NAME` | own | `gpt-4o-mini` | ✅ | team decision (`AGENTS.md` §3/§12) |
-| `LLM_TEMPERATURE` | own | `0.7` | — | |
+| `LLM_PROVIDER` | own | `gemini` | ✅ | `gemini` (primary) or `openai` — TEAM_RULES 2026-07-18 |
+| `GEMINI_API_KEY` | own · secret | `""` | ✅ (when Gemini wired) | Google AI Studio ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)); also accepts `GOOGLE_API_KEY` |
+| `GEMINI_MODEL_NAME` | own | `gemini-3.1-flash-lite` | ✅ | used when `LLM_PROVIDER=gemini` |
+| `OPENAI_API_KEY` | own · secret | `""` | — | used when `LLM_PROVIDER=openai`; agents deterministic until a key is set for the active provider |
+| `MODEL_NAME` | own | `gpt-4o-mini` | — | OpenAI model id when provider=openai |
+| `LLM_TEMPERATURE` | own | `0` | — | keep 0 for audit reproducibility (P0-3) |
 | `DATABASE_URL` | own · secret | `""` | ✅ (for `loan_run`) | empty ⇒ in-memory |
 | `DIRECT_URL` | own · secret | `""` | ✅ | migrations (:5432) |
 | `POLICY_SVC_URL` | addr | `""` | ✅ | policy-svc |

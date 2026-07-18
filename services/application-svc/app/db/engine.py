@@ -1,4 +1,4 @@
-"""Postgres engine — DATABASE_URL required; prefer DIRECT_URL for session pooler."""
+"""Postgres engine — DATABASE_URL required (Supabase transaction pooler safe)."""
 
 from __future__ import annotations
 
@@ -7,47 +7,40 @@ from functools import lru_cache
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.engine.url import make_url
+from sqlalchemy.pool import NullPool
 
 from app.core.config import get_settings
 
 
 def _sync_url(url: str, schema: str) -> str:
-    """Normalize for psycopg; drop Prisma ``pgbouncer`` query flag; force search_path."""
+    """Normalize for psycopg; drop Prisma ``pgbouncer`` query flag (invalid for libpq)."""
     u = make_url(url)
     query = {k: v for k, v in dict(u.query).items() if k != "pgbouncer"}
-    if schema:
-        # Always override — pooler/role defaults (e.g. ``los``) must not win.
+    if "options" not in query and schema:
         query["options"] = f"-csearch_path={schema}"
     return u.set(drivername="postgresql+psycopg", query=query).render_as_string(hide_password=False)
-
-
-def _runtime_url(settings) -> str:
-    """Prefer DIRECT_URL (session pooler) so search_path sticks; fall back to DATABASE_URL."""
-    raw = (settings.direct_url or settings.database_url or "").strip()
-    if not raw.startswith("postgres"):
-        raise RuntimeError(
-            "Set DIRECT_URL or DATABASE_URL (Postgres) — SQLite is removed"
-        )
-    return raw
 
 
 @lru_cache
 def get_engine() -> Engine:
     settings = get_settings()
     schema = settings.db_schema
-    # prepare_threshold=None: required for Supabase transaction pooler (PgBouncer).
     engine = create_engine(
-        _sync_url(_runtime_url(settings), schema),
+        _sync_url(settings.require_database_url(), schema),
+        # PgBouncer transaction mode (:6543): no server-side prepared stmts, no app-side pool.
+        poolclass=NullPool,
         pool_pre_ping=True,
         future=True,
         connect_args={"prepare_threshold": None},
     )
 
-    @event.listens_for(engine, "connect")
-    def _set_search_path(dbapi_connection, _connection_record) -> None:  # noqa: ANN001
-        # Belt-and-suspenders: URL options are ignored by some pooler paths.
-        with dbapi_connection.cursor() as cur:
-            cur.execute(f"SET search_path TO {schema}, public")
+    if schema:
+
+        @event.listens_for(engine, "connect")
+        def _set_search_path(dbapi_conn: object, _connection_record: object) -> None:
+            # Pooler often ignores URL options=-csearch_path; set explicitly per checkout.
+            with dbapi_conn.cursor() as cur:  # type: ignore[attr-defined]
+                cur.execute(f'SET search_path TO "{schema}"')
 
     return engine
 

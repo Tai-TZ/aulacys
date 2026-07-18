@@ -4,25 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Bot,
-  FileCheck2,
+  FolderOpen,
   LayoutDashboard,
   LogOut,
   Menu,
-  Search,
-  Settings,
+  Package,
   Users,
   X,
-  Coins,
-  FolderOpen,
-  GitBranch,
-  Activity,
-  ChevronDown,
-  ChevronRight,
-  Shield
 } from "lucide-react";
 import { BrandMark } from "@/components/client/brand-mark";
-import { Button, Input } from "@/components/ui";
+import { Button } from "@/components/ui";
 import {
   adminInitials,
   clearAdminSession,
@@ -31,7 +22,18 @@ import {
 } from "@/lib/admin-session";
 import { cn } from "@/lib/cn";
 
-export type AdminActiveHref = "/admin" | "/admin/approvals" | "/admin/san-pham/ca-nhan" | "/admin/bo-ho-so";
+export type AdminActiveHref =
+  | "/admin"
+  | "/admin/bo-ho-so"
+  | "/admin/approvals"
+  | "/admin/san-pham/ca-nhan";
+
+const nav = [
+  { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
+  { href: "/admin/bo-ho-so", label: "Yêu cầu vay", icon: FolderOpen },
+  { href: "/admin/san-pham/ca-nhan", label: "Sản phẩm vay", icon: Package },
+  { href: "/admin/approvals", label: "Người dùng & phân quyền", icon: Users },
+] as const;
 
 function NavItems({
   activeHref,
@@ -40,133 +42,27 @@ function NavItems({
   activeHref: AdminActiveHref;
   onNavigate?: () => void;
 }) {
-  const [productMenuOpen, setProductMenuOpen] = useState(true);
-
   return (
     <nav className="space-y-1.5" aria-label="Admin">
-      {/* 1. Tổng quan */}
-      <Link
-        href="/admin"
-        onClick={onNavigate}
-        className={cn(
-          "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition",
-          activeHref === "/admin"
-            ? "bg-[#F58220]/20 font-semibold text-[#F58220] shadow-sm ring-1 ring-[#F58220]/30"
-            : "text-on-primary/70 hover:bg-on-primary/8 hover:text-on-primary",
-        )}
-      >
-        <LayoutDashboard size={18} className="shrink-0" />
-        <span>Tổng quan</span>
-      </Link>
-
-      {/* 2. Sản phẩm vay (Dropdown/Collapsible) */}
-      <div className="space-y-1">
-        <button
-          type="button"
-          onClick={() => setProductMenuOpen(!productMenuOpen)}
-          className="flex w-full items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-sm text-on-primary/70 transition hover:bg-on-primary/8 hover:text-on-primary"
-        >
-          <div className="flex items-center gap-3">
-            <Coins size={18} className="shrink-0" />
-            <span>Sản phẩm vay</span>
-          </div>
-          {productMenuOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        </button>
-
-        {productMenuOpen && (
-          <div className="pl-9 space-y-1">
-            {/* Khách hàng cá nhân */}
-            <Link
-              href="/admin/san-pham/ca-nhan"
-              onClick={onNavigate}
-              className={cn(
-                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition",
-                activeHref === "/admin/san-pham/ca-nhan"
-                  ? "bg-[#F58220]/20 font-bold text-[#F58220] ring-1 ring-[#F58220]/30"
-                  : "text-on-primary/60 hover:bg-on-primary/5 hover:text-on-primary",
-              )}
-            >
-              <span>Khách hàng cá nhân</span>
-            </Link>
-
-            {/* Khách hàng doanh nghiệp */}
-            <div
-              className="flex items-center justify-between rounded-lg px-3 py-2 text-xs text-on-primary/35 cursor-not-allowed"
-              title="Khách hàng doanh nghiệp - Sắp triển khai"
-            >
-              <span>Khách hàng doanh nghiệp</span>
-              <span className="rounded-md bg-on-primary/8 px-1 py-0.5 text-[9px] font-semibold text-on-primary/45 whitespace-nowrap">
-                Sắp triển khai
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 3. Bộ hồ sơ */}
-      <Link
-        href="/admin/bo-ho-so"
-        onClick={onNavigate}
-        className={cn(
-          "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm transition",
-          activeHref === "/admin/bo-ho-so"
-            ? "bg-[#F58220]/20 font-bold text-[#F58220] ring-1 ring-[#F58220]/30"
-            : "text-on-primary/70 hover:bg-on-primary/8 hover:text-on-primary",
-        )}
-      >
-        <div className="flex items-center gap-3">
-          <FolderOpen size={18} className="shrink-0" />
-          <span>Bộ hồ sơ</span>
-        </div>
-      </Link>
-
-      {/* 4. Quy trình xử lý */}
-      <div className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm text-on-primary/35 cursor-not-allowed">
-        <div className="flex items-center gap-3">
-          <GitBranch size={18} className="shrink-0 opacity-70" />
-          <span>Quy trình xử lý</span>
-        </div>
-        <span className="rounded-md bg-on-primary/8 px-1.5 py-0.5 text-[9px] font-semibold text-on-primary/45">
-          Sắp có
-        </span>
-      </div>
-
-      {/* 5. Quản lý Agent */}
-      <div className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm text-on-primary/35 cursor-not-allowed">
-        <div className="flex items-center gap-3">
-          <Bot size={18} className="shrink-0 opacity-70" />
-          <span>Quản lý Agent</span>
-        </div>
-        <span className="rounded-md bg-on-primary/8 px-1.5 py-0.5 text-[9px] font-semibold text-on-primary/45">
-          Sắp có
-        </span>
-      </div>
-
-      {/* 6. Người dùng và phân quyền */}
-      <Link
-        href="/admin/approvals"
-        onClick={onNavigate}
-        className={cn(
-          "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition",
-          activeHref === "/admin/approvals"
-            ? "bg-[#F58220]/20 font-semibold text-[#F58220] shadow-sm ring-1 ring-[#F58220]/30"
-            : "text-on-primary/70 hover:bg-on-primary/8 hover:text-on-primary",
-        )}
-      >
-        <Users size={18} className="shrink-0" />
-        <span>Người dùng &amp; phân quyền</span>
-      </Link>
-
-      {/* 7. Nhật ký hệ thống */}
-      <div className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm text-on-primary/35 cursor-not-allowed">
-        <div className="flex items-center gap-3">
-          <Activity size={18} className="shrink-0 opacity-70" />
-          <span>Nhật ký hệ thống</span>
-        </div>
-        <span className="rounded-md bg-on-primary/8 px-1.5 py-0.5 text-[9px] font-semibold text-on-primary/45">
-          Sắp có
-        </span>
-      </div>
+      {nav.map(({ href, label, icon: Icon }) => {
+        const active = href === activeHref;
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition",
+              active
+                ? "bg-brand/20 font-semibold text-brand shadow-sm ring-1 ring-brand/30"
+                : "text-on-primary/70 hover:bg-on-primary/8 hover:text-on-primary",
+            )}
+          >
+            <Icon size={18} className="shrink-0" />
+            <span>{label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
@@ -319,15 +215,6 @@ export function AdminShell({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-              <Input
-                aria-label="Tìm kiếm hồ sơ"
-                placeholder="Tìm kiếm hồ sơ…"
-                className="w-56 border-border/80 bg-secondary/60 pl-9"
-                disabled
-              />
-            </div>
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium text-navy">{session.name}</p>
               <p className="text-xs text-muted-foreground">{session.email}</p>
@@ -340,7 +227,7 @@ export function AdminShell({
             </div>
           </div>
         </header>
-        <div className="relative z-10 p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="relative z-10 p-2 sm:p-4 lg:p-6">{children}</div>
       </div>
     </main>
   );
