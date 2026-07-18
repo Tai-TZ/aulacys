@@ -165,13 +165,21 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
         profile=profile,
         product_code=str(product_code) if product_code else None,
     )
+    veto = any(violation.is_blocking for violation in violations)
+    rule_ids = [violation.rule_id for violation in violations]
     return (
         ComplianceVerdict(
             violations=violations,
-            veto=any(violation.is_blocking for violation in violations),
-            rule_ids=[violation.rule_id for violation in violations],
+            veto=veto,
+            rule_ids=rule_ids,
             kyc_status=str(kyc.get("status", "unknown")),
             ubo_status=str(ubo.get("status", "unknown")),
+            rationale=_compliance_rationale(
+                veto=veto,
+                rule_ids=rule_ids,
+                kyc_status=str(kyc.get("status", "unknown")),
+                ubo_status=str(ubo.get("status", "unknown")),
+            ),
             citations=[
                 Citation(source="policy.evaluate", reference=violation.legal_basis, excerpt=violation.rule_id)
                 for violation in violations
@@ -191,6 +199,30 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
     )
 
 
+def _compliance_rationale(
+    *,
+    veto: bool,
+    rule_ids: list[str],
+    kyc_status: str,
+    ubo_status: str,
+) -> str:
+    """Qualitative prose only — thresholds and veto stay in structured fields / policy YAML."""
+    rules = ", ".join(rule_ids) if rule_ids else "none"
+    if veto:
+        return (
+            "Compliance issued a blocking veto from versioned policy rules only "
+            f"(rule_ids={rules}). KYC={kyc_status}; UBO={ubo_status}. "
+            "Do not restate numeric thresholds here — they live in policy YAML and tool_results. "
+            "Compliance does not invent limits or approve loans."
+        )
+    return (
+        "Compliance found no blocking policy violations. "
+        f"rule_ids={rules}; KYC={kyc_status}; UBO={ubo_status}. "
+        "Metrics came from Credit/Operations tools and were evaluated against policy YAML. "
+        "Compliance does not invent limits or approve loans."
+    )
+
+
 ComplianceSpec = AgentSpec(
     name="compliance",
     line=2,
@@ -202,6 +234,11 @@ ComplianceSpec = AgentSpec(
     model="deterministic-fallback",
     model_tier="mini",
     max_tool_calls=7,
-    prompt="Evaluate hard legal and policy limits from YAML only. Veto with rule IDs.",
+    prompt=(
+        "Evaluate hard legal and policy limits from YAML only. Veto with rule IDs. "
+        "If refining rationale, keep it qualitative; never change veto, rule_ids, or invent thresholds."
+    ),
     fallback=compliance_fallback,
+    llm_prose=True,
+    prose_fields=["rationale"],
 )

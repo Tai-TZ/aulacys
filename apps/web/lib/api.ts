@@ -148,6 +148,7 @@ export interface ComplianceVerdict {
   violations: PolicyViolation[];
   kyc_status: string;
   ubo_status: string;
+  rationale: string;
   citations: unknown[];
   tool_results: Record<string, unknown>;
 }

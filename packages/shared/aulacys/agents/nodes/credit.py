@@ -320,21 +320,20 @@ def _recommendation(reasonableness: dict[str, Any]) -> str:
 def _rationale(
     *,
     recommendation: str,
-    dti: float | None,
     reasonableness: dict[str, Any],
 ) -> str:
-    findings = reasonableness.get("findings") or []
-    max_dti = reasonableness.get("max_dti")
+    """Qualitative prose only — figures stay in tool_results so LLM polish cannot rewrite them."""
+    checks = reasonableness.get("checks") or {}
+    failed = [name for name, ok in checks.items() if not ok]
     decision = reasonableness.get("pricing_decision") or "unknown"
-    payment = reasonableness.get("monthly_payment")
     base = (
-        f"Credit validated proposal reasonableness from tools only. "
-        f"recommendation={recommendation}; DTI={dti} (max_dti={max_dti}); "
-        f"price_loan={decision}; monthly_payment={payment}. "
+        "Credit validated proposal reasonableness from whitelisted tools only. "
+        f"recommendation={recommendation}; price_loan_decision={decision}. "
+        "Numeric DTI, payment, limit and rate live in tool_results — do not restate them here. "
         "Credit does not approve, veto, or invent figures."
     )
-    if findings:
-        return base + " Findings: " + "; ".join(findings) + "."
+    if failed:
+        return base + f" Failed checks: {', '.join(failed)}."
     return base + " All proposal checks passed."
 
 
@@ -477,7 +476,7 @@ def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessmen
             if isinstance(pricing.get("proposed_rate"), int | float)
             else None,
             recommendation=recommendation,
-            rationale=_rationale(recommendation=recommendation, dti=dti, reasonableness=reasonableness),
+            rationale=_rationale(recommendation=recommendation, reasonableness=reasonableness),
             evidence=evidence,
             tool_results=tool_results,
             proposal=proposal,
@@ -500,7 +499,10 @@ CreditSpec = AgentSpec(
     prompt=(
         "Validate whether the proposed loan plan is financially reasonable. "
         "Use tool-backed CIC, income, DTI, payment, limit and rate only. "
-        "Do not approve, veto, or invent numbers."
+        "Do not approve, veto, or invent numbers. "
+        "If refining rationale, keep it qualitative and never restate numeric metrics."
     ),
     fallback=credit_fallback,
+    llm_prose=True,
+    prose_fields=["rationale"],
 )

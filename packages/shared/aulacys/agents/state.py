@@ -138,6 +138,7 @@ class ComplianceVerdict(BaseModel):
     rule_ids: list[str]
     kyc_status: str = ""
     ubo_status: str = ""
+    rationale: str = ""
     citations: list[Citation]
     tool_results: dict[str, Any] = Field(default_factory=dict)
 

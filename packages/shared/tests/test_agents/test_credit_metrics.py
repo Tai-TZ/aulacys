@@ -368,6 +368,14 @@ def test_credit_uses_salary_verify_for_salary_statement(monkeypatch) -> None:
 def test_credit_spec_stays_inside_role() -> None:
     assert CreditSpec.tools == ["core_banking_read", "loan_calculator"]
     assert "metadata" in CreditSpec.reads
-    assert CreditSpec.llm_prose is False
-    assert CreditSpec.prose_fields == []
+    assert CreditSpec.llm_prose is True
+    assert CreditSpec.prose_fields == ["rationale"]
     assert CreditSpec.max_tool_calls == 7
+
+
+def test_credit_rationale_stays_qualitative(monkeypatch) -> None:
+    _clean_tools(monkeypatch)
+    result, _ = credit_fallback(_state(), CreditSpec)
+    assert "tool_results" in result.rationale
+    assert "DTI=" not in result.rationale
+    assert "monthly_payment=" not in result.rationale

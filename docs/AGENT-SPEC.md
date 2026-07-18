@@ -189,11 +189,12 @@ ComplianceVerdict
 - rule_ids[]
 - kyc_status
 - ubo_status
+- rationale
 - citations[]
 - tool_results{}
 ```
 
-Compliance is the only current agent with veto power.
+Compliance is the only current agent with veto power. `rationale` may be LLM-polished; veto and rule_ids stay deterministic.
 
 ### Critic
 

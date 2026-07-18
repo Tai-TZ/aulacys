@@ -92,7 +92,9 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
                         "role": "system",
                         "content": (
                             "The deterministic base output is authoritative. "
-                            f"Only improve these prose fields: {', '.join(spec.prose_fields)}."
+                            f"Only improve these prose fields: {', '.join(spec.prose_fields)}. "
+                            "Do not change any other field. Do not invent or alter numbers, "
+                            "veto flags, rule IDs, or recommendations."
                         ),
                     },
                     {"role": "user", "content": obj.model_dump_json()},

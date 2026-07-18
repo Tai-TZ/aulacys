@@ -3,6 +3,7 @@
 from aulacys.agents.harness.runner import _llm_configured, run
 from aulacys.agents.nodes.compliance import ComplianceSpec
 from aulacys.agents.nodes.credit import CreditSpec
+from aulacys.agents.nodes.operations import OperationsSpec
 from aulacys.agents.nodes.planner import PlannerSpec
 from aulacys.agents.state import AgentState, LoanApplication
 from aulacys.config import get_settings
@@ -40,16 +41,23 @@ def test_llm_not_configured_without_key(monkeypatch):
     assert _llm_configured(PlannerSpec) is False
 
 
-def test_number_spec_never_calls_llm_even_with_key(monkeypatch):
-    """P0-2 guard: number/veto-bearing specs stay deterministic even with a key."""
+def test_operations_never_calls_llm_even_with_key(monkeypatch):
+    """Ops stays fully deterministic until it opts into prose_fields."""
     monkeypatch.setenv("LLM_PROVIDER", "gemini")
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     get_settings.cache_clear()
-    assert CreditSpec.llm_prose is False
-    assert ComplianceSpec.llm_prose is False
-    assert _llm_configured(CreditSpec) is False
-    assert _llm_configured(ComplianceSpec) is False
+    assert OperationsSpec.llm_prose is False
+    assert _llm_configured(OperationsSpec) is False
     get_settings.cache_clear()
+
+
+def test_credit_and_compliance_prose_are_rationale_only():
+    assert CreditSpec.llm_prose is True
+    assert CreditSpec.prose_fields == ["rationale"]
+    assert CreditSpec.model_tier == "mini"
+    assert ComplianceSpec.llm_prose is True
+    assert ComplianceSpec.prose_fields == ["rationale"]
+    assert ComplianceSpec.model_tier == "mini"
 
 
 def test_planner_uses_strong_model_tier_for_prose():
