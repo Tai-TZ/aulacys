@@ -43,9 +43,14 @@ class TestLoadRules:
         assert single.version == "2026.1-dieu136"
         assert related.version == "2026.1-dieu136"
 
-    def test_demo_prohibited_purpose_stays_unverified_until_article_cited(self):
+    def test_demo_prohibited_purpose_is_verified_blocking_veto(self):
+        by_id = {r.id: r for r in load_rules()}
+        purpose = by_id["prohibited_purpose_refinance_other_bank"]
+        assert purpose.verified is True
+        assert purpose.severity == "blocking"
         unverified = {r.id for r in unverified_rules()}
-        assert "prohibited_purpose_refinance_other_bank" in unverified
+        assert "prohibited_purpose_refinance_other_bank" not in unverified
+        assert "land_title_clear" in unverified
         assert "single_customer_credit_limit" not in unverified
 
 
@@ -67,12 +72,12 @@ class TestEvaluate:
         assert v.version == "2026.1-dieu136"
         assert v.unverified is False
 
-    def test_unverified_threshold_is_marked_in_the_violation(self):
-        # Demo prohibited-purpose rule stays unverified until a real article is cited.
+    def test_prohibited_purpose_threshold_is_blocking_veto(self):
+        # Wow-flow edge: purpose evidence → Compliance blocking veto (policy-as-code).
         v = evaluate({"prohibited_purpose_refinance_other_bank": 1})[0]
-        assert v.unverified is True
+        assert v.unverified is False
+        assert v.is_blocking
         assert v.version == "demo-1.0"
-        assert "CHƯA ĐƯỢC VERIFY" in v.to_message()
 
     def test_sanctions_hit_is_blocking(self):
         violations = evaluate({"sanctions_match_count": 1})
@@ -106,11 +111,11 @@ class TestEvaluate:
         violations = evaluate({"dti": 0.9}, as_of=date(2025, 12, 31))
         assert violations == []
 
-    def test_unverified_retail_purpose_requires_human_review(self):
+    def test_retail_purpose_blocks_and_fires_veto_edge(self):
         violations = evaluate({"prohibited_purpose_refinance_other_bank": 1})
         assert violations[0].rule_id == "prohibited_purpose_refinance_other_bank"
-        assert violations[0].unverified
-        assert not violations[0].is_blocking
+        assert not violations[0].unverified
+        assert violations[0].is_blocking
 
 
 def test_covered_metrics_names_what_policy_can_judge():

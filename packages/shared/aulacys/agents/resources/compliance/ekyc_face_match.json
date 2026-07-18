@@ -1,0 +1,817 @@
+{
+  "_meta": {
+    "dataset_id": "aulacys-synthetic-ekyc",
+    "version": "2026.3",
+    "classification": "SYNTHETIC_TEST_DATA",
+    "contains_real_personal_data": false,
+    "schema_version": "1.0",
+    "record_count": 100,
+    "pass_threshold": 85,
+    "description": "Kết quả Face Match eKYC giả lập (selfie vs CCCD)"
+  },
+  "_default": {
+    "face_match_score": 0,
+    "liveness_passed": false,
+    "status": "missing"
+  },
+  "001099000001": {
+    "customer_id": "CUST-000001",
+    "id_number": "001099000001",
+    "face_match_score": 91,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000002": {
+    "customer_id": "CUST-000002",
+    "id_number": "001099000002",
+    "face_match_score": 91,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000003": {
+    "customer_id": "CUST-000003",
+    "id_number": "001099000003",
+    "face_match_score": 91,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000004": {
+    "customer_id": "CUST-000004",
+    "id_number": "001099000004",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000005": {
+    "customer_id": "CUST-000005",
+    "id_number": "001099000005",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000006": {
+    "customer_id": "CUST-000006",
+    "id_number": "001099000006",
+    "face_match_score": 90,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000007": {
+    "customer_id": "CUST-000007",
+    "id_number": "001099000007",
+    "face_match_score": 98,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000008": {
+    "customer_id": "CUST-000008",
+    "id_number": "001099000008",
+    "face_match_score": 92,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000009": {
+    "customer_id": "CUST-000009",
+    "id_number": "001099000009",
+    "face_match_score": 97,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000010": {
+    "customer_id": "CUST-000010",
+    "id_number": "001099000010",
+    "face_match_score": 70,
+    "liveness_passed": false,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000011": {
+    "customer_id": "CUST-000011",
+    "id_number": "001099000011",
+    "face_match_score": 94,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000012": {
+    "customer_id": "CUST-000012",
+    "id_number": "001099000012",
+    "face_match_score": 94,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000013": {
+    "customer_id": "CUST-000013",
+    "id_number": "001099000013",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000014": {
+    "customer_id": "CUST-000014",
+    "id_number": "001099000014",
+    "face_match_score": 94,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000015": {
+    "customer_id": "CUST-000015",
+    "id_number": "001099000015",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000016": {
+    "customer_id": "CUST-000016",
+    "id_number": "001099000016",
+    "face_match_score": 97,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000017": {
+    "customer_id": "CUST-000017",
+    "id_number": "001099000017",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000018": {
+    "customer_id": "CUST-000018",
+    "id_number": "001099000018",
+    "face_match_score": 95,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000019": {
+    "customer_id": "CUST-000019",
+    "id_number": "001099000019",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000020": {
+    "customer_id": "CUST-000020",
+    "id_number": "001099000020",
+    "face_match_score": 83,
+    "liveness_passed": false,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000021": {
+    "customer_id": "CUST-000021",
+    "id_number": "001099000021",
+    "face_match_score": 98,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000022": {
+    "customer_id": "CUST-000022",
+    "id_number": "001099000022",
+    "face_match_score": 99,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000023": {
+    "customer_id": "CUST-000023",
+    "id_number": "001099000023",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000024": {
+    "customer_id": "CUST-000024",
+    "id_number": "001099000024",
+    "face_match_score": 90,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000025": {
+    "customer_id": "CUST-000025",
+    "id_number": "001099000025",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000026": {
+    "customer_id": "CUST-000026",
+    "id_number": "001099000026",
+    "face_match_score": 90,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000027": {
+    "customer_id": "CUST-000027",
+    "id_number": "001099000027",
+    "face_match_score": 92,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000028": {
+    "customer_id": "CUST-000028",
+    "id_number": "001099000028",
+    "face_match_score": 93,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000029": {
+    "customer_id": "CUST-000029",
+    "id_number": "001099000029",
+    "face_match_score": 92,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000030": {
+    "customer_id": "CUST-000030",
+    "id_number": "001099000030",
+    "face_match_score": 76,
+    "liveness_passed": false,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000031": {
+    "customer_id": "CUST-000031",
+    "id_number": "001099000031",
+    "face_match_score": 95,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000032": {
+    "customer_id": "CUST-000032",
+    "id_number": "001099000032",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000033": {
+    "customer_id": "CUST-000033",
+    "id_number": "001099000033",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000034": {
+    "customer_id": "CUST-000034",
+    "id_number": "001099000034",
+    "face_match_score": 91,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000035": {
+    "customer_id": "CUST-000035",
+    "id_number": "001099000035",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000036": {
+    "customer_id": "CUST-000036",
+    "id_number": "001099000036",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000037": {
+    "customer_id": "CUST-000037",
+    "id_number": "001099000037",
+    "face_match_score": 90,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000038": {
+    "customer_id": "CUST-000038",
+    "id_number": "001099000038",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000039": {
+    "customer_id": "CUST-000039",
+    "id_number": "001099000039",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000040": {
+    "customer_id": "CUST-000040",
+    "id_number": "001099000040",
+    "face_match_score": 71,
+    "liveness_passed": false,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000041": {
+    "customer_id": "CUST-000041",
+    "id_number": "001099000041",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000042": {
+    "customer_id": "CUST-000042",
+    "id_number": "001099000042",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000043": {
+    "customer_id": "CUST-000043",
+    "id_number": "001099000043",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000044": {
+    "customer_id": "CUST-000044",
+    "id_number": "001099000044",
+    "face_match_score": 94,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000045": {
+    "customer_id": "CUST-000045",
+    "id_number": "001099000045",
+    "face_match_score": 87,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000046": {
+    "customer_id": "CUST-000046",
+    "id_number": "001099000046",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000047": {
+    "customer_id": "CUST-000047",
+    "id_number": "001099000047",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000048": {
+    "customer_id": "CUST-000048",
+    "id_number": "001099000048",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000049": {
+    "customer_id": "CUST-000049",
+    "id_number": "001099000049",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000050": {
+    "customer_id": "CUST-000050",
+    "id_number": "001099000050",
+    "face_match_score": 79,
+    "liveness_passed": false,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000051": {
+    "customer_id": "CUST-000051",
+    "id_number": "001099000051",
+    "face_match_score": 95,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000052": {
+    "customer_id": "CUST-000052",
+    "id_number": "001099000052",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000053": {
+    "customer_id": "CUST-000053",
+    "id_number": "001099000053",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000054": {
+    "customer_id": "CUST-000054",
+    "id_number": "001099000054",
+    "face_match_score": 92,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000055": {
+    "customer_id": "CUST-000055",
+    "id_number": "001099000055",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000056": {
+    "customer_id": "CUST-000056",
+    "id_number": "001099000056",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000057": {
+    "customer_id": "CUST-000057",
+    "id_number": "001099000057",
+    "face_match_score": 95,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000058": {
+    "customer_id": "CUST-000058",
+    "id_number": "001099000058",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000059": {
+    "customer_id": "CUST-000059",
+    "id_number": "001099000059",
+    "face_match_score": 97,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000060": {
+    "customer_id": "CUST-000060",
+    "id_number": "001099000060",
+    "face_match_score": 91,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000061": {
+    "customer_id": "CUST-000061",
+    "id_number": "001099000061",
+    "face_match_score": 90,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000062": {
+    "customer_id": "CUST-000062",
+    "id_number": "001099000062",
+    "face_match_score": 94,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000063": {
+    "customer_id": "CUST-000063",
+    "id_number": "001099000063",
+    "face_match_score": 95,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000064": {
+    "customer_id": "CUST-000064",
+    "id_number": "001099000064",
+    "face_match_score": 97,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000065": {
+    "customer_id": "CUST-000065",
+    "id_number": "001099000065",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000066": {
+    "customer_id": "CUST-000066",
+    "id_number": "001099000066",
+    "face_match_score": 90,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000067": {
+    "customer_id": "CUST-000067",
+    "id_number": "001099000067",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000068": {
+    "customer_id": "CUST-000068",
+    "id_number": "001099000068",
+    "face_match_score": 98,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000069": {
+    "customer_id": "CUST-000069",
+    "id_number": "001099000069",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000070": {
+    "customer_id": "CUST-000070",
+    "id_number": "001099000070",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000071": {
+    "customer_id": "CUST-000071",
+    "id_number": "001099000071",
+    "face_match_score": 92,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000072": {
+    "customer_id": "CUST-000072",
+    "id_number": "001099000072",
+    "face_match_score": 98,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000073": {
+    "customer_id": "CUST-000073",
+    "id_number": "001099000073",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000074": {
+    "customer_id": "CUST-000074",
+    "id_number": "001099000074",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000075": {
+    "customer_id": "CUST-000075",
+    "id_number": "001099000075",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000076": {
+    "customer_id": "CUST-000076",
+    "id_number": "001099000076",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000077": {
+    "customer_id": "CUST-000077",
+    "id_number": "001099000077",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000078": {
+    "customer_id": "CUST-000078",
+    "id_number": "001099000078",
+    "face_match_score": 93,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000079": {
+    "customer_id": "CUST-000079",
+    "id_number": "001099000079",
+    "face_match_score": 87,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000080": {
+    "customer_id": "CUST-000080",
+    "id_number": "001099000080",
+    "face_match_score": 95,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000081": {
+    "customer_id": "CUST-000081",
+    "id_number": "001099000081",
+    "face_match_score": 94,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000082": {
+    "customer_id": "CUST-000082",
+    "id_number": "001099000082",
+    "face_match_score": 86,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000083": {
+    "customer_id": "CUST-000083",
+    "id_number": "001099000083",
+    "face_match_score": 99,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000084": {
+    "customer_id": "CUST-000084",
+    "id_number": "001099000084",
+    "face_match_score": 87,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000085": {
+    "customer_id": "CUST-000085",
+    "id_number": "001099000085",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000086": {
+    "customer_id": "CUST-000086",
+    "id_number": "001099000086",
+    "face_match_score": 92,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000087": {
+    "customer_id": "CUST-000087",
+    "id_number": "001099000087",
+    "face_match_score": 94,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000088": {
+    "customer_id": "CUST-000088",
+    "id_number": "001099000088",
+    "face_match_score": 87,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000089": {
+    "customer_id": "CUST-000089",
+    "id_number": "001099000089",
+    "face_match_score": 99,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000090": {
+    "customer_id": "CUST-000090",
+    "id_number": "001099000090",
+    "face_match_score": 94,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000091": {
+    "customer_id": "CUST-000091",
+    "id_number": "001099000091",
+    "face_match_score": 99,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000092": {
+    "customer_id": "CUST-000092",
+    "id_number": "001099000092",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "001099000093": {
+    "customer_id": "CUST-000093",
+    "id_number": "001099000093",
+    "face_match_score": 89,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "054301008970": {
+    "customer_id": "CUST-000100",
+    "id_number": "054301008970",
+    "face_match_score": 95,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "066192009555": {
+    "customer_id": "CUST-000094",
+    "id_number": "066192009555",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "074300004128": {
+    "customer_id": "CUST-000099",
+    "id_number": "074300004128",
+    "face_match_score": 96,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "089085006905": {
+    "customer_id": "CUST-000095",
+    "id_number": "089085006905",
+    "face_match_score": 98,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "091185013867": {
+    "customer_id": "CUST-000098",
+    "id_number": "091185013867",
+    "face_match_score": 88,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "095081010451": {
+    "customer_id": "CUST-000096",
+    "id_number": "095081010451",
+    "face_match_score": 99,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  },
+  "096193000296": {
+    "customer_id": "CUST-000097",
+    "id_number": "096193000296",
+    "face_match_score": 97,
+    "liveness_passed": true,
+    "provider": "synthetic-ekyc",
+    "captured_at": "2026-07-01T10:00:00+07:00"
+  }
+}

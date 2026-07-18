@@ -26,10 +26,17 @@ def evaluate_policy(
     *,
     profile: PolicyProfile | None = None,
     product_code: str | None = None,
+    rule_sets: list[str] | None = None,
 ) -> list[PolicyViolation]:
     # Profile-scoped evaluate stays in-process (overrides live on the API host).
     if profile is not None:
-        return _local_evaluate(metrics, as_of=as_of, profile=profile, product_code=product_code)
+        return _local_evaluate(
+            metrics,
+            as_of=as_of,
+            profile=profile,
+            product_code=product_code,
+            rule_sets=rule_sets,
+        )
 
     url = os.getenv("POLICY_SVC_URL")
     if not url:

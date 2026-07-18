@@ -92,6 +92,10 @@ export interface DocumentInput {
   tier: 1 | 2 | 3;
   extracted?: Record<string, unknown> | null;
   confirmed_by?: string | null;
+  source?: string | null;
+  evidence_id?: string | null;
+  dataset_version?: string | null;
+  verified_at?: string | null;
 }
 
 export interface AssessApplicationRequest {
@@ -149,7 +153,21 @@ export interface ComplianceVerdict {
   kyc_status: string;
   ubo_status: string;
   citations: unknown[];
+  rule_evidence: PolicyDecisionEvidence[];
   tool_results: Record<string, unknown>;
+}
+
+export interface PolicyDecisionEvidence {
+  rule_id: string;
+  status: "passed" | "warning" | "blocking" | "missing";
+  metric: string;
+  actual: number | null;
+  threshold: number;
+  source: string;
+  evidence_id: string;
+  dataset_version: string;
+  standard_reference: string;
+  policy_version: string;
 }
 
 export interface Citation {

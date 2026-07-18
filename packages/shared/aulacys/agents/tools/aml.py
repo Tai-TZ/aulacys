@@ -29,26 +29,46 @@ def _from_service(path: str, payload: dict) -> dict | None:
 
 
 @tool
-def aml_screen(sanctions_match_count: int = 0, pep_match_count: int = 0) -> dict:
+def aml_screen(
+    sanctions_match_count: int = 0,
+    pep_match_count: int = 0,
+    customer_name: str | None = None,
+) -> dict:
     """AML screen. Calls aml-svc when AML_SVC_URL is set, else seeded fallback."""
     from_svc = _from_service(
         "screen",
-        {"sanctions_match_count": sanctions_match_count, "pep_match_count": pep_match_count},
+        {
+            "sanctions_match_count": sanctions_match_count,
+            "pep_match_count": pep_match_count,
+            "customer_name": customer_name,
+        },
     )
     if from_svc is not None:
-        return from_svc
+        if all(
+            isinstance(from_svc.get(key), int) and from_svc[key] >= 0
+            for key in ("sanctions_match_count", "pep_match_count")
+        ):
+            return {"status": "checked", **from_svc}
+        return {"status": "invalid", "error": "aml-svc returned malformed screening data", "computed_at": _now()}
+    if os.getenv("AML_SVC_URL"):
+        return {"status": "unavailable", "error": "aml-svc unavailable", "computed_at": _now()}
 
     if sanctions_match_count < 0 or pep_match_count < 0:
-        return {"error": "match counts must not be negative"}
+        return {"status": "invalid", "error": "match counts must not be negative", "computed_at": _now()}
 
     return {
+        "status": "checked",
         "sanctions_match_count": sanctions_match_count,
         "pep_match_count": pep_match_count,
         "inputs": {
             "sanctions_match_count": sanctions_match_count,
             "pep_match_count": pep_match_count,
+            "customer_name": customer_name,
         },
         "computed_at": _now(),
+        "source": "seeded-fallback",
+        "dataset_version": "2026.1",
+        "evidence_id": "AML-DEMO-SCREEN",
     }
 
 
@@ -57,12 +77,21 @@ def related_party(exposure_ratio_related_group: float = 0) -> dict:
     """Related-party exposure screen. Calls aml-svc when AML_SVC_URL is set, else fallback."""
     from_svc = _from_service("related-party", {"exposure_ratio_related_group": exposure_ratio_related_group})
     if from_svc is not None:
-        return from_svc
+        if isinstance(from_svc.get("exposure_ratio_related_group"), (int, float)):
+            return {"status": "checked", **from_svc}
+        return {"status": "invalid", "error": "aml-svc returned malformed related-party data", "computed_at": _now()}
+    if os.getenv("AML_SVC_URL"):
+        return {"status": "unavailable", "error": "aml-svc unavailable", "computed_at": _now()}
 
     if exposure_ratio_related_group < 0:
-        return {"error": "exposure_ratio_related_group must not be negative"}
+        return {
+            "status": "invalid",
+            "error": "exposure_ratio_related_group must not be negative",
+            "computed_at": _now(),
+        }
 
     return {
+        "status": "checked",
         "exposure_ratio_related_group": exposure_ratio_related_group,
         "inputs": {"exposure_ratio_related_group": exposure_ratio_related_group},
         "computed_at": _now(),

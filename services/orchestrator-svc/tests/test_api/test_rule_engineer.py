@@ -19,6 +19,12 @@ client = TestClient(app)
 
 def _passing_secured_metrics() -> dict[str, float]:
     return {
+        "kyc_verified": 1,
+        "ubo_clear": 1,
+        "ekyc_face_match_ok": 1,
+        "geo_within_radius": 1,
+        "age_at_maturity_ok": 1,
+        "income_meets_regional_min": 1,
         "prohibited_purpose_refinance_other_bank": 0,
         "ltv_within_product_cap": 1,
         "land_registry_ok": 1,
@@ -30,6 +36,7 @@ def _passing_secured_metrics() -> dict[str, float]:
         "income_verified": 1,
         "sanctions_match_count": 0,
         "pep_match_count": 0,
+        "aml_screening_complete": 1,
     }
 
 
@@ -40,6 +47,8 @@ def test_secured_profile_includes_purpose_ban() -> None:
     assert "max_cic_group" in ids
     assert "docs_complete" in ids
     assert "land_title_clear" in ids
+    assert "kyc_identity_verified" in ids
+    assert "ubo_related_control_clear" in ids
     assert "max_amount_product_ceiling" not in ids
 
 
@@ -48,7 +57,9 @@ def test_unsecured_profile_has_amount_ceiling() -> None:
     assert "max_amount_product_ceiling" in ids
     assert "max_cic_group" in ids
     assert "income_verified" in ids
-    assert "prohibited_purpose_refinance_other_bank" not in ids
+    assert "kyc_identity_verified" in ids
+    assert "ubo_related_control_clear" in ids
+    assert "prohibited_purpose_refinance_other_bank" in ids
     assert "land_title_clear" not in ids
 
 
@@ -155,16 +166,16 @@ def test_profile_missing_metric_fails_closed() -> None:
     assert missing.is_blocking
 
 
-def test_unverified_rule_cannot_auto_veto() -> None:
+def test_prohibited_purpose_is_blocking_veto() -> None:
     metrics = _passing_secured_metrics()
     metrics["prohibited_purpose_refinance_other_bank"] = 1
 
     violations = evaluate(metrics, profile="secured")
 
     purpose = next(v for v in violations if v.rule_id == "prohibited_purpose_refinance_other_bank")
-    assert purpose.unverified is True
-    assert purpose.severity == "warning"
-    assert purpose.is_blocking is False
+    assert purpose.unverified is False
+    assert purpose.severity == "blocking"
+    assert purpose.is_blocking is True
 
 
 def test_rejects_out_of_range_ratio_threshold(tmp_path, monkeypatch) -> None:

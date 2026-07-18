@@ -73,17 +73,20 @@ def map_to_loan_application(
     product = product_override or str(raw.get("product") or "retail_unsecured_salary")
     id_number = str(applicant.get("id_number") or "001099000003")
     total_income = _f(financial.get("total_income"))
-    # Form "chi phí cá nhân" feeds the existing-debt slot for DTI until a richer model exists.
     personal_expense = _f(financial.get("personal_expense"))
+    dob_raw = applicant.get("dob") or applicant.get("date_of_birth")
+    dob = str(dob_raw) if dob_raw else None
 
     declared = DeclaredForm(
         customer_name=str(applicant.get("full_name") or "Unknown"),
         amount=_f(raw.get("total_amount")),
         term_months=int(_f(raw.get("term_months"), 12)),
         monthly_income=total_income,
-        existing_monthly_debt=personal_expense,
+        existing_monthly_debt=0.0,
+        personal_expense=personal_expense,
         declared_purpose=_purpose_detail(raw),
         id_number=id_number,
+        dob=dob,
         cic_consent=bool(consent.get("data_processing_consent", True)),
     )
 

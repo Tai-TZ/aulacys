@@ -37,6 +37,8 @@ class MetricFact(BaseModel):
     value: float | None
     source: str
     evidence: str = ""
+    evidence_id: str = ""
+    dataset_version: str = ""
     measured_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     valid: bool = True
     error: str | None = None
@@ -81,10 +83,90 @@ METRIC_REGISTRY: dict[str, MetricDefinition] = {
     for item in (
         _d("kyc_verified", "Định danh khách hàng đã xác minh", "flag", "boolean_flag", "intake", "kyc_check", 0, 1),
         _d("ubo_clear", "Thông tin chủ sở hữu hưởng lợi đạt", "flag", "boolean_flag", "intake", "ubo_check", 0, 1),
+        _d(
+            "ekyc_face_match_ok",
+            "eKYC Face Match đạt ngưỡng",
+            "flag",
+            "boolean_flag",
+            "intake",
+            "ekyc_face_match",
+            0,
+            1,
+        ),
+        _d(
+            "geo_within_radius",
+            "Trong bán kính CN/PGD",
+            "flag",
+            "boolean_flag",
+            "intake",
+            "geo_radius_check",
+            0,
+            1,
+        ),
         _d("dti", "Tỷ lệ nghĩa vụ trả nợ trên thu nhập", "ratio", "ratio", "credit", "compute_dti", 0),
         _d("cic_group", "Nhóm nợ CIC", "integer", "cic_group", "credit", "cic_lookup", 1, 5),
         _d("has_bad_debt", "Có nợ xấu", "flag", "boolean_flag", "credit", "cic_lookup", 0, 1),
         _d("income_verified", "Thu nhập đã xác minh", "flag", "boolean_flag", "credit", "income_verify", 0, 1),
+        _d(
+            "income_meets_regional_min",
+            "Thu nhập đạt tối thiểu theo vùng",
+            "flag",
+            "boolean_flag",
+            "credit",
+            "regional_income_check",
+            0,
+            1,
+        ),
+        _d(
+            "age_at_maturity_ok",
+            "Tuổi tại đáo hạn đạt",
+            "flag",
+            "boolean_flag",
+            "credit",
+            "age_at_maturity_check",
+            0,
+            1,
+        ),
+        _d(
+            "amount_within_income_multiple",
+            "Hạn mức trong 12× thu nhập",
+            "flag",
+            "boolean_flag",
+            "credit",
+            "amount_within_income_multiple",
+            0,
+            1,
+        ),
+        _d(
+            "term_matches_purpose",
+            "Kỳ hạn khớp mục đích",
+            "flag",
+            "boolean_flag",
+            "credit",
+            "term_matches_purpose",
+            0,
+            1,
+        ),
+        _d(
+            "dti_within_income_band",
+            "DTI trong band thu nhập",
+            "flag",
+            "boolean_flag",
+            "credit",
+            "dti_within_income_band",
+            0,
+            1,
+        ),
+        _d(
+            "disposable_buffer_ok",
+            "Đủ số dư sinh hoạt tối thiểu",
+            "flag",
+            "boolean_flag",
+            "credit",
+            "disposable_income_buffer",
+            0,
+            1,
+        ),
         _d("docs_complete", "Đủ chứng từ bắt buộc", "flag", "boolean_flag", "operations", "document_checklist", 0, 1),
         _d(
             "term_within_product_max",
@@ -130,6 +212,7 @@ METRIC_REGISTRY: dict[str, MetricDefinition] = {
             0,
             1,
         ),
+        _d("aml_screening_complete", "AML screening complete", "flag", "boolean_flag", "intake", "aml_screen", 0, 1),
         _d(
             "exposure_ratio_related_group",
             "Tỷ lệ dư nợ nhóm liên quan",
@@ -147,7 +230,16 @@ class MetricCollector:
     def __init__(self) -> None:
         self._facts: dict[str, MetricFact] = {}
 
-    def record(self, name: str, value: float | int | bool | None, *, source: str, evidence: str = "") -> None:
+    def record(
+        self,
+        name: str,
+        value: float | int | bool | None,
+        *,
+        source: str,
+        evidence: str = "",
+        evidence_id: str = "",
+        dataset_version: str = "",
+    ) -> None:
         definition = METRIC_REGISTRY.get(name)
         if definition is None:
             raise ValueError(f"Unknown underwriting metric '{name}'")
@@ -171,6 +263,8 @@ class MetricCollector:
             value=numeric,
             source=source,
             evidence=evidence,
+            evidence_id=evidence_id,
+            dataset_version=dataset_version,
             valid=error is None,
             error=error,
         )

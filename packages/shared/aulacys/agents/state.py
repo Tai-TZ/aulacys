@@ -18,6 +18,39 @@ class Document(BaseModel):
     tier: Literal[1, 2, 3]
     extracted: dict[str, Any] | None = None
     confirmed_by: str | None = None
+    source: str | None = None
+    evidence_id: str | None = None
+    dataset_version: str | None = None
+    verified_at: str | None = None
+
+
+class PolicyDecisionEvidence(BaseModel):
+    rule_id: str
+    status: Literal["passed", "warning", "blocking", "missing"]
+    metric: str
+    actual: float | None = None
+    threshold: float
+    source: str
+    evidence_id: str = ""
+    dataset_version: str = ""
+    standard_reference: str
+    policy_version: str
+
+
+class AMLScreeningFacts(BaseModel):
+    """Normalized AML evidence supplied by an upstream screening source."""
+
+    sanctions_match_count: int = Field(default=0, ge=0)
+    pep_match_count: int = Field(default=0, ge=0)
+    source: str = "application"
+
+
+class RelatedPartyFacts(BaseModel):
+    """Normalized related-party evidence, independent of a loan product id."""
+
+    related_party_flag: bool = False
+    exposure_ratio_related_group: float = Field(default=0, ge=0)
+    source: str = "application"
 
 
 class DeclaredForm(BaseModel):
@@ -124,6 +157,7 @@ class ComplianceVerdict(BaseModel):
     kyc_status: str = ""
     ubo_status: str = ""
     citations: list[Citation]
+    rule_evidence: list[PolicyDecisionEvidence] = Field(default_factory=list)
     tool_results: dict[str, Any] = Field(default_factory=dict)
 
 

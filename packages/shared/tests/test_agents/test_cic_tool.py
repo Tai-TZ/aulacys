@@ -11,16 +11,24 @@ def test_normalize_adds_overdue_days_alias() -> None:
     assert out["has_bad_debt"] is True
 
 
-def test_fallback_clean_shape() -> None:
+def test_fallback_loads_seed_record() -> None:
     result = cic_lookup.invoke({"cccd": "001099000001", "consent_granted": True})
     assert result["source"] == "seeded_cic_snapshot"
     assert result["cccd"] == "001099000001"
-    assert result["cic_group"] == 1
-    assert result["max_overdue_days"] == 0
-    assert result["overdue_days"] == 0
-    assert result["has_bad_debt"] is False
-    assert result["num_active_loans"] == 1
+    assert result["record_found"] is True
+    assert result["cic_group"] == result["debt_group"]
+    assert "overdue_history" in result
+    assert result["overdue_days"] == result["max_overdue_days"]
+    assert result["dataset_version"].startswith("2026.")
 
+
+def test_fallback_demo_happy_record() -> None:
+    result = cic_lookup.invoke({"cccd": "074300004128", "consent_granted": True})
+    assert result["record_found"] is True
+    assert result["full_name"] == "NGUYỄN THỊ BÉ HOA"
+    assert result["customer_id"] == "CUST-000099"
+    assert result["debt_group"] == 1
+    assert result["has_bad_debt"] is False
 
 def test_fallback_consent_required() -> None:
     result = cic_lookup.invoke({"cccd": "001099000003", "consent_granted": False})

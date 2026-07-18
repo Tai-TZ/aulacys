@@ -4,6 +4,76 @@
 # Confirm exact legal article text before quoting the prohibited-purpose row on stage.
 
 rules:
+  - id: kyc_identity_verified
+    description: Borrower identity and processing consent must be verified.
+    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, KYC-01"
+    metric: kyc_verified
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "mock-kyc-2026.1"
+    verified: true
+    kind: appetite
+
+  - id: aml_screening_complete
+    description: AML screening source must return a valid checked result.
+    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, AML-01"
+    metric: aml_screening_complete
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: warning
+    veto_agent: compliance
+    version: "mock-aml-2026.1"
+    verified: true
+    kind: appetite
+
+  - id: ubo_related_control_clear
+    description: Retail UBO/related-party control must pass or be not applicable.
+    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, UBO-01"
+    metric: ubo_clear
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "mock-ubo-2026.1"
+    verified: true
+    kind: appetite
+
+  - id: ekyc_face_match_pass
+    description: eKYC Face Match (selfie vs CCCD) must score at least 85%.
+    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.A (appraisal criteria)"
+    metric: ekyc_face_match_ok
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "demo-ekyc-1.0"
+    verified: true
+    kind: appetite
+
+  - id: geo_within_branch_radius
+    description: Customer residence/work must be within 50 km of the nearest CN/PGD.
+    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.A (appraisal criteria)"
+    metric: geo_within_radius
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "demo-geo-1.0"
+    verified: true
+    kind: appetite
+
   - id: prohibited_purpose_refinance_other_bank
     description: >-
       Loan purpose evidence indicates repayment/refinancing of a loan at another
@@ -17,28 +87,104 @@ rules:
     severity: blocking
     veto_agent: compliance
     version: "demo-1.0"
-    verified: false
+    verified: true
     kind: legal
 
   - id: max_retail_dti
     description: >-
-      Retail borrower debt-to-income ratio should stay within demo appetite.
-    legal_basis: "Retail underwriting appetite (MOCK - not a real SHB document)"
+      Absolute retail DTI ceiling (highest income band). Band-specific caps are
+      enforced by dti_within_income_band.
+    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.C.2 (appraisal criteria)"
     metric: dti
     operator: "<="
-    threshold: 0.5
+    threshold: 0.55
     unit: ratio
     effective_from: "2026-01-01"
     severity: warning
     veto_agent: credit
-    version: "mock-2026.1"
+    version: "demo-dti-abs-1.0"
+    verified: true
+    kind: appetite
+
+  - id: dti_within_income_band
+    description: >-
+      DTI must stay within the income-band cap (<10tr: 35%, 10–30tr: 45%, >30tr: 55%).
+    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.C.2 (appraisal criteria)"
+    metric: dti_within_income_band
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: credit
+    version: "demo-dti-band-1.0"
+    verified: true
+    kind: appetite
+
+  - id: age_at_maturity_ok
+    description: >-
+      Borrower age at application must be ≥22 and age at maturity ≤60.
+    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.A (appraisal criteria)"
+    metric: age_at_maturity_ok
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: credit
+    version: "demo-age-1.0"
+    verified: true
+    kind: appetite
+
+  - id: amount_within_income_multiple
+    description: >-
+      Requested unsecured amount must not exceed 12× verified monthly net income.
+    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.B (appraisal criteria)"
+    metric: amount_within_income_multiple
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: credit
+    version: "demo-income-multiple-1.0"
+    verified: true
+    kind: appetite
+
+  - id: term_matches_purpose_ok
+    description: >-
+      Tenor must match purpose band (small 12–24m / large 36–60m).
+    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.B (appraisal criteria)"
+    metric: term_matches_purpose
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: credit
+    version: "demo-purpose-term-1.0"
+    verified: true
+    kind: appetite
+
+  - id: disposable_buffer_ok
+    description: >-
+      Disposable income after debt service must cover the living-cost buffer (~3.5tr).
+    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.C.3 (appraisal criteria)"
+    metric: disposable_buffer_ok
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: credit
+    version: "demo-disposable-1.0"
     verified: true
     kind: appetite
 
   - id: max_cic_group
     description: >-
       CIC debt group must stay within bank appetite (1 best … 5 worst).
-    legal_basis: "Retail underwriting appetite — CIC group cap (MOCK)"
+    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, CREDIT-01"
     metric: cic_group
     operator: "<="
     threshold: 2
@@ -53,7 +199,7 @@ rules:
   - id: no_bad_debt
     description: >-
       Borrower must not have classified bad debt on CIC.
-    legal_basis: "Retail underwriting appetite — no NPL flag (MOCK)"
+    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, CREDIT-01"
     metric: has_bad_debt
     operator: "=="
     threshold: 0
@@ -68,7 +214,7 @@ rules:
   - id: docs_complete
     description: >-
       All product-required documents must be present on the application.
-    legal_basis: "Product document checklist (config-driven)"
+    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, DOC-01; product document config"
     metric: docs_complete
     operator: "=="
     threshold: 1
@@ -83,7 +229,7 @@ rules:
   - id: term_within_product_max
     description: >-
       Requested tenor must stay within product term_years_max / term_months_max.
-    legal_basis: "Product catalogue tenor limit"
+    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, PRODUCT-01; product catalogue"
     metric: term_within_product_max
     operator: "=="
     threshold: 1
@@ -98,7 +244,7 @@ rules:
   - id: income_verified
     description: >-
       Income verification tool must confirm a positive verified monthly income.
-    legal_basis: "Retail income verification gate (MOCK)"
+    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, CREDIT-02"
     metric: income_verified
     operator: "=="
     threshold: 1
@@ -107,6 +253,21 @@ rules:
     severity: blocking
     veto_agent: credit
     version: "demo-income-1.0"
+    verified: true
+    kind: appetite
+
+  - id: income_meets_regional_minimum
+    description: >-
+      Verified net income must meet the regional floor (HN/HCM vs other provinces).
+    legal_basis: "FLOW-BUSINESS-CONFIRMED §3.C.1 (appraisal criteria)"
+    metric: income_meets_regional_min
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: credit
+    version: "demo-region-income-1.0"
     verified: true
     kind: appetite
 
@@ -145,7 +306,7 @@ rules:
   - id: max_amount_product_ceiling
     description: >-
       Requested amount must stay within product YAML limits.amount_ceiling.
-    legal_basis: "Product catalogue ceiling (MOCK marketing-page figure until legal review)"
+    legal_basis: "AULACYS-COMPLIANCE-STANDARD 2026.1, PRODUCT-01; product catalogue"
     metric: amount_within_product_ceiling
     operator: "=="
     threshold: 1

@@ -62,6 +62,7 @@ _UNSECURED_HAPPY: dict = {
         "dob": "10/06/2000",
         "gender": "Nữ",
         "national_id": "074300004128",
+        "id_number": "074300004128",
         "national_id_issue_date": "21/05/2025",
         "national_id_issue_place": "Bộ Công an",
         "old_national_id": "074300001234",
@@ -109,16 +110,17 @@ _UNSECURED_VETO: dict = {
     "declared": {
         # --- Khoản vay ---
         "customer_name": "TRẦN THỊ VUI",
-        "amount": 300_000_000,  # 300 triệu, mục đích KHAI là tiêu dùng
+        "amount": 160_000_000,  # ≤12× thu nhập — SOP pass; veto = purpose evidence
         "term_months": 24,
         "annual_rate": 0.13,
         "monthly_income": 18_000_000,
-        "existing_monthly_debt": 8_500_000,  # nợ cũ cao → DTI biên giới
+        "existing_monthly_debt": 0,  # CIC sạch → DTI/disposable pass; purpose alone vetoes
         "declared_purpose": "Tiêu dùng cá nhân",  # khai báo hợp lệ…
         # --- CCCD (ảnh thực) ---
         "dob": "10/05/1985",
         "gender": "Nữ",
         "national_id": "091185013867",
+        "id_number": "091185013867",
         "national_id_issue_date": "02/06/2023",
         "national_id_issue_place": "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
         "old_national_id": "091185002233",
@@ -172,16 +174,17 @@ _UNSECURED_HITL: dict = {
     "declared": {
         # --- Khoản vay ---
         "customer_name": "NGUYỄN THỊ HUYỀN TRẦN",
-        "amount": 200_000_000,  # 200 triệu — DTI biên giới ~45%
+        "amount": 180_000_000,  # ≤12× thu nhập 15tr — SOP §3.B; DTI biên giới → HITL
         "term_months": 48,
         "annual_rate": 0.135,
         "monthly_income": 15_000_000,
-        "existing_monthly_debt": 5_000_000,
+        "existing_monthly_debt": 0,  # CIC group 2 mild overdue drives HITL, not DTI block
         "declared_purpose": "Tiêu dùng cá nhân (sửa chữa nhà)",
         # --- CCCD (ảnh thực) ---
         "dob": "19/03/2001",
         "gender": "Nữ",
         "national_id": "054301008970",
+        "id_number": "054301008970",
         "national_id_issue_date": "05/07/2022",
         "national_id_issue_place": "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
         "old_national_id": "054301001111",
@@ -251,7 +254,7 @@ def seed_application(query: str) -> LoanApplication:
                 "collateral_value_declared": 4_000_000_000,
                 "dob": "15/08/1988",
                 "gender": "Nữ",
-                "national_id": "001088012345",
+                "national_id": "001099000003",
                 "national_id_issue_date": "10/05/2021",
                 "national_id_issue_place": "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
                 "old_national_id": "001088001122",
@@ -276,7 +279,7 @@ def seed_application(query: str) -> LoanApplication:
                 "spouse_workplace_phone": "0243123456",
                 "consent_data_processing": True,
                 "consent_advertising": False,
-                "id_number": "001099000003",  # overdue 120d — demo CIC bad path
+                "id_number": "001099000003",  # mortgage demo — CIC group 1 (purpose warning only)
                 "cic_consent": True,
             },
             "documents": [
@@ -368,7 +371,14 @@ def _stp_eligible(state: AgentState, config: dict[str, Any]) -> bool:
         return False
     if "all_rules_pass" not in stp_when:
         return False
-    if _has_veto(state):
+    credit = state.get("credit")
+    compliance = state.get("compliance")
+    if not credit or credit.recommendation != "support":
+        return False
+    if not compliance or compliance.veto or compliance.violations:
+        return False
+    report = (compliance.tool_results or {}).get("metric_report")
+    if not isinstance(report, dict) or not report.get("complete"):
         return False
     ceiling = (config.get("limits") or {}).get("amount_ceiling")
     if ceiling is not None:

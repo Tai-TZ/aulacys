@@ -1,0 +1,95 @@
+{
+  "standard_version": "2026.1",
+  "total": 5,
+  "passed": 5,
+  "failed": 0,
+  "accuracy": 1.0,
+  "cases": [
+    {
+      "case_id": "CMP-CLEAN-001",
+      "passed": true,
+      "actual": {
+        "rule_ids": [],
+        "veto": false,
+        "decision": "clean"
+      },
+      "expected": {
+        "rule_ids": [],
+        "veto": false,
+        "decision": "clean"
+      }
+    },
+    {
+      "case_id": "CMP-KYC-001",
+      "passed": true,
+      "actual": {
+        "rule_ids": [
+          "kyc_identity_verified"
+        ],
+        "veto": true,
+        "decision": "veto"
+      },
+      "expected": {
+        "rule_ids": [
+          "kyc_identity_verified"
+        ],
+        "veto": true,
+        "decision": "veto"
+      }
+    },
+    {
+      "case_id": "CMP-DOC-001",
+      "passed": true,
+      "actual": {
+        "rule_ids": [
+          "docs_complete"
+        ],
+        "veto": true,
+        "decision": "veto"
+      },
+      "expected": {
+        "rule_ids": [
+          "docs_complete"
+        ],
+        "veto": true,
+        "decision": "veto"
+      }
+    },
+    {
+      "case_id": "CMP-AML-002",
+      "passed": true,
+      "actual": {
+        "rule_ids": [
+          "pep_requires_enhanced_dd"
+        ],
+        "veto": false,
+        "decision": "warning"
+      },
+      "expected": {
+        "rule_ids": [
+          "pep_requires_enhanced_dd"
+        ],
+        "veto": false,
+        "decision": "warning"
+      }
+    },
+    {
+      "case_id": "CMP-AML-001",
+      "passed": true,
+      "actual": {
+        "rule_ids": [
+          "sanctions_hit"
+        ],
+        "veto": true,
+        "decision": "veto"
+      },
+      "expected": {
+        "rule_ids": [
+          "sanctions_hit"
+        ],
+        "veto": true,
+        "decision": "veto"
+      }
+    }
+  ]
+}
