@@ -32,6 +32,9 @@ async def test_assess_unverified_rule_routes_to_human(client):
     assert data["credit"]["dti"] == 0.3878
     assert data["credit"]["proposed_limit"] == 2_500_000_000
     assert data["credit"]["proposed_rate"] is not None
+    assert data["proposal"]["requested_amount"] == 2_500_000_000
+    assert data["proposal"]["status"] == "revised"
+    assert data["credit"]["proposal"] == data["proposal"]
     cic = data["credit"]["tool_results"]["cic_lookup"]
     assert cic["max_overdue_days"] == 0  # fallback when CIC_SVC_URL unset
     assert cic["cic_group"] == 1
@@ -94,6 +97,8 @@ async def test_assess_application_unverified_rule_routes_to_human(client):
     assert data["run_trace"]["replan_count"] == 0
     assert data["compliance"]["veto"] is False
     assert "prohibited_purpose_refinance_other_bank" in data["compliance"]["rule_ids"]
+    assert data["proposal"]["requested_amount"] == payload["declared"]["amount"]
+    assert data["proposal"]["status"] == "revised"
     assert sum(1 for item in data["trace"] if item["node"] == "compliance") == 1
 
 
@@ -146,6 +151,7 @@ async def test_assess_by_application_id_maps_and_runs(client, monkeypatch):
     assert response.status_code == 200
     data = response.json()
     assert data["outcome"] == "stp_approved"
+    assert data["proposal"]["requested_amount"] == 250_000_000
     assert data["credit"]["income"] == 35_000_000
     assert data["credit"]["tool_results"]["cic_lookup"]["cccd"] == "001099000001"
 

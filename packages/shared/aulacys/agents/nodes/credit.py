@@ -5,7 +5,63 @@ from typing import Any
 from aulacys.agents.harness.dispatch import dispatch
 from aulacys.agents.harness.permissions import is_tool_allowed
 from aulacys.agents.specs import AgentSpec
-from aulacys.agents.state import AgentState, Citation, CreditAssessment, Document, LoanApplication
+from aulacys.agents.state import AgentState, Citation, CreditAssessment, Document, LoanApplication, LoanProposal
+
+
+def _money(value: float | int | None) -> str:
+    if value is None:
+        return "unknown"
+    return f"{float(value):,.0f} VND"
+
+
+def _build_loan_proposal(
+    *,
+    requested_amount: float,
+    declared_rate: float,
+    term_months: int,
+    monthly_payment: float | None,
+    dti: float | None,
+    pricing: dict,
+    recommendation: str,
+    consent_blocked: bool,
+) -> LoanProposal:
+    proposed_limit = (
+        float(pricing["proposed_limit"]) if isinstance(pricing.get("proposed_limit"), int | float) else None
+    )
+    proposed_rate = float(pricing["proposed_rate"]) if isinstance(pricing.get("proposed_rate"), int | float) else None
+    price_decision = str(pricing.get("decision", ""))
+    revisions: list[str] = []
+
+    if consent_blocked:
+        revisions.append("CIC consent is required before Credit can price the proposal.")
+    if price_decision == "decline_or_manual_review":
+        revisions.append("Proposal is not priceable by deterministic pricing tools.")
+    if proposed_limit is not None and proposed_limit < requested_amount:
+        revisions.append(
+            f"Limit reduced from {_money(requested_amount)} to {_money(proposed_limit)} due to DTI/income/CIC pricing."
+        )
+    if proposed_rate is not None and abs(proposed_rate - declared_rate) > 0.0001:
+        revisions.append(f"Rate revised from {declared_rate:.2%} to {proposed_rate:.2%} by product pricing config.")
+    if dti is None:
+        revisions.append("DTI is unavailable because required debt/income evidence is incomplete.")
+
+    if consent_blocked or price_decision == "decline_or_manual_review":
+        status = "rejected"
+    elif recommendation == "support" and not revisions:
+        status = "accepted"
+    else:
+        status = "revised"
+
+    return LoanProposal(
+        requested_amount=requested_amount,
+        proposed_limit=proposed_limit,
+        proposed_rate=proposed_rate,
+        term_months=term_months,
+        monthly_payment=monthly_payment,
+        dti=dti,
+        status=status,
+        revisions=revisions,
+    )
 
 
 def _product_config(state: AgentState) -> dict[str, Any]:
@@ -377,6 +433,7 @@ def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessmen
         monthly_payment=proposed_monthly,
     )
     recommendation = _recommendation(reasonableness)
+    consent_blocked = cic.get("error") == "consent_required" or bool(cic.get("consent_required"))
 
     evidence = [
         Citation(source="cic_lookup", reference="CIC bureau lookup"),
@@ -398,6 +455,17 @@ def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessmen
         "proposal_reasonableness": reasonableness,
     }
 
+    proposal = _build_loan_proposal(
+        requested_amount=float(declared.amount),
+        declared_rate=float(declared.annual_rate),
+        term_months=int(declared.term_months),
+        monthly_payment=proposed_monthly,
+        dti=dti,
+        pricing=pricing,
+        recommendation=recommendation,
+        consent_blocked=consent_blocked,
+    )
+
     return (
         CreditAssessment(
             dti=dti,
@@ -412,6 +480,7 @@ def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessmen
             rationale=_rationale(recommendation=recommendation, dti=dti, reasonableness=reasonableness),
             evidence=evidence,
             tool_results=tool_results,
+            proposal=proposal,
         ),
         tool_calls,
     )

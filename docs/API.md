@@ -65,7 +65,8 @@ Feeds the dashboard (`BUILD-GUIDE.md` §8.1 "Monitor is the product"). Shapes re
 `apps/api/src/agents/state.py` (`RunTrace`, `NodeTrace`, `ComplianceVerdict`) and are
 mirrored in `apps/web/lib/api.ts` (`AssessResponse`, `assess()`).
 
-**Request:** same `{ "message": "..." }` (real `LoanApplication` input comes later).
+**Request:** same `{ "message": "..." }`. Real `LoanApplication` input uses
+`POST /api/v1/assess/application`.
 
 **Response** (`AssessResponse`):
 
@@ -78,6 +79,22 @@ mirrored in `apps/web/lib/api.ts` (`AssessResponse`, `assess()`).
     "lane": 3,                            // 1 = rule-only · 2 = cheap · 3 = mortgage/veto
     "replan_count": 2,
     "veto_fired": true
+  },
+  "proposal": {
+    "requested_amount": 2500000000,
+    "proposed_limit": 2500000000,
+    "proposed_rate": 0.108,
+    "term_months": 240,
+    "monthly_payment": 24958000.0,
+    "dti": 0.3878,
+    "status": "revised",                  // accepted | revised | rejected
+    "revisions": ["Rate revised by product pricing config"]
+  },
+  "credit": {
+    "dti": 0.3878,
+    "proposed_limit": 2500000000,
+    "proposed_rate": 0.108,
+    "recommendation": "support"
   },
   "compliance": {
     "veto": true,

@@ -153,6 +153,7 @@ def _fallback_assess(message: str, error: str) -> dict[str, Any]:
             "replan_count": 0,
             "veto_fired": False,
         },
+        "proposal": None,
         "credit": None,
         "operations": None,
         "compliance": None,
