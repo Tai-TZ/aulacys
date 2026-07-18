@@ -27,16 +27,26 @@ def fetch_application(application_id: str) -> dict[str, Any] | None:
     url = (get_settings().application_svc_url or "").strip() or os.getenv("APPLICATION_SVC_URL", "")
     if not url:
         return None
-    try:
-        req = urllib.request.Request(f"{url.rstrip('/')}/applications/{application_id}")
-        with urllib.request.urlopen(req, timeout=5) as resp:  # noqa: S310
-            return json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            return None
-        return None
-    except Exception:
-        return None
+    endpoint = f"{url.rstrip('/')}/applications/{application_id}"
+    # Cold Supabase pooler can exceed 5–15s; retry once after a short pause.
+    last_error: Exception | None = None
+    for attempt in range(2):
+        try:
+            req = urllib.request.Request(endpoint)
+            with urllib.request.urlopen(req, timeout=40) as resp:  # noqa: S310
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                return None
+            last_error = exc
+        except Exception as exc:  # noqa: BLE001 — demo-proof: any network/timeout → retry/None
+            last_error = exc
+        if attempt == 0:
+            import time
+
+            time.sleep(1.5)
+    _ = last_error
+    return None
 
 
 def _f(value: Any, default: float = 0.0) -> float:

@@ -152,6 +152,7 @@ export interface ComplianceVerdict {
   violations: PolicyViolation[];
   kyc_status: string;
   ubo_status: string;
+  rationale: string;
   citations: unknown[];
   rule_evidence: PolicyDecisionEvidence[];
   tool_results: Record<string, unknown>;
@@ -193,6 +194,7 @@ export interface OperationsReport {
   doc_status: string;
   missing: string[];
   legal_flags: string[];
+  rationale: string;
   evidence: Citation[];
   tool_results: Record<string, unknown>;
 }

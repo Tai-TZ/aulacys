@@ -25,7 +25,7 @@ def list_applications(*, limit: int = 100) -> list[dict[str, Any]] | None:
         return None
     try:
         req = urllib.request.Request(f"{base}/applications?limit={limit}")
-        with urllib.request.urlopen(req, timeout=8) as resp:  # noqa: S310
+        with urllib.request.urlopen(req, timeout=40) as resp:  # noqa: S310
             data = json.loads(resp.read().decode("utf-8"))
             return data if isinstance(data, list) else []
     except Exception:
@@ -39,7 +39,7 @@ def fetch_application(application_id: str) -> dict[str, Any] | None:
         return None
     try:
         req = urllib.request.Request(f"{base}/applications/{application_id}")
-        with urllib.request.urlopen(req, timeout=5) as resp:  # noqa: S310
+        with urllib.request.urlopen(req, timeout=40) as resp:  # noqa: S310
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         if exc.code == 404:

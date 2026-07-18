@@ -39,14 +39,14 @@ def test_llm_not_configured_without_key(monkeypatch):
     assert _llm_configured(PlannerSpec) is False
 
 
-def test_number_spec_never_calls_llm_even_with_key(monkeypatch):
-    """P0-2 guard: a number/veto-bearing spec (llm_prose=False) stays deterministic
-    even when a key is present. Only prose specs may reach the model."""
+def test_number_spec_keeps_deterministic_base_with_prose_opt_in(monkeypatch):
+    """Credit may call LLM for rationale only; numbers still come from fallback tools."""
     monkeypatch.setenv("LLM_PROVIDER", "gemini")
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     get_settings.cache_clear()
-    assert CreditSpec.llm_prose is False
-    assert _llm_configured(CreditSpec) is False
+    assert CreditSpec.llm_prose is True
+    assert CreditSpec.prose_fields == ["rationale"]
+    assert _llm_configured(CreditSpec) is True
     get_settings.cache_clear()
 
 

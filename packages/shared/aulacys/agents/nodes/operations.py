@@ -51,13 +51,24 @@ def operations_fallback(state: AgentState, spec: AgentSpec) -> tuple[OperationsR
         )
         tool_calls.append("land_registry")
 
+    missing = list(checklist.get("missing", []))
+    doc_status = str(checklist.get("status", "unknown"))
+    legal_flags = list(registry_result.get("legal_flags", []))
+    rationale = (
+        f"Documents {doc_status}"
+        + (f"; missing={','.join(missing)}" if missing else "")
+        + (f"; valuation={valuation:g}" if isinstance(valuation, int | float) else "; no collateral valuation")
+        + (f"; legal_flags={','.join(legal_flags)}" if legal_flags else "")
+        + "."
+    )
     return (
         OperationsReport(
             valuation=valuation if isinstance(valuation, int | float) else None,
             valuation_task=valuation_task,
-            doc_status=str(checklist.get("status", "unknown")),
-            missing=list(checklist.get("missing", [])),
-            legal_flags=list(registry_result.get("legal_flags", [])),
+            doc_status=doc_status,
+            missing=missing,
+            legal_flags=legal_flags,
+            rationale=rationale,
             evidence=[
                 Citation(source="doc_checklist", reference="product required documents"),
                 Citation(source="property_valuation", reference="seeded valuation")
@@ -101,6 +112,11 @@ OperationsSpec = AgentSpec(
     model="deterministic-fallback",
     model_tier="mini",
     max_tool_calls=6,
-    prompt="Check documents and collateral. Valuation must come from tools only.",
+    prompt=(
+        "Summarize document readiness and collateral ops in Vietnamese. "
+        "Do not invent valuation or checklist results — tools already produced them."
+    ),
     fallback=operations_fallback,
+    llm_prose=True,
+    prose_fields=["rationale"],
 )

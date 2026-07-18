@@ -146,6 +146,7 @@ class OperationsReport(BaseModel):
     doc_status: str
     missing: list[str]
     legal_flags: list[str]
+    rationale: str = ""
     evidence: list[Citation]
     tool_results: dict[str, Any] = Field(default_factory=dict)
 
@@ -156,6 +157,7 @@ class ComplianceVerdict(BaseModel):
     rule_ids: list[str]
     kyc_status: str = ""
     ubo_status: str = ""
+    rationale: str = ""
     citations: list[Citation]
     rule_evidence: list[PolicyDecisionEvidence] = Field(default_factory=list)
     tool_results: dict[str, Any] = Field(default_factory=dict)

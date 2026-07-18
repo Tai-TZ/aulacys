@@ -332,13 +332,21 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
                 policy_version=rule.version,
             )
         )
+    rule_ids = [violation.rule_id for violation in violations]
+    veto = any(violation.is_blocking for violation in violations)
+    rationale = (
+        f"Policy profile={profile}; veto={veto}; "
+        f"rules={','.join(rule_ids) or 'none'}; "
+        f"kyc={kyc.get('status', 'unknown')}; ubo={ubo.get('status', 'unknown')}."
+    )
     return (
         ComplianceVerdict(
             violations=violations,
-            veto=any(violation.is_blocking for violation in violations),
-            rule_ids=[violation.rule_id for violation in violations],
+            veto=veto,
+            rule_ids=rule_ids,
             kyc_status=str(kyc.get("status", "unknown")),
             ubo_status=str(ubo.get("status", "unknown")),
+            rationale=rationale,
             citations=[
                 Citation(source="policy.evaluate", reference=violation.legal_basis, excerpt=violation.rule_id)
                 for violation in violations
@@ -373,6 +381,11 @@ ComplianceSpec = AgentSpec(
     model="deterministic-fallback",
     model_tier="mini",
     max_tool_calls=10,
-    prompt="Evaluate hard legal and policy limits from YAML only. Veto with rule IDs.",
+    prompt=(
+        "Explain the compliance verdict in Vietnamese using the policy rule IDs already decided. "
+        "Do not change veto, rule_ids, or invent thresholds — policy-as-code is authoritative."
+    ),
     fallback=compliance_fallback,
+    llm_prose=True,
+    prose_fields=["rationale"],
 )

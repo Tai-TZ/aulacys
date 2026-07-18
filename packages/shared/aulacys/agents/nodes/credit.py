@@ -219,6 +219,11 @@ CreditSpec = AgentSpec(
     model="deterministic-fallback",
     model_tier="mini",
     max_tool_calls=12,
-    prompt="Assess repayment capacity. Do not make legal conclusions and do not invent numbers.",
+    prompt=(
+        "Assess repayment capacity in Vietnamese prose. "
+        "Do not invent DTI, income, limits, rates, or CIC figures — tools already computed them."
+    ),
     fallback=credit_fallback,
+    llm_prose=True,
+    prose_fields=["rationale"],
 )

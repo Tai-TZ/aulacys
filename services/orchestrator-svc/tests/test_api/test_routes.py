@@ -182,6 +182,31 @@ async def test_assess_by_application_id_unavailable(client, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_assess_falls_back_to_body_when_application_svc_down(client, monkeypatch):
+    monkeypatch.setattr("app.api.routes.load_loan_application", lambda *_a, **_k: None)
+    response = await client.post(
+        "/api/v1/assess/application",
+        json={
+            "application_id": "00000000-0000-0000-0000-000000000001",
+            "product": "retail_mortgage",
+            "declared": {
+                "customer_name": "Fallback User",
+                "amount": 500_000_000,
+                "term_months": 180,
+                "monthly_income": 40_000_000,
+                "id_number": "001099000099",
+                "declared_purpose": "mua nha",
+                "cic_consent": True,
+            },
+            "documents": [],
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "outcome" in data
+
+
+@pytest.mark.asyncio
 async def test_approval_writes_human_ticket(client):
     response = await client.post(
         "/api/v1/approvals",

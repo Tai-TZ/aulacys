@@ -874,7 +874,8 @@ function DossierSummaryCard({
         </div>
 
         <p className="text-left text-xs text-muted-foreground">
-          Sau khi chạy thẩm định multi-agent, kết quả graph hiện bên dưới.
+          Đây là tóm tắt hồ sơ. Bấm <strong>Chạy thẩm định</strong> phía trên để multi-agent chạy
+          — báo cáo nhận định + chỉ số + timeline sẽ hiện bên dưới (không nằm trong khung này).
         </p>
 
       </div>
@@ -1667,6 +1668,64 @@ export function AssessDashboard() {
               />
             </Card>
           </div>
+
+          {/* Agent narrative reports — Critic owns the full textual report */}
+          <Card className="border border-border/70 p-4 shadow-card text-left">
+            <h3 className="text-sm font-semibold text-navy">Báo cáo nhận định agent</h3>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Báo cáo tổng hợp văn bản do <strong>Critic</strong> (tuyến 3) chịu trách nhiệm.
+              Credit / Operations / Compliance chỉ đóng góp nhận định chuyên môn; số liệu vẫn từ tool.
+            </p>
+            <div className="mt-3 space-y-3">
+              {result.critic?.memo ? (
+                <div className="rounded-lg border border-brand/25 bg-accent/40 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-brand">
+                    Critic — báo cáo tổng hợp
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.critic.memo}</p>
+                  {result.critic.remediation_plan?.length ? (
+                    <div className="mt-3 border-t border-border/50 pt-2">
+                      <p className="text-[11px] font-semibold text-muted-foreground">Việc cần làm tiếp</p>
+                      <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+                        {result.critic.remediation_plan.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="rounded-lg border border-dashed border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
+                  Critic chưa chạy trên lane này (thường chỉ lane HITL / sau veto). Case STP sạch có thể
+                  không có báo cáo Critic — xem chỉ số Credit/Compliance bên trên.
+                </p>
+              )}
+              {result.credit?.rationale ? (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Credit — nhận định chuyên môn
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.credit.rationale}</p>
+                </div>
+              ) : null}
+              {result.operations?.rationale ? (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Operations — nhận định chuyên môn
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.operations.rationale}</p>
+                </div>
+              ) : null}
+              {result.compliance?.rationale ? (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Compliance — nhận định chuyên môn
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.compliance.rationale}</p>
+                </div>
+              ) : null}
+            </div>
+          </Card>
 
           {/* Hồ sơ data — summary only, not full form dump */}
           {dossier && (
