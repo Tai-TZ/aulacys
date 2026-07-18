@@ -17,16 +17,16 @@ from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 HERE = Path(__file__).resolve()
-for candidate in (HERE.parents[1], HERE.parents[3] / "apps" / "api"):
+for candidate in (HERE.parents[1], HERE.parents[3] / "packages" / "shared"):
     if candidate.exists() and str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
 
-from src.agents.nodes.compliance import ComplianceSpec  # noqa: E402
-from src.agents.nodes.credit import CreditSpec  # noqa: E402
-from src.agents.nodes.critic import CriticSpec  # noqa: E402
-from src.agents.nodes.operations import OperationsSpec  # noqa: E402
-from src.agents.specs import AgentSpec  # noqa: E402
-from src.agents.transport import hydrate_state, to_wire  # noqa: E402
+from aulacys.agents.nodes.compliance import ComplianceSpec  # noqa: E402
+from aulacys.agents.nodes.credit import CreditSpec  # noqa: E402
+from aulacys.agents.nodes.critic import CriticSpec  # noqa: E402
+from aulacys.agents.nodes.operations import OperationsSpec  # noqa: E402
+from aulacys.agents.specs import AgentSpec  # noqa: E402
+from aulacys.agents.transport import hydrate_state, to_wire  # noqa: E402
 
 SPECS: dict[str, AgentSpec] = {
     "credit": CreditSpec,

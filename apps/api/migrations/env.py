@@ -13,11 +13,11 @@ from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlalchemy.pool import NullPool
 
-from src.config import get_settings
-from src.db.base import Base
+from aulacys.config import get_settings
+from aulacys.db.base import Base
 
 # Import model modules here so Base.metadata is fully populated for autogenerate:
-from src.db import models  # noqa: F401, E402
+from aulacys.db import models  # noqa: F401, E402
 
 config = context.config
 if config.config_file_name is not None:

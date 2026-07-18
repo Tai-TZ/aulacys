@@ -5,7 +5,7 @@ COPY services/agent-worker-svc/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY services/agent-worker-svc/app ./app
-COPY apps/api/src ./src
+COPY packages/shared/aulacys ./aulacys
 
 ENV PYTHONPATH=/svc
 EXPOSE 8400
