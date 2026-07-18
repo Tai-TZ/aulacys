@@ -15,6 +15,7 @@ from aulacys.agents.state import AgentState, NodeTrace
 from aulacys.agents.transport import dump_state
 
 WORKER_ENV = {
+    "planner": "PLANNER_AGENT_URL",
     "credit": "CREDIT_AGENT_URL",
     "operations": "OPERATIONS_AGENT_URL",
     "compliance": "COMPLIANCE_AGENT_URL",
@@ -27,6 +28,9 @@ def _request_id(state: AgentState) -> str:
 
 
 def _worker_url(spec: AgentSpec) -> str | None:
+    common = os.getenv("AGENT_WORKER_URL", "").strip()
+    if common:
+        return common.rstrip("/")
     env_var = WORKER_ENV.get(spec.name)
     if not env_var:
         return None

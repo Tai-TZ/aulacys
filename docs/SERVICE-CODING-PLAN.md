@@ -25,7 +25,7 @@
 | 6 | **aml-svc** | 8320 | JSON seed | seed only | thin | P1 |
 | 7 | **property-svc** | 8330 | JSON seed | seed only | thin | P1 |
 | 8 | **income-svc** | 8340 | none | no | thin | P2 |
-| 9 | **agent-worker-svc** (all 4 agents, §12) | 8400 | none | no | now 4 procs → target **1** | P2 |
+| 9 | **agent-worker-svc** (all agents, §12) | 8400 | none | no | one runtime service | P2 |
 | 13 | **catalog-svc** | 8350 | JSON seed | seed only | **NOT BUILT** | P1 (product demo) |
 | 14 | **application-svc** | 8360 | Postgres schema `application` | **yes** | Phase 1–2 ✅ | P1 (intake) |
 | 15 | **orchestrator DB** | — | none | `loan_run` designed | **NOT BUILT** | P3 |
@@ -108,7 +108,7 @@ CREATE INDEX ix_loan_run_application_id ON loan_run (application_id);
 | Compliance | `tools/aml.py` | `AML_SVC_URL` | aml-svc |
 | Operations | `tools/property.py` | `PROPERTY_SVC_URL` | property-svc |
 | Credit | `tools/income.py` | `INCOME_SVC_URL` | income-svc |
-| Graph | transport | `AGENT_WORKER_URL` (target; now `CREDIT_AGENT_URL` …) | agent-worker-svc (§12) |
+| Graph | transport | `AGENT_WORKER_URL` | agent-worker-svc (§12) |
 
 ### Coding steps
 1. Keep graph + veto loop **in-process** — do not network the loop (`ARCHITECTURE-services` §7).
@@ -505,17 +505,17 @@ BFF: proxy assess + aggregate `/status`. Owns **no** data.
 
 ## 12. agent-worker-svc — **ONE service for all four agents** · **P2**
 
-### ✅ Decision: collapse 4 → 1 (do NOT split per agent)
-credit / operations / compliance / critic are **not** four services. They share one
+### ✅ Decision applied: collapse agents into one runtime (do NOT split per agent)
+planner / credit / operations / compliance / critic are **not** five services. They share one
 harness, are stateless, own no data, and have one scaling profile — splitting by
 function is over-engineering (`ARCHITECTURE-services.md` §8 rule: split by bounded
 context / data ownership / scaling need, not by class). One `agent-worker-svc` serves
-all four; the caller names the agent in the request body.
+all agents; the caller names the agent in the request body.
 
 **Split compliance out later ONLY if** it genuinely needs a stronger model + independent
 scaling (§8 lane 3). YAGNI until then.
 
-| | Now (4 processes) | Target (1 service) |
+| | Before (4 processes) | Now (1 service) |
 |---|---|---|
 | Instances | credit/operations/compliance/critic on 8401–8404 | one `agent-worker-svc` on **8400** |
 | Binding | `AGENT_NAME` locks each process to one agent (rejects others) | no lock — `/run` dispatches by `req.agent` to `SPECS[agent]` |
@@ -523,11 +523,9 @@ scaling (§8 lane 3). YAGNI until then.
 | Gateway `SERVICES` | 4 entries | **1** entry |
 | Compose | 4 blocks | **1** block, port 8400 |
 
-> This is a **documented decision, not yet applied in code.** Code change (when done):
-> drop the `AGENT_NAME` lock in `services/agent-worker-svc/app/main.py`; replace
-> `WORKER_ENV` (4 vars) in `apps/api/src/agents/worker_client.py` with one
-> `AGENT_WORKER_URL`; collapse the gateway `SERVICES` list and the compose blocks.
-> Keep the per-node in-process fallback unchanged.
+> Applied in code: `services/agent-worker-svc/app/main.py` dispatches by `req.agent`,
+> the orchestrator prefers `AGENT_WORKER_URL`, gateway monitors one service, and
+> compose starts one agent runtime block. Per-node in-process fallback remains.
 
 ### API (unchanged by the merge)
 
@@ -547,7 +545,7 @@ None. Today imports `apps/api` node fallbacks — acceptable for demo; prod copi
 5. Workers call tool/policy URLs via clients when set.
 
 ### DoD
-- [ ] One `agent-worker-svc` serves all four agents; one `AGENT_WORKER_URL`.
+- [x] One `agent-worker-svc` serves all agents; one `AGENT_WORKER_URL`.
 - [ ] Worker down ⇒ in-process fallback; veto loop still visible in `trace[]`.
 
 ---
@@ -602,14 +600,10 @@ flowchart TD
 | `AML_SVC_URL` | monolith | unset → in-process |
 | `PROPERTY_SVC_URL` | monolith | unset → in-process |
 | `INCOME_SVC_URL` | monolith | unset → in-process |
-| `CREDIT_AGENT_URL` | monolith | unset → in-process |
-| `OPERATIONS_AGENT_URL` | monolith | unset → in-process |
-| `COMPLIANCE_AGENT_URL` | monolith | unset → in-process |
-| `CRITIC_AGENT_URL` | monolith | unset → in-process |
+| `AGENT_WORKER_URL` | monolith | unset → in-process |
 | `MONOLITH_URL` | gateway | `http://127.0.0.1:8000` |
 | `AUDIT_DB` / `LOS_DB` | audit / los | `./audit.db` / `./los.db` |
 | `DATABASE_URL` / `DIRECT_URL` | data-owners + monolith | blank → disabled |
-| `AGENT_NAME` | agent-worker | `credit` |
 | `CORS_ORIGINS` | gateway | `http://localhost:3000` |
 | `NEXT_PUBLIC_API_URL` | web | monolith |
 | `NEXT_PUBLIC_GATEWAY_URL` | web | gateway |

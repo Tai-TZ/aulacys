@@ -8,7 +8,6 @@ import yaml
 from langgraph.graph import END, StateGraph
 
 from aulacys.agents.audit_client import post_audit
-from aulacys.agents.harness.runner import run
 from aulacys.agents.nodes.compliance import ComplianceSpec
 from aulacys.agents.nodes.credit import CreditSpec
 from aulacys.agents.nodes.critic import CriticSpec
@@ -410,13 +409,13 @@ async def process_application(state: AgentState) -> dict[str, Any]:
     # Plan -> execute -> (veto -> replan -> RE-EXECUTE)* up to the cap.
     # This loop IS the demo: the veto is an edge back to the planner, and the
     # cap is what stops an infinite veto/replan cycle mid-demo (BUILD-GUIDE §5.2).
-    next_state["plan"] = run(PlannerSpec, next_state)
+    next_state["plan"] = run_agent(PlannerSpec, next_state)
     _run_configured_agents(next_state, config)
     veto_fired = _has_veto(next_state)
 
     while _has_veto(next_state) and next_state["replan_count"] < REPLAN_CAP:
         next_state["replan_count"] += 1
-        next_state["plan"] = run(PlannerSpec, next_state)  # planner reads replan_count
+        next_state["plan"] = run_agent(PlannerSpec, next_state)  # planner reads replan_count
         _run_configured_agents(next_state, config)
 
     escalated = _has_veto(next_state)  # still vetoed after the cap -> human
