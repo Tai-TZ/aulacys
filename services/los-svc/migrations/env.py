@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from logging.config import fileConfig
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, pool, text
 
 from app.core.config import get_settings
 from app.db.base import Base
@@ -23,8 +23,16 @@ def _url() -> str:
     if not raw:
         raise RuntimeError("Set DIRECT_URL or DATABASE_URL for los-svc migrations")
     parts = urlsplit(raw)
-    scheme = "postgresql+psycopg" if parts.scheme in ("postgres", "postgresql") else parts.scheme
-    return urlunsplit((scheme, parts.netloc, parts.path, "", ""))
+    scheme = (
+        "postgresql+psycopg"
+        if parts.scheme in ("postgres", "postgresql")
+        else parts.scheme
+    )
+    schema = get_settings().db_schema
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    if "options" not in query and schema:
+        query["options"] = f"-csearch_path={schema}"
+    return urlunsplit((scheme, parts.netloc, parts.path, urlencode(query), ""))
 
 
 def run_migrations_offline() -> None:
@@ -36,12 +44,18 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section) or {}
     configuration["sqlalchemy.url"] = _url()
-    connectable = engine_from_config(configuration, prefix="sqlalchemy.", poolclass=pool.NullPool)
+    connectable = engine_from_config(
+        configuration, prefix="sqlalchemy.", poolclass=pool.NullPool
+    )
     with connectable.connect() as connection:
+        schema = get_settings().db_schema
+        connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema}"'))
+        connection.execute(text(f'SET search_path TO "{schema}"'))
+        connection.commit()
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            version_table_schema=get_settings().db_schema,
+            version_table_schema=schema,
             include_schemas=True,
         )
         with context.begin_transaction():

@@ -25,9 +25,14 @@ def test_disabled_by_default(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_ping_never_raises_when_disabled():
+async def test_ping_never_raises_when_disabled(monkeypatch):
     # Demo-proof: a missing/dead DB must not raise.
-    assert await session.ping() is False
+    monkeypatch.setenv("DATABASE_URL", "")
+    get_settings.cache_clear()
+    try:
+        assert await session.ping() is False
+    finally:
+        get_settings.cache_clear()
 
 
 def test_db_enabled_reflects_url(monkeypatch):

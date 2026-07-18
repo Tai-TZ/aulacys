@@ -22,19 +22,36 @@ def upgrade() -> None:
         "loan_application",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("contract_no", sa.Text(), nullable=True),
-        sa.Column("product", sa.Text(), nullable=False, server_default="retail_unsecured_salary"),
+        sa.Column(
+            "product",
+            sa.Text(),
+            nullable=False,
+            server_default="retail_unsecured_salary",
+        ),
         sa.Column("total_amount", sa.Numeric(18, 0), nullable=False),
         sa.Column("term_months", sa.Integer(), nullable=False),
-        sa.Column("lending_method", sa.Text(), nullable=False, server_default="per_loan"),
+        sa.Column(
+            "lending_method", sa.Text(), nullable=False, server_default="per_loan"
+        ),
         sa.Column("status", sa.Text(), nullable=False, server_default="submitted"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
         sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=True),
     )
     op.create_index("ix_loan_application_status", "loan_application", ["status"])
 
     op.create_table(
         "applicant",
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), primary_key=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            primary_key=True,
+        ),
         sa.Column("full_name", sa.Text(), nullable=False),
         sa.Column("dob", sa.Date(), nullable=True),
         sa.Column("gender", sa.Text(), nullable=True),
@@ -48,7 +65,12 @@ def upgrade() -> None:
 
     op.create_table(
         "applicant_phone",
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), primary_key=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            primary_key=True,
+        ),
         sa.Column("mobile_1", sa.Text(), nullable=False),
         sa.Column("mobile_2", sa.Text(), nullable=True),
         sa.Column("zalo_phone", sa.Text(), nullable=True),
@@ -57,19 +79,36 @@ def upgrade() -> None:
     op.create_table(
         "applicant_address",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), nullable=False),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            nullable=False,
+        ),
         sa.Column("kind", sa.Text(), nullable=False),
         sa.Column("street", sa.Text(), nullable=True),
         sa.Column("ward", sa.Text(), nullable=True),
         sa.Column("district", sa.Text(), nullable=True),
         sa.Column("province", sa.Text(), nullable=True),
-        sa.Column("same_as_permanent", sa.Boolean(), nullable=True, server_default=sa.text("false")),
+        sa.Column(
+            "same_as_permanent",
+            sa.Boolean(),
+            nullable=True,
+            server_default=sa.text("false"),
+        ),
     )
-    op.create_index("ix_applicant_address_application_id", "applicant_address", ["application_id"])
+    op.create_index(
+        "ix_applicant_address_application_id", "applicant_address", ["application_id"]
+    )
 
     op.create_table(
         "employment",
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), primary_key=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            primary_key=True,
+        ),
         sa.Column("occupation", sa.Text(), nullable=True),
         sa.Column("employer_name", sa.Text(), nullable=True),
         sa.Column("position", sa.Text(), nullable=True),
@@ -80,18 +119,32 @@ def upgrade() -> None:
     op.create_table(
         "reference_person",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), nullable=False),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            nullable=False,
+        ),
         sa.Column("seq", sa.Integer(), nullable=False),
         sa.Column("full_name", sa.Text(), nullable=False),
         sa.Column("relationship", sa.Text(), nullable=True),
         sa.Column("phone", sa.Text(), nullable=True),
-        sa.Column("same_address", sa.Boolean(), nullable=True, server_default=sa.text("false")),
+        sa.Column(
+            "same_address", sa.Boolean(), nullable=True, server_default=sa.text("false")
+        ),
     )
-    op.create_index("ix_reference_person_application_id", "reference_person", ["application_id"])
+    op.create_index(
+        "ix_reference_person_application_id", "reference_person", ["application_id"]
+    )
 
     op.create_table(
         "spouse",
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), primary_key=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            primary_key=True,
+        ),
         sa.Column("full_name", sa.Text(), nullable=True),
         sa.Column("phone", sa.Text(), nullable=True),
         sa.Column("id_number", sa.Text(), nullable=True),
@@ -102,35 +155,67 @@ def upgrade() -> None:
 
     op.create_table(
         "financial_capacity",
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), primary_key=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            primary_key=True,
+        ),
         sa.Column("total_income", sa.Numeric(18, 0), nullable=False),
         sa.Column("personal_expense", sa.Numeric(18, 0), nullable=True),
     )
 
     op.create_table(
         "consent",
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), primary_key=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            primary_key=True,
+        ),
         sa.Column("data_processing_consent", sa.Boolean(), nullable=False),
-        sa.Column("marketing_consent", sa.Boolean(), nullable=False, server_default=sa.text("false")),
+        sa.Column(
+            "marketing_consent",
+            sa.Boolean(),
+            nullable=False,
+            server_default=sa.text("false"),
+        ),
         sa.Column("consent_version", sa.Text(), nullable=True),
-        sa.Column("consent_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "consent_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
     )
 
     op.create_table(
         "loan_purpose",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), nullable=False),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            nullable=False,
+        ),
         sa.Column("category", sa.Text(), nullable=False),
         sa.Column("amount", sa.Numeric(18, 0), nullable=False),
         sa.Column("purpose_detail", sa.Text(), nullable=True),
         sa.Column("prepaid_amount", sa.Numeric(18, 0), nullable=True),
     )
-    op.create_index("ix_loan_purpose_application_id", "loan_purpose", ["application_id"])
+    op.create_index(
+        "ix_loan_purpose_application_id", "loan_purpose", ["application_id"]
+    )
 
     op.create_table(
         "purpose_goods",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("purpose_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_purpose.id"), nullable=False),
+        sa.Column(
+            "purpose_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_purpose.id"),
+            nullable=False,
+        ),
         sa.Column("seq", sa.Integer(), nullable=False),
         sa.Column("name", sa.Text(), nullable=True),
         sa.Column("brand", sa.Text(), nullable=True),
@@ -142,7 +227,12 @@ def upgrade() -> None:
     op.create_table(
         "disbursement",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), nullable=False),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            nullable=False,
+        ),
         sa.Column("for_category", sa.Text(), nullable=True),
         sa.Column("method", sa.Text(), nullable=False),
         sa.Column("bank", sa.Text(), nullable=True),
@@ -152,11 +242,18 @@ def upgrade() -> None:
         sa.Column("beneficiary_name", sa.Text(), nullable=True),
         sa.Column("beneficiary_tax_id", sa.Text(), nullable=True),
     )
-    op.create_index("ix_disbursement_application_id", "disbursement", ["application_id"])
+    op.create_index(
+        "ix_disbursement_application_id", "disbursement", ["application_id"]
+    )
 
     op.create_table(
         "sales_info",
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("loan_application.id"), primary_key=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("loan_application.id"),
+            primary_key=True,
+        ),
         sa.Column("dsa_code", sa.Text(), nullable=True),
         sa.Column("witness_phone", sa.Text(), nullable=True),
         sa.Column("branch_pos_hub", sa.Text(), nullable=True),

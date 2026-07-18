@@ -37,13 +37,26 @@ def upgrade() -> None:
         sa.Column("tier", sa.Integer(), nullable=True),
         sa.Column("confirmed_by", sa.Text(), nullable=True),
         sa.Column("uploaded_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
     )
-    op.create_index("ix_application_document_application_id", "application_document", ["application_id"])
-    op.create_index("ix_application_document_doc_type", "application_document", ["doc_type"])
+    op.create_index(
+        "ix_application_document_application_id",
+        "application_document",
+        ["application_id"],
+    )
+    op.create_index(
+        "ix_application_document_doc_type", "application_document", ["doc_type"]
+    )
 
 
 def downgrade() -> None:
     op.drop_index("ix_application_document_doc_type", table_name="application_document")
-    op.drop_index("ix_application_document_application_id", table_name="application_document")
+    op.drop_index(
+        "ix_application_document_application_id", table_name="application_document"
+    )
     op.drop_table("application_document")

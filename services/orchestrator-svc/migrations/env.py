@@ -1,13 +1,12 @@
-"""application-svc Alembic — schema `application` only."""
+"""orchestrator-svc Alembic — schema `orchestrator` only."""
 
 from __future__ import annotations
 
 from logging.config import fileConfig
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool, text
-from sqlalchemy.engine.url import make_url
-
 
 from app.core.config import get_settings
 from app.db.base import Base
@@ -21,17 +20,17 @@ target_metadata = Base.metadata
 
 def _url() -> str:
     raw = get_settings().alembic_url
-    if not raw:
-        raise RuntimeError(
-            "Set DIRECT_URL or DATABASE_URL for application-svc migrations"
-        )
-    # make_url tolerates Supabase userinfo; urlsplit breaks on [...] placeholders/brackets
-    url = make_url(raw).set(drivername="postgresql+psycopg")
+    parts = urlsplit(raw)
+    scheme = (
+        "postgresql+psycopg"
+        if parts.scheme in ("postgres", "postgresql")
+        else parts.scheme
+    )
     schema = get_settings().db_schema
-    query = dict(url.query)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
     if "options" not in query and schema:
         query["options"] = f"-csearch_path={schema}"
-    return url.set(query=query).render_as_string(hide_password=False)
+    return urlunsplit((scheme, parts.netloc, parts.path, urlencode(query), ""))
 
 
 def run_migrations_offline() -> None:
