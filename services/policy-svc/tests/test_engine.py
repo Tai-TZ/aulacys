@@ -26,7 +26,7 @@ def test_blocking_exposure_veto() -> None:
 
 def test_unverified_rules_surfaced() -> None:
     unverified = {r.id for r in engine.unverified_rules()}
-    assert "prohibited_purpose_refinance_other_bank" in unverified
+    assert "land_title_clear" in unverified
     assert "single_customer_credit_limit" not in unverified
 
 
@@ -44,13 +44,13 @@ def test_evaluate_route_veto_flag() -> None:
 def test_health_unverified_list() -> None:
     resp = client.get("/health")
     assert resp.status_code == 200
-    assert "prohibited_purpose_refinance_other_bank" in resp.json()["unverified_rules"]
+    assert "land_title_clear" in resp.json()["unverified_rules"]
 
 
-def test_unverified_rule_never_auto_vetoes() -> None:
+def test_prohibited_purpose_is_blocking_veto() -> None:
     violations = engine.evaluate({"prohibited_purpose_refinance_other_bank": 1})
 
     purpose = next(v for v in violations if v.rule_id == "prohibited_purpose_refinance_other_bank")
-    assert purpose.unverified is True
-    assert purpose.severity == "warning"
-    assert purpose.is_blocking is False
+    assert purpose.unverified is False
+    assert purpose.severity == "blocking"
+    assert purpose.is_blocking is True

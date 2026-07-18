@@ -115,6 +115,16 @@ def test_dti_fails_closed_when_cic_debt_has_no_monthly_obligation(monkeypatch) -
             return {"verified_monthly_income": 20_000_000}
         if name == "compute_annual_debt_service":
             return {"monthly_payment": 5_000_000}
+        if name == "age_at_maturity_check":
+            return {"within_range": True}
+        if name == "amount_within_income_multiple":
+            return {"within_limit": True}
+        if name == "term_matches_purpose":
+            return {"matches": True}
+        if name == "dti_within_income_band":
+            return {"within_band": False}
+        if name == "disposable_income_buffer":
+            return {"meets_buffer": True}
         if name == "price_loan":
             return {"decision": "manual_review", "proposed_rate": 0.13, "proposed_limit": 0}
         raise AssertionError(f"unexpected tool call: {name}")
@@ -148,6 +158,16 @@ def test_dti_uses_cic_monthly_obligation_instead_of_declared_debt(monkeypatch) -
         if name == "compute_dti":
             captured.update(args)
             return {"dti": 0.4, "inputs": args}
+        if name == "age_at_maturity_check":
+            return {"within_range": True}
+        if name == "amount_within_income_multiple":
+            return {"within_limit": True}
+        if name == "term_matches_purpose":
+            return {"matches": True}
+        if name == "dti_within_income_band":
+            return {"within_band": True}
+        if name == "disposable_income_buffer":
+            return {"meets_buffer": True}
         if name == "price_loan":
             return {"decision": "priceable", "proposed_limit": 100_000_000, "proposed_rate": 0.13}
         raise AssertionError(f"unexpected tool call: {name}")

@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 
 class ApplicantIn(BaseModel):
+    customer_id: str | None = None
     full_name: str
     dob: date | None = None
     gender: str | None = None

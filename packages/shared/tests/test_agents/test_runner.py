@@ -41,7 +41,11 @@ def test_llm_not_configured_without_key(monkeypatch):
     assert _llm_configured(PlannerSpec) is False
 
 
-def test_credit_compliance_operations_prose_are_rationale_only():
+def test_credit_compliance_operations_prose_are_rationale_only(monkeypatch):
+    """Credit/Compliance/Operations may call LLM for rationale only; numbers stay on tools."""
+    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    get_settings.cache_clear()
     assert CreditSpec.llm_prose is True
     assert CreditSpec.prose_fields == ["rationale"]
     assert CreditSpec.model_tier == "mini"
@@ -51,6 +55,8 @@ def test_credit_compliance_operations_prose_are_rationale_only():
     assert OperationsSpec.llm_prose is True
     assert OperationsSpec.prose_fields == ["rationale"]
     assert OperationsSpec.model_tier == "mini"
+    assert _llm_configured(CreditSpec) is True
+    get_settings.cache_clear()
 
 
 def test_planner_uses_strong_model_tier_for_prose():

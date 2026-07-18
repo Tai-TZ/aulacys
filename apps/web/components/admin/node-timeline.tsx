@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Loader2, ShieldAlert } from "lucide-react";
+import { CheckCircle2, RefreshCw, ShieldAlert } from "lucide-react";
 import type { NodeTrace } from "@/lib/api";
 import { nodeLabelVi, toolLabelVi } from "@/lib/labels";
 import { cn } from "@/lib/cn";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 function toneForNode(node: string, vetoFired: boolean, index: number) {
   const n = node.toLowerCase();
   if (n === "compliance" && vetoFired) return "veto" as const;
+  // Any planner after the first is a replan hop (already finished in the trace).
   if (n === "planner" && index > 0) return "replan" as const;
   return "ok" as const;
 }
@@ -68,7 +69,7 @@ export function NodeTimeline({
               {tone === "veto" ? (
                 <ShieldAlert size={14} />
               ) : tone === "replan" ? (
-                <Loader2 size={14} className="animate-spin" />
+                <RefreshCw size={14} aria-label="Đã điều chỉnh (replan)" />
               ) : (
                 <CheckCircle2 size={14} />
               )}
@@ -83,7 +84,7 @@ export function NodeTimeline({
                 )}
                 {tone === "replan" && (
                   <span className="rounded-full bg-active-soft px-2 py-0.5 text-[10px] font-semibold text-active-foreground">
-                    Điều chỉnh lại
+                    Đã điều chỉnh
                   </span>
                 )}
                 {passNote && (

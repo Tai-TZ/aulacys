@@ -1,6 +1,6 @@
 """application_document model — metadata only (no live DB)."""
 
-from app.db.models import ApplicationDocument, LoanApplication
+from app.db.models import Applicant, ApplicationDocument, LoanApplication
 
 
 def test_application_document_tablename():
@@ -14,3 +14,8 @@ def test_application_document_fk():
 
 def test_loan_application_has_documents_relationship():
     assert "documents" in LoanApplication.__mapper__.relationships
+
+
+def test_applicant_has_indexed_customer_id():
+    assert Applicant.__table__.c.customer_id.nullable is True
+    assert Applicant.__table__.c.customer_id.index is True

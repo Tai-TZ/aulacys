@@ -34,10 +34,10 @@ none
 
 ## Follow-ups / TODO
 
-- [ ] Encode DTI bands + income floors + amount ceiling in `policy/rules/retail_lending.yaml` / product YAML
-- [ ] Wire age-at-maturity + eKYC score + geo radius tools (mock OK for demo)
-- [ ] Disposable income buffer as deterministic tool output for Critic
-
+- [x] Encode DTI bands + income floors + amount ceiling in `policy/rules/retail_lending.yaml` / product YAML
+- [x] Wire age-at-maturity + eKYC score + geo radius tools (mock OK for demo)
+- [x] Disposable income buffer as deterministic tool output for Critic
+- [ ] Real face-match CV provider (path equality is demo-only)
 ## Gotchas
 
 - Age rule is **at loan maturity**, not only at application date.

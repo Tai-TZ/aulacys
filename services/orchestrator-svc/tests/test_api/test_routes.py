@@ -22,13 +22,13 @@ async def test_agent_status(client):
 
 
 @pytest.mark.asyncio
-async def test_assess_unverified_rule_routes_to_human(client):
+async def test_assess_purpose_veto_on_mortgage(client):
     response = await client.post("/api/v1/assess", json={"message": "retail mortgage"})
     assert response.status_code == 200
     data = response.json()
-    assert data["outcome"] == "ready_for_human_approval"
+    assert data["outcome"] == "vetoed"
     assert data["run_trace"]["lane"] == 3
-    assert data["run_trace"]["replan_count"] == 0
+    assert data["run_trace"]["veto_fired"] is True
     assert data["credit"]["dti"] == 0.3878
     assert data["credit"]["proposed_limit"] == 2_500_000_000
     assert data["credit"]["proposed_rate"] is not None
@@ -36,17 +36,19 @@ async def test_assess_unverified_rule_routes_to_human(client):
     assert data["proposal"]["status"] == "revised"
     assert data["credit"]["proposal"] == data["proposal"]
     cic = data["credit"]["tool_results"]["cic_lookup"]
-    assert cic["max_overdue_days"] == 0  # fallback when CIC_SVC_URL unset
+    assert cic["record_found"] is True
+    assert cic["max_overdue_days"] == 0
     assert cic["cic_group"] == 1
     assert cic["has_bad_debt"] is False
     assert "overdue_days" in cic  # alias
     assert data["operations"]["valuation"] == 4_000_000_000
     assert data["operations"]["legal_flags"] == []
-    assert data["compliance"]["veto"] is False
+    assert data["compliance"]["veto"] is True
     purpose = next(
         v for v in data["compliance"]["violations"] if v["rule_id"] == "prohibited_purpose_refinance_other_bank"
     )
-    assert purpose["unverified"] is True
+    assert purpose["unverified"] is False
+    assert purpose["severity"] == "blocking"
     assert data["compliance"]["kyc_status"] == "passed"
     assert data["critic"]["passed"] is True
     assert data["critic"]["memo"]
@@ -60,7 +62,7 @@ async def test_assess_empty_message(client):
 
 
 @pytest.mark.asyncio
-async def test_assess_application_unverified_rule_routes_to_human(client):
+async def test_assess_application_purpose_veto(client):
     """POST /assess/application uses the body — not seed_application()."""
     payload = {
         "product": "retail_mortgage",
@@ -73,7 +75,7 @@ async def test_assess_application_unverified_rule_routes_to_human(client):
             "existing_monthly_debt": 8_000_000,
             "declared_purpose": "mua nhà để ở",
             "collateral_value_declared": 4_000_000_000,
-            "id_number": "001099000003",
+            "id_number": "001099000001",
             "cic_consent": True,
         },
         "documents": [
@@ -92,14 +94,13 @@ async def test_assess_application_unverified_rule_routes_to_human(client):
     response = await client.post("/api/v1/assess/application", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["outcome"] == "ready_for_human_approval"
-    assert data["run_trace"]["veto_fired"] is False
-    assert data["run_trace"]["replan_count"] == 0
-    assert data["compliance"]["veto"] is False
+    assert data["outcome"] == "vetoed"
+    assert data["run_trace"]["veto_fired"] is True
+    assert data["compliance"]["veto"] is True
     assert "prohibited_purpose_refinance_other_bank" in data["compliance"]["rule_ids"]
     assert data["proposal"]["requested_amount"] == payload["declared"]["amount"]
     assert data["proposal"]["status"] == "revised"
-    assert sum(1 for item in data["trace"] if item["node"] == "compliance") == 1
+    assert sum(1 for item in data["trace"] if item["node"] == "compliance") >= 1
 
 
 @pytest.mark.asyncio
@@ -130,8 +131,12 @@ async def test_assess_by_application_id_maps_and_runs(client, monkeypatch):
         "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
         "product": "loan-unsecured-term",
         "total_amount": "250000000",
-        "term_months": 36,
-        "applicant": {"full_name": "Nguyen Van A", "id_number": "001099000001"},
+        "term_months": 24,
+        "applicant": {
+            "full_name": "Nguyen Van A",
+            "id_number": "001099000001",
+            "dob": "1990-01-15",
+        },
         "financial": {"total_income": "35000000", "personal_expense": "3000000"},
         "consent": {"data_processing_consent": True},
         "purposes": [{"category": "consumer", "amount": "250000000", "purpose_detail": "tiêu dùng cá nhân"}],
@@ -180,6 +185,31 @@ async def test_assess_by_application_id_unavailable(client, monkeypatch):
         json={"application_id": "00000000-0000-0000-0000-000000000001"},
     )
     assert response.status_code == 502
+
+
+@pytest.mark.asyncio
+async def test_assess_falls_back_to_body_when_application_svc_down(client, monkeypatch):
+    monkeypatch.setattr("app.api.routes.load_loan_application", lambda *_a, **_k: None)
+    response = await client.post(
+        "/api/v1/assess/application",
+        json={
+            "application_id": "00000000-0000-0000-0000-000000000001",
+            "product": "retail_mortgage",
+            "declared": {
+                "customer_name": "Fallback User",
+                "amount": 500_000_000,
+                "term_months": 180,
+                "monthly_income": 40_000_000,
+                "id_number": "001099000099",
+                "declared_purpose": "mua nha",
+                "cic_consent": True,
+            },
+            "documents": [],
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "outcome" in data
 
 
 @pytest.mark.asyncio

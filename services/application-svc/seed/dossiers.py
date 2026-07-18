@@ -68,6 +68,7 @@ def _base(
         "lending_method": "per_loan",
         "status": "submitted",
         "applicant": {
+            "customer_id": None,
             "full_name": full_name,
             "dob": dob,
             "gender": gender,
@@ -162,7 +163,7 @@ SEED_DOSSIERS: list[dict[str, Any]] = [
     _base(
         scenario="demo_veto",
         product="retail_unsecured_salary",
-        amount=300_000_000,
+        amount=160_000_000,  # ≤12× income 18tr so purpose veto is the only block
         term_months=24,
         full_name="TRẦN THỊ VUI",
         id_number="091185013867",
@@ -198,7 +199,7 @@ SEED_DOSSIERS: list[dict[str, Any]] = [
     _base(
         scenario="demo_hitl",
         product="retail_unsecured_salary",
-        amount=200_000_000,
+        amount=180_000_000,  # ≤12× income 15tr; CIC group 2 → HITL
         term_months=48,
         full_name="NGUYỄN THỊ HUYỀN TRẦN",
         id_number="054301008970",
