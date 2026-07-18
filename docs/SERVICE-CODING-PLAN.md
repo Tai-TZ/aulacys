@@ -319,7 +319,7 @@ services/policy-svc/
 
 ### Coding steps
 1. Layer split; table-driven operators only.
-2. Sync `version` field with monolith loader (P1.2 in `CODING-PLAN.md`).
+2. Sync `version` field with monolith loader and policy YAML.
 3. Per-product LTV caps from catalog (mortgage ≤0.9, repair ≤0.8) — product metric or rule tags.
 4. Human verifies thresholds → `verified: true` (never invent statutory numbers).
 5. Mirror any rule change into `apps/api/src/policy/rules/` (fallback copy).
@@ -638,7 +638,7 @@ Copy for each PR:
 | Full `DATA_DICTIONARY` online-lending schema (eKYC, repayment, …) | Out of wow-slice — reference only |
 | Real CIC / core-banking / OCR | `AGENTS.md` §0 out of scope |
 | Production RBAC | Demo MCP roles only |
-| RAG/KB service | Blocked on verified `rule_ids` (`CODING-PLAN` P1.4) |
+| RAG/KB service | Blocked on verified `rule_ids` and legal article text. |
 | Planner as its own service | High risk, low demo value |
 
 ---
@@ -653,5 +653,5 @@ Copy for each PR:
 | What stores what today | `DATA-INTEGRITY-AND-STORAGE.md` |
 | How to run | `MICROSERVICES-STATUS.md` |
 | Prod hardening phases | `MICROSERVICES-PRODUCTION-REPORT.md` |
-| Monolith feature backlog | `CODING-PLAN.md` / `NEXT-STEPS.md` |
+| Monolith feature backlog | `AGENT-SPEC.md` / `LIFECYCLE-MULTI-AGENT-ARCHITECTURE.md` |
 | API shapes for web | `API.md` + `schemas.py` |

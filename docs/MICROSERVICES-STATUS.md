@@ -2,7 +2,7 @@
 
 > Where the split is now and exactly what to do next. Design rationale:
 > `ARCHITECTURE-services.md`. System overview: `OVERVIEW.md`.
-> Immediate pickup guide: `NEXT-STEPS.md`.
+> Current service coding roadmap: `SERVICE-CODING-PLAN.md`.
 
 ## TL;DR
 
@@ -103,8 +103,8 @@ curl -s localhost:8310/tickets/retail-demo
 
 ## Commit status
 
-The service split, web monitor, and runbook updates are committed on
-`feat/services-gateway-monitor`. See `NEXT-STEPS.md` for the next pickup order.
+The service split, web monitor, and runbook updates are represented in the current
+branch history. See `SERVICE-CODING-PLAN.md` for the next pickup order.
 
 ## Next steps (in order)
 
