@@ -93,18 +93,23 @@ class LoanApplication(BaseModel):
 class DAG(BaseModel):
     nodes: list[str]
     edges: list[tuple[str, str]]
+    rationale: str = ""
 
 
 class CreditAssessment(BaseModel):
     dti: float | None
     income: float
+    proposed_limit: float | None = None
+    proposed_rate: float | None = None
     recommendation: str
+    rationale: str = ""
     evidence: list[Citation]
     tool_results: dict[str, Any] = Field(default_factory=dict)
 
 
 class OperationsReport(BaseModel):
     valuation: float | None
+    valuation_task: dict[str, Any] = Field(default_factory=dict)
     doc_status: str
     missing: list[str]
     legal_flags: list[str]
@@ -116,6 +121,8 @@ class ComplianceVerdict(BaseModel):
     violations: list[PolicyViolation]
     veto: bool
     rule_ids: list[str]
+    kyc_status: str = ""
+    ubo_status: str = ""
     citations: list[Citation]
     tool_results: dict[str, Any] = Field(default_factory=dict)
 
@@ -123,6 +130,8 @@ class ComplianceVerdict(BaseModel):
 class CriticVerdict(BaseModel):
     passed: bool
     rejections: list[str]
+    memo: str = ""
+    remediation_plan: list[str] = Field(default_factory=list)
 
 
 class NodeTrace(BaseModel):

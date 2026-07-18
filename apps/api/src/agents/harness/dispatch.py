@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from src.agents.harness.permissions import is_tool_allowed
 from src.agents.specs import AgentSpec
 from src.agents.tools import TOOL_REGISTRY
 
@@ -11,8 +12,8 @@ def dispatch(spec: AgentSpec, tool_name: str, args: dict[str, Any]) -> dict[str,
 
     The whitelist is enforced here, not in prompts.
     """
-    if tool_name not in spec.tools:
-        return {"error": f"tool '{tool_name}' is not allowed for agent '{spec.name}'"}
+    if not is_tool_allowed(spec.tools, tool_name):
+        return {"error": f"tool '{tool_name}' is not allowed for agent '{spec.name}' permissions={spec.tools}"}
     tool = TOOL_REGISTRY.get(tool_name)
     if tool is None:
         return {"error": f"tool '{tool_name}' is not registered"}

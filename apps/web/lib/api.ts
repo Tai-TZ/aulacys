@@ -142,6 +142,8 @@ export interface ComplianceVerdict {
   veto: boolean;
   rule_ids: string[];
   violations: PolicyViolation[];
+  kyc_status: string;
+  ubo_status: string;
   citations: unknown[];
   tool_results: Record<string, unknown>;
 }
@@ -155,13 +157,17 @@ export interface Citation {
 export interface CreditAssessment {
   dti: number | null;
   income: number;
+  proposed_limit: number | null;
+  proposed_rate: number | null;
   recommendation: string;
+  rationale: string;
   evidence: Citation[];
   tool_results: Record<string, unknown>;
 }
 
 export interface OperationsReport {
   valuation: number | null;
+  valuation_task: Record<string, unknown>;
   doc_status: string;
   missing: string[];
   legal_flags: string[];
@@ -176,6 +182,12 @@ export interface AssessResponse {
   credit: CreditAssessment | null;
   operations: OperationsReport | null;
   compliance: ComplianceVerdict | null;
+  critic?: {
+    passed: boolean;
+    rejections: string[];
+    memo: string;
+    remediation_plan: string[];
+  } | null;
   trace: NodeTrace[];
   ticket: Record<string, unknown> | null;
   audit: Record<string, unknown> | null; // { record_id, seq, content_hash, prev_hash, decided_at } when AUDIT_SVC_URL set

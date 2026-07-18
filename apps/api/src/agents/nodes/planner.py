@@ -14,7 +14,12 @@ def planner_fallback(state: AgentState, spec: AgentSpec) -> tuple[DAG, list[str]
             edges.append((str(prerequisite), str(node)))
     if not edges:
         edges = [("planner", agent) for agent in agents]
-    return DAG(nodes=["planner", *agents], edges=edges), []
+    rationale = "Product config selected agents and dependencies; no business outcome is decided in Planner."
+    if int(state.get("replan_count", 0)) > 0:
+        rationale = (
+            "Compliance veto returned control to Planner; DAG is rebuilt from product config before re-execution."
+        )
+    return DAG(nodes=["planner", *agents], edges=edges, rationale=rationale), []
 
 
 PlannerSpec = AgentSpec(
@@ -24,7 +29,10 @@ PlannerSpec = AgentSpec(
     tools=[],
     output=DAG,
     model="deterministic-config",
+    model_tier="strong",
     max_tool_calls=0,
     prompt="Read product config and produce a DAG. Do not decide business outcome.",
     fallback=planner_fallback,
+    llm_prose=True,
+    prose_fields=["rationale"],
 )

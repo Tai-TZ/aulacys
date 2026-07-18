@@ -1,6 +1,7 @@
 """Harness runner: deterministic fallback without a key; LLM slot when configured."""
 
 from src.agents.harness.runner import _llm_configured, run
+from src.agents.nodes.credit import CreditSpec
 from src.agents.nodes.planner import PlannerSpec
 from src.agents.state import AgentState, LoanApplication
 from src.config import get_settings
@@ -44,9 +45,14 @@ def test_number_spec_never_calls_llm_even_with_key(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "gemini")
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     get_settings.cache_clear()
-    assert PlannerSpec.llm_prose is False
-    assert _llm_configured(PlannerSpec) is False
+    assert CreditSpec.llm_prose is False
+    assert _llm_configured(CreditSpec) is False
     get_settings.cache_clear()
+
+
+def test_planner_uses_strong_model_tier_for_prose():
+    assert PlannerSpec.model_tier == "strong"
+    assert PlannerSpec.prose_fields == ["rationale"]
 
 
 def test_run_uses_fallback_when_no_api_key(monkeypatch):

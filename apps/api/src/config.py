@@ -30,6 +30,8 @@ class Settings(BaseSettings):
 
     openai_api_key: str = ""
     model_name: str = "gpt-4o-mini"  # used when llm_provider=openai
+    strong_model: str = "gpt-4o-mini"
+    mini_model: str = "gpt-4o-mini"
 
     # Google AI Studio / Gemini — https://aistudio.google.com/apikey
     gemini_api_key: str = ""

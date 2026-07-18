@@ -8,6 +8,7 @@ from pydantic import BaseModel, ValidationError
 
 from src.agents.harness import context, trace
 from src.agents.harness.meter import NodeTimer
+from src.agents.harness.permissions import is_tool_allowed
 from src.agents.specs import AgentSpec
 from src.agents.state import AgentState, NodeTrace
 from src.config import get_settings
@@ -36,7 +37,7 @@ def _try_llm(spec: AgentSpec, messages: list[dict[str, Any]]) -> tuple[BaseModel
     """
     from src.services.llm import get_llm
 
-    llm = get_llm().with_structured_output(spec.output)
+    llm = get_llm(spec.model_tier).with_structured_output(spec.output)
     schema_retries = 0
     last_error: Exception | None = None
     payload = {
@@ -76,10 +77,39 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
     model_label = spec.model
     obj: BaseModel | None = None
 
-    if _llm_configured(spec):
+    if _llm_configured(spec) and spec.prose_fields:
+        fallback_fired = True
+        if spec.fallback is None:
+            obj = spec.output.model_validate({})
+        else:
+            obj, tool_calls = spec.fallback(state, spec)
+        try:
+            llm_obj, schema_retries = _try_llm(
+                spec,
+                [
+                    *messages,
+                    {
+                        "role": "system",
+                        "content": (
+                            "The deterministic base output is authoritative. "
+                            f"Only improve these prose fields: {', '.join(spec.prose_fields)}."
+                        ),
+                    },
+                    {"role": "user", "content": obj.model_dump_json()},
+                ],
+            )
+            for field in spec.prose_fields:
+                value = getattr(llm_obj, field, None)
+                if value:
+                    setattr(obj, field, value)
+            model_label = _model_name_for_spec(spec)
+            fallback_fired = False
+        except Exception as exc:
+            logger.warning("LLM prose path failed for %s, using deterministic prose: %s", spec.name, exc)
+    elif _llm_configured(spec):
         try:
             obj, schema_retries = _try_llm(spec, messages)
-            model_label = get_settings().active_model_name
+            model_label = _model_name_for_spec(spec)
         except Exception as exc:
             logger.warning("LLM path failed for %s, using fallback: %s", spec.name, exc)
             fallback_fired = True
@@ -94,7 +124,7 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
         else:
             obj, tool_calls = spec.fallback(state, spec)
 
-    tool_calls = [name for name in tool_calls if name in spec.tools][: spec.max_tool_calls]
+    tool_calls = [name for name in tool_calls if is_tool_allowed(spec.tools, name)][: spec.max_tool_calls]
 
     trace.emit(
         state,
@@ -110,3 +140,9 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
         ),
     )
     return obj
+
+
+def _model_name_for_spec(spec: AgentSpec) -> str:
+    from src.services.llm import model_name_for_tier
+
+    return model_name_for_tier(spec.model_tier)

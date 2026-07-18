@@ -3,7 +3,23 @@ from langchain_openai import ChatOpenAI
 from src.config import GEMINI_OPENAI_BASE_URL, get_settings
 
 
-def get_llm() -> ChatOpenAI:
+def model_name_for_tier(tier: str | None = None) -> str:
+    """Resolve model id for a harness tier.
+
+    When ``LLM_PROVIDER=gemini``, all tiers use ``gemini_model_name`` (single primary).
+    OpenAI path keeps strong/mini/default from settings.
+    """
+    settings = get_settings()
+    if settings.llm_provider == "gemini":
+        return settings.gemini_model_name
+    if tier == "strong":
+        return settings.strong_model or settings.model_name
+    if tier == "mini":
+        return settings.mini_model or settings.model_name
+    return settings.model_name
+
+
+def get_llm(tier: str | None = None) -> ChatOpenAI:
     """Return the configured chat model.
 
     Gemini is primary (OpenAI-compatible endpoint). OpenAI is the alternate
@@ -19,7 +35,7 @@ def get_llm() -> ChatOpenAI:
             temperature=settings.llm_temperature,
         )
     return ChatOpenAI(
-        model=settings.model_name,
+        model=model_name_for_tier(tier),
         api_key=settings.openai_api_key,
         temperature=settings.llm_temperature,
     )

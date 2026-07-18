@@ -30,6 +30,8 @@ async def test_assess_returns_structured_veto(client):
     assert data["run_trace"]["lane"] == 3
     assert data["run_trace"]["replan_count"] == 2
     assert data["credit"]["dti"] == 0.3878
+    assert data["credit"]["proposed_limit"] == 2_500_000_000
+    assert data["credit"]["proposed_rate"] is not None
     cic = data["credit"]["tool_results"]["cic_lookup"]
     assert cic["max_overdue_days"] == 0  # fallback when CIC_SVC_URL unset
     assert cic["cic_group"] == 1
@@ -38,6 +40,9 @@ async def test_assess_returns_structured_veto(client):
     assert data["operations"]["valuation"] == 4_000_000_000
     assert data["operations"]["legal_flags"] == []
     assert data["compliance"]["veto"] is True
+    assert data["compliance"]["kyc_status"] == "passed"
+    assert data["critic"]["passed"] is True
+    assert data["critic"]["memo"]
     assert any(item["node"] == "compliance" for item in data["trace"])
 
 
