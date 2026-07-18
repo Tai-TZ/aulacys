@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AgentSpec(BaseModel):
@@ -16,6 +16,7 @@ class AgentSpec(BaseModel):
     policy: str | None = None
     output: type[BaseModel]
     model: str
+    model_tier: Literal["strong", "mini", "deterministic"] = "deterministic"
     max_tool_calls: int
     prompt: str
     fallback: Any | None = None
@@ -24,3 +25,4 @@ class AgentSpec(BaseModel):
     # at all; every number/veto-bearing spec leaves this False so its verdict always
     # comes from the deterministic fallback. Closes the P0-2 inversion.
     llm_prose: bool = False
+    prose_fields: list[str] = Field(default_factory=list)

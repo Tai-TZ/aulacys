@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, model_validator
 from src.agents.state import (
     ComplianceVerdict,
     CreditAssessment,
+    CriticVerdict,
     DeclaredForm,
     Document,
     NodeTrace,
@@ -65,6 +66,7 @@ class AssessResponse(BaseModel):
     credit: CreditAssessment | None = None
     operations: OperationsReport | None = None
     compliance: ComplianceVerdict | None = None
+    critic: CriticVerdict | None = None
     trace: list[NodeTrace] = Field(default_factory=list)
     ticket: dict[str, Any] | None = None
     audit: dict[str, Any] | None = None

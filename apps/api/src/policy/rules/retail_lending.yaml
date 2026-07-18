@@ -4,6 +4,35 @@
 # Confirm exact legal article text before quoting the prohibited-purpose row on stage.
 
 rules:
+  - id: kyc_identity_verified
+    description: >-
+      Borrower identity and processing consent must be verified before retail
+      credit assessment can proceed.
+    legal_basis: "Retail onboarding KYC control (MOCK - replace with SHB KYC policy reference)"
+    metric: kyc_verified
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "mock-kyc-2026.1"
+    verified: true
+
+  - id: ubo_related_control_clear
+    description: >-
+      Retail UBO/related-party control must either pass or be not applicable.
+    legal_basis: "Retail onboarding UBO/related-party control (MOCK - replace with SHB KYC policy reference)"
+    metric: ubo_clear
+    operator: "=="
+    threshold: 1
+    unit: boolean_flag
+    effective_from: "2026-01-01"
+    severity: blocking
+    veto_agent: compliance
+    version: "mock-ubo-2026.1"
+    verified: true
+
   - id: prohibited_purpose_refinance_other_bank
     description: >-
       Loan purpose evidence indicates repayment/refinancing of a loan at another

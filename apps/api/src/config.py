@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     # An unpinned alias silently drifts; temperature > 0 makes the same file score twice.
     openai_api_key: str = ""
     model_name: str = "gpt-4o-mini"
+    strong_model: str = "gpt-4o-mini"
+    mini_model: str = "gpt-4o-mini"
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
 
     # Database — Supabase Postgres (see src/db/session.py, docs/DATABASE.md)

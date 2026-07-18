@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from src.agents.harness.dispatch import dispatch
+from src.agents.harness.permissions import is_tool_allowed
 from src.agents.specs import AgentSpec
 from src.agents.state import AgentState, Citation, OperationsReport
 
@@ -23,9 +24,19 @@ def operations_fallback(state: AgentState, spec: AgentSpec) -> tuple[OperationsR
     tool_calls.append("doc_checklist")
 
     valuation_result: dict = {}
+    valuation_task: dict = {}
     registry_result: dict = {"legal_flags": []}
     valuation: float | None = None
-    if declared.collateral_value_declared is not None and "property_valuation" in spec.tools:
+    if declared.collateral_value_declared is not None and is_tool_allowed(spec.tools, "property_valuation"):
+        valuation_task = dispatch(
+            spec,
+            "schedule_valuation",
+            {
+                "application_id": state.get("metadata", {}).get("application_id", "retail-demo"),
+                "parcel_id": parcel_id,
+            },
+        )
+        tool_calls.append("schedule_valuation")
         valuation_result = dispatch(
             spec,
             "property_valuation",
@@ -43,6 +54,7 @@ def operations_fallback(state: AgentState, spec: AgentSpec) -> tuple[OperationsR
     return (
         OperationsReport(
             valuation=valuation if isinstance(valuation, int | float) else None,
+            valuation_task=valuation_task,
             doc_status=str(checklist.get("status", "unknown")),
             missing=list(checklist.get("missing", [])),
             legal_flags=list(registry_result.get("legal_flags", [])),
@@ -54,6 +66,7 @@ def operations_fallback(state: AgentState, spec: AgentSpec) -> tuple[OperationsR
             ],
             tool_results={
                 "doc_checklist": checklist,
+                "schedule_valuation": valuation_task,
                 "property_valuation": valuation_result,
                 "land_registry": registry_result,
             },
@@ -82,11 +95,12 @@ OperationsSpec = AgentSpec(
     name="operations",
     line=1,
     reads=["application", "metadata"],
-    tools=["property_valuation", "land_registry", "doc_checklist", "write_approval_ticket"],
+    tools=["core_banking_read", "workflow_write"],
     kb="collateral",
     output=OperationsReport,
     model="deterministic-fallback",
-    max_tool_calls=5,
+    model_tier="mini",
+    max_tool_calls=6,
     prompt="Check documents and collateral. Valuation must come from tools only.",
     fallback=operations_fallback,
 )
