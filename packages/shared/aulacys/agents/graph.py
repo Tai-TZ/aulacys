@@ -230,71 +230,91 @@ _UNSECURED_HITL: dict = {
 }
 
 
+_MORTGAGE_HITL: dict = {
+    "declared": {
+        "customer_name": "TRẦN THỊ BÌNH",
+        "amount": 2_500_000_000,
+        "term_months": 240,
+        "annual_rate": 0.105,
+        "monthly_income": 85_000_000,
+        "existing_monthly_debt": 8_000_000,
+        "declared_purpose": "Mua nhà để ở",
+        "collateral_value_declared": 4_000_000_000,
+        "dob": "15/08/1988",
+        "gender": "Nữ",
+        "national_id": "001088012345",
+        "national_id_issue_date": "10/05/2021",
+        "national_id_issue_place": "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
+        "old_national_id": "001088001122",
+        "phone": "0901234567",
+        "phone_2": "0911223344",
+        "email": "binh.tran@email.com",
+        "occupation": "Cán bộ quản lý",
+        "company_name": "Công ty Cổ phần Thương mại và Dịch vụ SHB",
+        "position": "Trưởng phòng Kinh doanh",
+        "permanent_address": "Số 45, Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh",
+        "current_address": "Số 45, Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh",
+        "personal_expense": 25_000_000,
+        "disbursement_method": "Giải ngân cho Bên thụ hưởng",
+        "disbursement_bank": "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
+        "disbursement_account": "101123456789",
+        "disbursement_account_name": "NGUYỄN VĂN BÁN",
+        "spouse_name": "NGUYỄN VĂN AN",
+        "spouse_phone": "0902345678",
+        "spouse_national_id": "001085054321",
+        "spouse_income": 35_000_000,
+        "spouse_company": "Công ty Cổ phần Đầu tư SHB",
+        "spouse_workplace_phone": "0243123456",
+        "consent_data_processing": True,
+        "consent_advertising": False,
+        "id_number": "001088012345",
+        "cic_consent": True,
+    },
+    "documents": [
+        Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": "001088012345"}),
+        Document(kind="sao_ke_tai_khoan", tier=1, extracted={"monthly_income": 85_000_000}),
+        Document(kind="so_do", tier=2, extracted={"parcel": "DEMO-001"}),
+        Document(kind="hop_dong_mua_ban", tier=2, extracted={"seller": "Demo Seller"}),
+        Document(kind="cic", tier=1, extracted={"score_band": "A"}),
+        Document(
+            kind="purpose_evidence",
+            tier=2,
+            extracted={"actual_purpose": "Mua nhà để ở"},
+        ),
+    ],
+}
+
+_MORTGAGE_VETO: dict = {
+    "declared": dict(_MORTGAGE_HITL["declared"]),
+    "documents": [
+        Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": "001088012345"}),
+        Document(kind="sao_ke_tai_khoan", tier=1, extracted={"monthly_income": 85_000_000}),
+        Document(kind="so_do", tier=2, extracted={"parcel": "DEMO-001"}),
+        Document(kind="hop_dong_mua_ban", tier=2, extracted={"seller": "Demo Seller"}),
+        Document(kind="cic", tier=1, extracted={"score_band": "A"}),
+        Document(
+            kind="purpose_evidence",
+            tier=2,
+            extracted={"actual_purpose": "tất toán khoản vay ở TCTD khác"},
+        ),
+    ],
+}
+
+
 def seed_application(query: str) -> LoanApplication:
     """Seed a demo consumer-loan application from chat text.
 
     Routing keywords:
-    - "veto"  / "bad"      → TRẦN THỊ VUI      (purpose evidence veto)
-    - "hitl"  / "biên giới" → NGUYỄN THỊ HUYỀN TRẦN (borderline DTI → human)
-    - "mortgage" / "nhà"   → retail_mortgage demo
-    - default              → NGUYỄN THỊ BÉ HOA (happy STP path)
+    - "mortgage"/"nhà" + "veto"/"bad" → mortgage purpose-contradiction veto
+    - "mortgage"/"nhà"              → mortgage HITL (clean purpose, gate never STP)
+    - "veto"/"bad"                  → unsecured TRẦN THỊ VUI (purpose veto)
+    - "hitl"/"biên giới"            → unsecured NGUYỄN THỊ HUYỀN TRẦN (borderline)
+    - default                       → unsecured NGUYỄN THỊ BÉ HOA (happy STP)
     """
     lowered = query.lower()
     if "mortgage" in lowered or "nhà" in lowered:
         product = "retail_mortgage"
-        seed = {
-            "declared": {
-                "customer_name": "TRẦN THỊ BÌNH",
-                "amount": 2_500_000_000,
-                "term_months": 240,
-                "annual_rate": 0.105,
-                "monthly_income": 85_000_000,
-                "existing_monthly_debt": 8_000_000,
-                "declared_purpose": "Mua nhà để ở",
-                "collateral_value_declared": 4_000_000_000,
-                "dob": "15/08/1988",
-                "gender": "Nữ",
-                "national_id": "001088012345",
-                "national_id_issue_date": "10/05/2021",
-                "national_id_issue_place": "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-                "old_national_id": "001088001122",
-                "phone": "0901234567",
-                "phone_2": "0911223344",
-                "email": "binh.tran@email.com",
-                "occupation": "Cán bộ quản lý",
-                "company_name": "Công ty Cổ phần Thương mại và Dịch vụ SHB",
-                "position": "Trưởng phòng Kinh doanh",
-                "permanent_address": "Số 45, Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh",
-                "current_address": "Số 45, Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh",
-                "personal_expense": 25_000_000,
-                "disbursement_method": "Giải ngân cho Bên thụ hưởng",
-                "disbursement_bank": "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-                "disbursement_account": "101123456789",
-                "disbursement_account_name": "NGUYỄN VĂN BÁN",
-                "spouse_name": "NGUYỄN VĂN AN",
-                "spouse_phone": "0902345678",
-                "spouse_national_id": "001085054321",
-                "spouse_income": 35_000_000,
-                "spouse_company": "Công ty Cổ phần Đầu tư SHB",
-                "spouse_workplace_phone": "0243123456",
-                "consent_data_processing": True,
-                "consent_advertising": False,
-                "id_number": "001099000003",  # overdue 120d — demo CIC bad path
-                "cic_consent": True,
-            },
-            "documents": [
-                Document(kind="cccd", tier=1, extracted={"verified": True}),
-                Document(kind="sao_ke_tai_khoan", tier=1, extracted={"monthly_income": 85_000_000}),
-                Document(kind="so_do", tier=2, extracted={"parcel": "DEMO-001"}),
-                Document(kind="hop_dong_mua_ban", tier=2, extracted={"seller": "Demo Seller"}),
-                Document(kind="cic", tier=1, extracted={"score_band": "A"}),
-                Document(
-                    kind="purpose_evidence",
-                    tier=2,
-                    extracted={"actual_purpose": "tất toán khoản vay ở TCTD khác"},
-                ),
-            ],
-        }
+        seed = _MORTGAGE_VETO if ("veto" in lowered or "bad" in lowered) else _MORTGAGE_HITL
     else:
         product = "retail_unsecured_salary"
         if "veto" in lowered or "bad" in lowered:

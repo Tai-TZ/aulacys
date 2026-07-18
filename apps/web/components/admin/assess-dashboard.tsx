@@ -95,11 +95,11 @@ const MORTGAGE_DEMO: AssessFormState = {
     ref2_relationship: "Bạn thân",
     ref2_phone: "0904567890",
     ref2_same_address: false,
-    id_number: "001099000003",
+    id_number: "001088012345",
     cic_consent: true,
   },
   documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true } },
+    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "001088012345" } },
     { kind: "sao_ke_tai_khoan", tier: 1, extracted: { monthly_income: 85_000_000 } },
     { kind: "so_do", tier: 2, extracted: { parcel: "DEMO-001" } },
     { kind: "hop_dong_mua_ban", tier: 2, extracted: { seller: "Demo Seller" } },
@@ -107,9 +107,22 @@ const MORTGAGE_DEMO: AssessFormState = {
     {
       kind: "purpose_evidence",
       tier: 2,
-      extracted: { actual_purpose: "tất toán khoản vay ở TCTD khác" },
+      extracted: { actual_purpose: "Mua nhà để ở" },
     },
   ],
+};
+
+/** Mortgage veto — cùng hồ sơ nhưng purpose_evidence mâu thuẫn (wow path) */
+const MORTGAGE_VETO_DEMO: AssessFormState = {
+  ...MORTGAGE_DEMO,
+  documents: MORTGAGE_DEMO.documents.map((doc) =>
+    doc.kind === "purpose_evidence"
+      ? {
+          ...doc,
+          extracted: { actual_purpose: "tất toán khoản vay ở TCTD khác" },
+        }
+      : doc,
+  ),
 };
 
 // ---------------------------------------------------------------------------
@@ -377,8 +390,16 @@ function MoneyInput({
 
 const SCENARIO_META: Record<string, { label: string; border: string }> = {
   happy: { label: "✅ Happy path — Hồ sơ đầy đủ, dự kiến phê duyệt", border: "border-[#16a34a]" },
-  veto:  { label: "🚫 Veto — Mục đích khai báo mâu thuẫn chứng từ",  border: "border-[#ea580c]" },
-  hitl:  { label: "⏳ Biên giới — Cần nhân viên xem xét thủ công",   border: "border-[#d97706]" },
+  veto: { label: "🚫 Veto — Mục đích khai báo mâu thuẫn chứng từ", border: "border-[#ea580c]" },
+  hitl: { label: "⏳ Biên giới — Cần nhân viên xem xét thủ công", border: "border-[#d97706]" },
+  mortgage: {
+    label: "🏠 Mortgage HITL — Mục đích khớp, chờ phê duyệt người",
+    border: "border-[#2563eb]",
+  },
+  "mortgage-veto": {
+    label: "🚫 Mortgage veto — Purpose contradiction → replan",
+    border: "border-[#ea580c]",
+  },
 };
 
 function FL({ label, value, wide }: { label: string; value?: string | null; wide?: boolean }) {
@@ -1146,12 +1167,36 @@ export function AssessDashboard() {
       id: "hitl",
       application_id: "hitl",
       customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
+      product: "retail_unsecured_salary",
+      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
+      amount: 200_000_000,
+      db_status: "submitted",
+      scenario: "hitl",
+      data: HITL_DEMO,
+      fromDb: false,
+    },
+    {
+      id: "mortgage",
+      application_id: "mortgage",
+      customer_name: "TRẦN THỊ BÌNH",
       product: "retail_mortgage",
       product_label: "Vay thế chấp mua nhà (Mortgage Loan)",
       amount: 2_500_000_000,
       db_status: "submitted",
-      scenario: "hitl",
-      data: HITL_DEMO,
+      scenario: "mortgage",
+      data: MORTGAGE_DEMO,
+      fromDb: false,
+    },
+    {
+      id: "mortgage-veto",
+      application_id: "mortgage-veto",
+      customer_name: "TRẦN THỊ BÌNH",
+      product: "retail_mortgage",
+      product_label: "Vay thế chấp mua nhà (Mortgage Loan)",
+      amount: 2_500_000_000,
+      db_status: "submitted",
+      scenario: "mortgage-veto",
+      data: MORTGAGE_VETO_DEMO,
       fromDb: false,
     },
   ];
@@ -1835,6 +1880,74 @@ export function AssessDashboard() {
                     <li key={item}>· {item}</li>
                   ))}
                 </ul>
+              )}
+            </Card>
+          )}
+
+          {(result.credit?.rationale ||
+            result.operations?.rationale ||
+            result.compliance?.rationale ||
+            result.critic) && (
+            <Card className="border border-border/70 p-4 shadow-card text-left">
+              <h3 className="text-sm font-semibold text-navy">Lý do agent &amp; Critic</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Prose từ Credit / Operations / Compliance; Critic chỉ xác minh số liệu có tool
+                call.
+              </p>
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                {[
+                  { title: "Credit", text: result.credit?.rationale },
+                  { title: "Operations", text: result.operations?.rationale },
+                  { title: "Compliance", text: result.compliance?.rationale },
+                ].map((item) =>
+                  item.text ? (
+                    <div
+                      key={item.title}
+                      className="rounded-lg border border-border/60 bg-muted/30 p-3"
+                    >
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {item.title}
+                      </p>
+                      <p className="mt-1.5 whitespace-pre-wrap text-sm text-foreground">{item.text}</p>
+                    </div>
+                  ) : null,
+                )}
+              </div>
+              {result.critic && (
+                <div className="mt-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Critic
+                    </p>
+                    <StatusBadge tone={result.critic.passed ? "success" : "warning"}>
+                      {result.critic.passed ? "Passed" : "Rejected"}
+                    </StatusBadge>
+                  </div>
+                  {result.critic.memo && (
+                    <p className="mt-1.5 whitespace-pre-wrap text-sm text-foreground">
+                      {result.critic.memo}
+                    </p>
+                  )}
+                  {result.critic.rejections.length > 0 && (
+                    <ul className="mt-2 space-y-1 text-xs text-warning-foreground">
+                      {result.critic.rejections.map((item) => (
+                        <li key={item}>· {item}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {result.critic.remediation_plan.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Remediation
+                      </p>
+                      <ul className="mt-1 space-y-1 text-xs text-foreground">
+                        {result.critic.remediation_plan.map((item) => (
+                          <li key={item}>· {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               )}
             </Card>
           )}
