@@ -133,6 +133,11 @@ services:
     ports: ["8350:8350"]
     restart: unless-stopped
 
+  legal-svc:
+    build: ./services/legal-svc
+    ports: ["8360:8360"]
+    restart: unless-stopped
+
   # ---------- agent workers (4 processes; see SERVICE-CODING-PLAN §12) ----------
   credit-svc:
     build:
