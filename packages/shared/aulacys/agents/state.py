@@ -96,6 +96,17 @@ class DAG(BaseModel):
     rationale: str = ""
 
 
+class LoanProposal(BaseModel):
+    requested_amount: float
+    proposed_limit: float | None = None
+    proposed_rate: float | None = None
+    term_months: int
+    monthly_payment: float | None = None
+    dti: float | None = None
+    status: Literal["accepted", "revised", "rejected"]
+    revisions: list[str] = Field(default_factory=list)
+
+
 class CreditAssessment(BaseModel):
     dti: float | None
     income: float
@@ -105,6 +116,7 @@ class CreditAssessment(BaseModel):
     rationale: str = ""
     evidence: list[Citation]
     tool_results: dict[str, Any] = Field(default_factory=dict)
+    proposal: LoanProposal | None = None
 
 
 class OperationsReport(BaseModel):
@@ -167,6 +179,7 @@ class AgentState(TypedDict, total=False):
     metadata: dict[str, Any]
     application: LoanApplication
     plan: DAG | None
+    proposal: LoanProposal | None
     credit: CreditAssessment | None
     operations: OperationsReport | None
     compliance: ComplianceVerdict | None

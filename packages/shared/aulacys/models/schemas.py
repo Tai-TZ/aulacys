@@ -9,6 +9,7 @@ from aulacys.agents.state import (
     CriticVerdict,
     DeclaredForm,
     Document,
+    LoanProposal,
     NodeTrace,
     OperationsReport,
     RunTrace,
@@ -64,6 +65,7 @@ class AssessResponse(BaseModel):
     response: str = Field(..., description="Human-readable summary")
     outcome: str = Field(..., description="stp_approved | vetoed | ready_for_human_approval")
     run_trace: RunTrace
+    proposal: LoanProposal | None = None
     credit: CreditAssessment | None = None
     operations: OperationsReport | None = None
     compliance: ComplianceVerdict | None = None

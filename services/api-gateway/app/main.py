@@ -64,7 +64,9 @@ SERVICES = [
 ]
 
 _CATALOG = ServiceSpec("catalog-svc", "CATALOG_SVC_URL", "http://127.0.0.1:8350")
-_APPLICATION = ServiceSpec("application-svc", "APPLICATION_SVC_URL", "http://127.0.0.1:8360")
+_APPLICATION = ServiceSpec(
+    "application-svc", "APPLICATION_SVC_URL", "http://127.0.0.1:8360"
+)
 
 
 def _now() -> str:
@@ -154,6 +156,7 @@ def _fallback_assess(message: str, error: str) -> dict[str, Any]:
             "replan_count": 0,
             "veto_fired": False,
         },
+        "proposal": None,
         "credit": None,
         "operations": None,
         "compliance": None,
@@ -245,13 +248,18 @@ def catalog_product(product_id: str) -> dict[str, Any]:
 def create_application(payload: dict[str, Any]) -> dict[str, Any]:
     """Proxy intake to application-svc (pass through 4xx; degraded if down)."""
     try:
-        return _post_json(f"{_base_url(_APPLICATION)}/applications", payload, timeout=10)
+        return _post_json(
+            f"{_base_url(_APPLICATION)}/applications", payload, timeout=10
+        )
     except urllib.error.HTTPError as exc:
         try:
             body = json.loads(exc.read().decode("utf-8"))
         except Exception:
             body = {"detail": str(exc)}
-        return {"status_code": exc.code, **(body if isinstance(body, dict) else {"detail": body})}
+        return {
+            "status_code": exc.code,
+            **(body if isinstance(body, dict) else {"detail": body}),
+        }
     except Exception as exc:
         return {
             "error": "application_svc_unavailable",
@@ -264,7 +272,9 @@ def create_application(payload: dict[str, Any]) -> dict[str, Any]:
 @app.get("/applications/{application_id}")
 def get_application(application_id: str) -> dict[str, Any]:
     try:
-        return _get_json(f"{_base_url(_APPLICATION)}/applications/{application_id}", timeout=5)
+        return _get_json(
+            f"{_base_url(_APPLICATION)}/applications/{application_id}", timeout=5
+        )
     except Exception as exc:
         return {
             "id": application_id,

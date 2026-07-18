@@ -346,7 +346,10 @@ def _run_configured_agents(state: AgentState, config: dict[str, Any]) -> None:
         spec = AGENT_SPECS.get(agent_name)
         if spec is None:
             continue
-        state[agent_name] = run_agent(spec, state)
+        result = run_agent(spec, state)
+        state[agent_name] = result
+        if agent_name == "credit" and getattr(result, "proposal", None) is not None:
+            state["proposal"] = result.proposal
 
 
 def _has_veto(state: AgentState) -> bool:
