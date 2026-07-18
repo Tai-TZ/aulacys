@@ -36,7 +36,7 @@ $LogDir = Join-Path $RunDir "logs"
 $PidFile = Join-Path $RunDir "pids.json"
 $ApiDir = Join-Path $Root "apps\api"
 $WebDir = Join-Path $Root "apps\web"
-$StackPorts = @(3000, 8000, 8080, 8100, 8200, 8300, 8310, 8320, 8330, 8340, 8401, 8402, 8403, 8404)
+$StackPorts = @(3000, 8000, 8080, 8100, 8200, 8300, 8310, 8320, 8330, 8340, 8400)
 
 function Resolve-Python {
     foreach ($candidate in @(
@@ -191,10 +191,7 @@ function Get-ServiceCatalog([string]$Mode) {
         [void]$services.Add(@{ Name = "aml"; Port = 8320; Dir = "services\aml-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8320"); Exe = $py; Env = @{} })
         [void]$services.Add(@{ Name = "property"; Port = 8330; Dir = "services\property-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8330"); Exe = $py; Env = @{} })
         [void]$services.Add(@{ Name = "income"; Port = 8340; Dir = "services\income-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8340"); Exe = $py; Env = @{} })
-        [void]$services.Add(@{ Name = "credit-worker"; Port = 8401; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8401"); Exe = $py; Env = @{ AGENT_NAME = "credit" } })
-        [void]$services.Add(@{ Name = "operations-worker"; Port = 8402; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8402"); Exe = $py; Env = @{ AGENT_NAME = "operations" } })
-        [void]$services.Add(@{ Name = "compliance-worker"; Port = 8403; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8403"); Exe = $py; Env = @{ AGENT_NAME = "compliance" } })
-        [void]$services.Add(@{ Name = "critic-worker"; Port = 8404; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8404"); Exe = $py; Env = @{ AGENT_NAME = "critic" } })
+        [void]$services.Add(@{ Name = "agent-worker"; Port = 8400; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8400"); Exe = $py; Env = @{} })
     }
 
     if ($Mode -eq "full") {
@@ -206,10 +203,7 @@ function Get-ServiceCatalog([string]$Mode) {
             AML_SVC_URL          = "http://127.0.0.1:8320"
             PROPERTY_SVC_URL     = "http://127.0.0.1:8330"
             INCOME_SVC_URL       = "http://127.0.0.1:8340"
-            CREDIT_AGENT_URL     = "http://127.0.0.1:8401"
-            OPERATIONS_AGENT_URL = "http://127.0.0.1:8402"
-            COMPLIANCE_AGENT_URL = "http://127.0.0.1:8403"
-            CRITIC_AGENT_URL     = "http://127.0.0.1:8404"
+            AGENT_WORKER_URL     = "http://127.0.0.1:8400"
             CORS_ORIGINS         = "http://localhost:3000"
         }
     }
@@ -238,10 +232,7 @@ function Get-ServiceCatalog([string]$Mode) {
         $gwEnv["AML_SVC_URL"] = "http://127.0.0.1:8320"
         $gwEnv["PROPERTY_SVC_URL"] = "http://127.0.0.1:8330"
         $gwEnv["INCOME_SVC_URL"] = "http://127.0.0.1:8340"
-        $gwEnv["CREDIT_AGENT_URL"] = "http://127.0.0.1:8401"
-        $gwEnv["OPERATIONS_AGENT_URL"] = "http://127.0.0.1:8402"
-        $gwEnv["COMPLIANCE_AGENT_URL"] = "http://127.0.0.1:8403"
-        $gwEnv["CRITIC_AGENT_URL"] = "http://127.0.0.1:8404"
+        $gwEnv["AGENT_WORKER_URL"] = "http://127.0.0.1:8400"
     }
     [void]$services.Add(@{
             Name = "gateway"
