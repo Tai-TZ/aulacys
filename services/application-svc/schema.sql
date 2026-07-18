@@ -135,4 +135,20 @@ CREATE TABLE IF NOT EXISTS sales_info (
     branch_pos_hub text
 );
 
+CREATE TABLE IF NOT EXISTS application_document (
+    id             uuid PRIMARY KEY,
+    application_id uuid NOT NULL REFERENCES loan_application(id),
+    doc_type       text NOT NULL,
+    title          text,
+    status         text NOT NULL DEFAULT 'missing',
+    required_for   text,
+    storage_uri    text,
+    tier           integer,
+    confirmed_by   text,
+    uploaded_at    timestamptz,
+    created_at     timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_application_document_application_id ON application_document (application_id);
+CREATE INDEX IF NOT EXISTS ix_application_document_doc_type ON application_document (doc_type);
+
 COMMIT;

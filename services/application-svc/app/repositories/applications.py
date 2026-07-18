@@ -37,6 +37,7 @@ def _truncate_all() -> None:
     engine = get_engine()
     with Session(engine) as session:
         for table in (
+            "application_document",
             "purpose_goods",
             "loan_purpose",
             "disbursement",
@@ -253,6 +254,30 @@ def get_application(application_id: uuid.UUID) -> dict[str, Any] | None:
         if row is None:
             return None
         return _serialize(row)
+
+
+def list_applications(*, limit: int = 100) -> list[dict[str, Any]]:
+    """Newest first — full Section A payload (admin dossier list + detail)."""
+    with Session(get_engine()) as session:
+        rows = session.scalars(
+            select(LoanApplication)
+            .options(
+                selectinload(LoanApplication.applicant),
+                selectinload(LoanApplication.phone),
+                selectinload(LoanApplication.addresses),
+                selectinload(LoanApplication.employment),
+                selectinload(LoanApplication.references),
+                selectinload(LoanApplication.spouse),
+                selectinload(LoanApplication.financial),
+                selectinload(LoanApplication.consent),
+                selectinload(LoanApplication.purposes).selectinload(LoanPurpose.goods),
+                selectinload(LoanApplication.disbursements),
+                selectinload(LoanApplication.sales),
+            )
+            .order_by(LoanApplication.created_at.desc())
+            .limit(max(1, min(limit, 500)))
+        ).all()
+        return [_serialize(row) for row in rows]
 
 
 def _serialize(row: LoanApplication) -> dict[str, Any]:

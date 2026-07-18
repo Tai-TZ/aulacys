@@ -39,6 +39,7 @@ class LoanApplication(Base):
     purposes: Mapped[list[LoanPurpose]] = orm_relationship(back_populates="application")
     disbursements: Mapped[list[Disbursement]] = orm_relationship(back_populates="application")
     sales: Mapped[SalesInfo | None] = orm_relationship(back_populates="application", uselist=False)
+    documents: Mapped[list[ApplicationDocument]] = orm_relationship(back_populates="application")
 
 
 class Applicant(Base):
@@ -226,3 +227,27 @@ class SalesInfo(Base):
     branch_pos_hub: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     application: Mapped[LoanApplication] = orm_relationship(back_populates="sales")
+
+
+class ApplicationDocument(Base):
+    """Checklist / uploaded evidence — mirrors workspace DOSSIER_DOCS + assess docs."""
+
+    __tablename__ = "application_document"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    application_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("loan_application.id"), nullable=False, index=True
+    )
+    doc_type: Mapped[str] = mapped_column(Text, nullable=False)  # cccd | income | cic | ...
+    title: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="missing")  # missing|uploaded|verified
+    required_for: Mapped[str | None] = mapped_column(Text, nullable=True)
+    storage_uri: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tier: Mapped[int | None] = mapped_column(Integer, nullable=True)  # assess Document.tier
+    confirmed_by: Mapped[str | None] = mapped_column(Text, nullable=True)
+    uploaded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("now()")
+    )
+
+    application: Mapped[LoanApplication] = orm_relationship(back_populates="documents")

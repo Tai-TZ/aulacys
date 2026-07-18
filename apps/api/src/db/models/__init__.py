@@ -4,5 +4,6 @@
 """
 
 from src.db.models.audit import AuditRecord, AuditViolation
+from src.db.models.product import LoanProduct, ProductGroup
 
-__all__ = ["AuditRecord", "AuditViolation"]
+__all__ = ["AuditRecord", "AuditViolation", "LoanProduct", "ProductGroup"]

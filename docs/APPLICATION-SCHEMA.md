@@ -32,6 +32,7 @@
 | II.1.2 chi tiết hàng hóa | `purpose_goods` |
 | II.x.3 phương thức giải ngân | `disbursement` |
 | Phần nhân viên SHBFinance | `sales_info` |
+| Chứng từ / checklist (workspace + assess) | `application_document` |
 
 ## 2. DDL (schema `application`)
 
@@ -152,9 +153,23 @@ CREATE TABLE sales_info (                 -- Phần dành cho nhân viên SHBFin
     witness_phone  text,
     branch_pos_hub text
 );
+
+CREATE TABLE application_document (       -- checklist / uploads (UI DOSSIER_DOCS)
+    id             uuid PRIMARY KEY,
+    application_id uuid NOT NULL REFERENCES loan_application(id),
+    doc_type       text NOT NULL,              -- cccd | income | cic | purpose_evidence | ...
+    title          text,
+    status         text NOT NULL DEFAULT 'missing',  -- missing|uploaded|verified
+    required_for   text,                        -- KYC | Credit · DTI | ...
+    storage_uri    text,                        -- object path / URL when uploaded
+    tier           integer,                     -- assess Document.tier (1|2|3)
+    confirmed_by   text,                        -- officer id for tier-3
+    uploaded_at    timestamptz,
+    created_at     timestamptz NOT NULL DEFAULT now()
+);
 ```
 
-Indexes: `applicant(id_number)`, `loan_application(status)`, FK columns.
+Indexes: `applicant(id_number)`, `loan_application(status)`, `application_document(application_id)`, FK columns.
 
 ## 3. What feeds the agents (why each field matters)
 
@@ -182,6 +197,7 @@ form has them; take the rest from the form.
 | Phase | Step | Status |
 |-------|------|--------|
 | 1 | New `application-svc` (schema `application`) + models + Alembic `0001` | ✅ done (`services/application-svc`, :8360) |
+| 1b | `application_document` checklist table (Alembic `0002`) | ✅ done |
 | 2 | `POST /applications` intake endpoint (validates consent = true) | ✅ done (+ `GET /applications/{id}`) |
 | 3 | Orchestrator reads the application (by id) instead of `seed_application` | ✅ done (`application_client` + `POST /assess/application` with `application_id`) |
 | 4 | Map `financial_capacity`/`employment` → Credit metrics; `loan_purpose` → Compliance | ✅ partial (mapper in `application_client`; employment unused yet) |
