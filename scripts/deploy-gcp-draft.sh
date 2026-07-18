@@ -404,10 +404,11 @@ deploy_db_services() {
 declare -A URLS=()
 
 read_deployed_urls() {
+  # Only services already deployed before agent workers.
   local name
   for name in \
     policy-svc cic-svc aml-svc property-svc income-svc catalog-svc legal-svc \
-    application-svc audit-svc los-svc credit-svc operations-svc compliance-svc critic-svc; do
+    application-svc audit-svc los-svc; do
     URLS["$name"]="$(service_url "$name")"
   done
 }

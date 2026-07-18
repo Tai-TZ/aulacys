@@ -17,7 +17,16 @@ from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 HERE = Path(__file__).resolve()
-for candidate in (HERE.parents[1], HERE.parents[3] / "packages" / "shared"):
+# Local monorepo: .../services/agent-worker-svc + .../packages/shared
+# Docker image: WORKDIR /svc with aulacys copied next to app (PYTHONPATH=/svc).
+# Never index parents[N] blindly — Docker paths are shallower and raise IndexError.
+_candidates: list[Path] = [HERE.parents[1]]
+for _parent in HERE.parents:
+    _shared = _parent / "packages" / "shared"
+    if _shared.is_dir():
+        _candidates.append(_shared)
+        break
+for candidate in _candidates:
     if candidate.exists() and str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
 
