@@ -1,4 +1,4 @@
-"""los-svc Alembic — own DB only."""
+"""orchestrator-svc Alembic — schema `orchestrator` only."""
 
 from __future__ import annotations
 
@@ -20,8 +20,6 @@ target_metadata = Base.metadata
 
 def _url() -> str:
     raw = get_settings().alembic_url
-    if not raw:
-        raise RuntimeError("Set DIRECT_URL or DATABASE_URL for los-svc migrations")
     parts = urlsplit(raw)
     scheme = (
         "postgresql+psycopg"
@@ -47,8 +45,8 @@ def run_migrations_online() -> None:
     connectable = engine_from_config(
         configuration, prefix="sqlalchemy.", poolclass=pool.NullPool
     )
+    schema = get_settings().db_schema
     with connectable.connect() as connection:
-        schema = get_settings().db_schema
         connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema}"'))
         connection.execute(text(f'SET search_path TO "{schema}"'))
         connection.commit()

@@ -12,10 +12,9 @@ from src.agents.harness.runner import run
 from src.agents.nodes.compliance import ComplianceSpec
 from src.agents.nodes.credit import CreditSpec
 from src.agents.nodes.critic import CriticSpec
-from src.agents.nodes.operations import OperationsSpec
+from src.agents.nodes.operations import OperationsSpec, write_outcome_ticket
 from src.agents.nodes.planner import PlannerSpec
 from src.agents.state import AgentState, Document, LoanApplication, RunTrace
-from src.agents.tools.workflow import write_approval_ticket
 from src.agents.worker_client import run_agent
 
 PRODUCTS_DIR = Path(__file__).parent / "products"
@@ -304,8 +303,46 @@ def seed_application(query: str) -> LoanApplication:
     return LoanApplication(product=product, declared=seed["declared"], documents=seed["documents"])
 
 
+def _configured_agent_names(config: dict[str, Any]) -> list[str]:
+    return [str(agent_name) for agent_name in config.get("agents", []) if str(agent_name) in AGENT_SPECS]
+
+
+def _agent_execution_order(state: AgentState, config: dict[str, Any]) -> list[str]:
+    """Topologically order configured agents from Planner's DAG plus spec read-sets."""
+    configured = _configured_agent_names(config)
+    dependencies: dict[str, set[str]] = {agent_name: set() for agent_name in configured}
+    plan = state.get("plan")
+
+    if plan is not None:
+        for prerequisite, node in plan.edges:
+            if node in dependencies and prerequisite in dependencies:
+                dependencies[node].add(prerequisite)
+
+    for agent_name in configured:
+        for read_key in AGENT_SPECS[agent_name].reads:
+            if read_key in dependencies:
+                dependencies[agent_name].add(read_key)
+
+    remaining = configured.copy()
+    ordered: list[str] = []
+    completed: set[str] = set()
+    while remaining:
+        ready = [agent_name for agent_name in remaining if dependencies[agent_name].issubset(completed)]
+        if not ready:
+            state.setdefault("metadata", {}).setdefault("graph_warnings", []).append(
+                f"DAG dependency cycle or missing prerequisite: {', '.join(remaining)}"
+            )
+            ordered.extend(remaining)
+            break
+        for agent_name in ready:
+            ordered.append(agent_name)
+            completed.add(agent_name)
+            remaining.remove(agent_name)
+    return ordered
+
+
 def _run_configured_agents(state: AgentState, config: dict[str, Any]) -> None:
-    for agent_name in config.get("agents", []):
+    for agent_name in _agent_execution_order(state, config):
         spec = AGENT_SPECS.get(agent_name)
         if spec is None:
             continue
@@ -350,16 +387,7 @@ def _decide_outcome(state: AgentState, config: dict[str, Any], escalated: bool) 
 
 
 def _write_ticket(state: AgentState, outcome: str) -> dict[str, Any]:
-    compliance = state.get("compliance")
-    rule_ids = ", ".join(compliance.rule_ids) if compliance else "none"
-    summary = f"{state['application'].product}: {outcome}; rules={rule_ids}"
-    return write_approval_ticket.invoke(
-        {
-            "application_id": state.get("metadata", {}).get("application_id", "retail-demo"),
-            "status": outcome,
-            "summary": summary,
-        }
-    )
+    return write_outcome_ticket(state, outcome)
 
 
 def _summarize(state: AgentState, outcome: str, escalated: bool) -> str:

@@ -21,9 +21,15 @@ target_metadata = Base.metadata
 def _url() -> str:
     raw = get_settings().alembic_url
     if not raw:
-        raise RuntimeError("Set DIRECT_URL or DATABASE_URL for application-svc migrations")
+        raise RuntimeError(
+            "Set DIRECT_URL or DATABASE_URL for application-svc migrations"
+        )
     parts = urlsplit(raw)
-    scheme = "postgresql+psycopg" if parts.scheme in ("postgres", "postgresql") else parts.scheme
+    scheme = (
+        "postgresql+psycopg"
+        if parts.scheme in ("postgres", "postgresql")
+        else parts.scheme
+    )
     schema = get_settings().db_schema
     query = dict(parse_qsl(parts.query, keep_blank_values=True))
     if "options" not in query and schema:
@@ -40,7 +46,9 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section) or {}
     configuration["sqlalchemy.url"] = _url()
-    connectable = engine_from_config(configuration, prefix="sqlalchemy.", poolclass=pool.NullPool)
+    connectable = engine_from_config(
+        configuration, prefix="sqlalchemy.", poolclass=pool.NullPool
+    )
     schema = get_settings().db_schema
     with connectable.connect() as connection:
         connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema}"'))
