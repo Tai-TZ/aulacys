@@ -9,9 +9,16 @@ from src.models.schemas import (
     ApprovalResponse,
     AssessApplicationRequest,
     AssessResponse,
+    CatalogSeedResponse,
     ChatRequest,
     ChatResponse,
+    LoanProductIn,
+    LoanProductOut,
+    ProductGroupIn,
+    ProductGroupOut,
+    ProductStatusPatch,
 )
+from src.services import applications_proxy, products as products_svc
 
 router = APIRouter()
 
@@ -145,3 +152,104 @@ async def create_approval(request: ApprovalRequest) -> ApprovalResponse:
 async def agent_status():
     """Agent status."""
     return {"status": "ready"}
+
+
+@router.get("/applications")
+async def list_loan_applications(limit: int = 100) -> list[dict]:
+    """Proxy application-svc catalog of intake dossiers (empty if svc down)."""
+    return applications_proxy.list_applications(limit=limit)
+
+
+@router.get("/applications/{application_id}")
+async def get_loan_application(application_id: str) -> dict:
+    row = applications_proxy.fetch_application(application_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"application not found: {application_id}")
+    return row
+
+
+# --- Loan product catalog CRUD ---
+
+
+@router.get("/product-groups", response_model=list[ProductGroupOut])
+async def list_product_groups() -> list[ProductGroupOut]:
+    return await products_svc.list_groups()
+
+
+@router.post("/product-groups", response_model=ProductGroupOut, status_code=201)
+async def create_product_group(body: ProductGroupIn) -> ProductGroupOut:
+    try:
+        return await products_svc.create_group(body)
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
+
+
+@router.put("/product-groups/{group_id}", response_model=ProductGroupOut)
+async def update_product_group(group_id: str, body: ProductGroupIn) -> ProductGroupOut:
+    try:
+        return await products_svc.update_group(group_id, body)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"group not found: {group_id}") from e
+
+
+@router.delete("/product-groups/{group_id}", status_code=204)
+async def delete_product_group(group_id: str) -> None:
+    try:
+        await products_svc.delete_group(group_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"group not found: {group_id}") from e
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
+
+
+@router.get("/products", response_model=list[LoanProductOut])
+async def list_loan_products(customer_type: str | None = None) -> list[LoanProductOut]:
+    return await products_svc.list_products(customer_type=customer_type)
+
+
+@router.get("/products/{product_id}", response_model=LoanProductOut)
+async def get_loan_product(product_id: str) -> LoanProductOut:
+    got = await products_svc.get_product(product_id)
+    if got is None:
+        raise HTTPException(status_code=404, detail=f"product not found: {product_id}")
+    return got
+
+
+@router.post("/products", response_model=LoanProductOut, status_code=201)
+async def create_loan_product(body: LoanProductIn) -> LoanProductOut:
+    try:
+        return await products_svc.create_product(body)
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
+
+
+@router.put("/products/{product_id}", response_model=LoanProductOut)
+async def update_loan_product(product_id: str, body: LoanProductIn) -> LoanProductOut:
+    try:
+        return await products_svc.update_product(product_id, body)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"product not found: {product_id}") from e
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
+
+
+@router.patch("/products/{product_id}/status", response_model=LoanProductOut)
+async def patch_loan_product_status(product_id: str, body: ProductStatusPatch) -> LoanProductOut:
+    try:
+        return await products_svc.patch_product_status(product_id, body.status)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"product not found: {product_id}") from e
+
+
+@router.delete("/products/{product_id}", status_code=204)
+async def delete_loan_product(product_id: str) -> None:
+    try:
+        await products_svc.delete_product(product_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"product not found: {product_id}") from e
+
+
+@router.post("/products/seed", response_model=CatalogSeedResponse)
+async def seed_loan_products() -> CatalogSeedResponse:
+    """Upsert default catalog (demo). Safe to re-run."""
+    return await products_svc.seed_catalog()

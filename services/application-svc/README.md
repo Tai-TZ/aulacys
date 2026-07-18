@@ -31,9 +31,16 @@ pytest -q
 |--------|------|-------|
 | `GET` | `/health` | liveness |
 | `GET` | `/ready` | DB ping |
-| `POST` | `/applications` | intake; **400** if `consent.data_processing_consent` is false |
+| `GET` | `/applications` | list newest-first (`?limit=`) |
 | `GET` | `/applications/{id}` | full nested Section A |
+| `POST` | `/applications` | intake; **400** if `consent.data_processing_consent` is false |
 
-## Schema
+## Seed demo dossiers
 
-13 tables — see `schema.sql` / `docs/APPLICATION-SCHEMA.md` §2.
+```bash
+# from services/application-svc — uses DIRECT_URL, idempotent by CCCD
+python scripts/seed_dossiers.py
+```
+
+Seeds 7 applications: 3 wow-flow demos (Bé Hoa / Trần Vui / Huyền Trần) + 4 CCCD cards
+in `seed/dossiers.py`. Skip if `applicant.id_number` already exists.

@@ -31,3 +31,7 @@ def get_application(application_id: str) -> dict[str, Any] | None:
     except ValueError:
         return None
     return repo.get_application(uid)
+
+
+def list_applications(*, limit: int = 100) -> list[dict[str, Any]]:
+    return repo.list_applications(limit=limit)

@@ -296,6 +296,8 @@ class SalesInfo(Base):
 
 
 class ApplicationDocument(Base):
+    """Checklist / uploaded evidence — mirrors workspace DOSSIER_DOCS + assess docs."""
+
     __tablename__ = "application_document"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -309,7 +311,9 @@ class ApplicationDocument(Base):
     )
     doc_type: Mapped[str] = mapped_column(Text, nullable=False, index=True)
     title: Mapped[str | None] = mapped_column(Text, nullable=True)
-    status: Mapped[str] = mapped_column(Text, nullable=False, default="received")
+    status: Mapped[str] = mapped_column(
+        Text, nullable=False, default="missing"
+    )  # missing|uploaded|verified
     required_for: Mapped[str | None] = mapped_column(Text, nullable=True)
     storage_uri: Mapped[str | None] = mapped_column(Text, nullable=True)
     tier: Mapped[int | None] = mapped_column(Integer, nullable=True)

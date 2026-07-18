@@ -3,23 +3,21 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.engine.url import make_url
 
 from app.core.config import get_settings
 
 
 def _sync_url(url: str, schema: str) -> str:
-    parts = urlsplit(url)
-    scheme = parts.scheme
-    if scheme in ("postgres", "postgresql"):
-        scheme = "postgresql+psycopg"
-    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    """Normalize for psycopg; drop Prisma ``pgbouncer`` query flag."""
+    u = make_url(url)
+    query = {k: v for k, v in dict(u.query).items() if k != "pgbouncer"}
     if "options" not in query and schema:
         query["options"] = f"-csearch_path={schema}"
-    return urlunsplit((scheme, parts.netloc, parts.path, urlencode(query), ""))
+    return u.set(drivername="postgresql+psycopg", query=query).render_as_string(hide_password=False)
 
 
 @lru_cache

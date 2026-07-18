@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -15,20 +15,22 @@ import { Button, Card, Input } from "@/components/ui";
 import {
   assess,
   assessApplication,
-  type AssessApplicationRequest,
+  listApplications,
   type AssessResponse,
   type DeclaredForm,
   type DocumentInput,
 } from "@/lib/api";
+import {
+  applicationToListRow,
+  toAssessRequest,
+  type ApplicationSectionA,
+  type AssessFormState as MappedAssessForm,
+} from "@/lib/application-map";
 import { enqueueAssessResult, listHitlCases, type HitlCase } from "@/lib/hitl-queue";
 import { cn } from "@/lib/cn";
 
 /** Dashboard always edits a full body (id path is API-only for now). */
-type AssessFormState = {
-  product: string;
-  declared: DeclaredForm;
-  documents: DocumentInput[];
-};
+type AssessFormState = MappedAssessForm;
 
 const MORTGAGE_DEMO: AssessFormState = {
   product: "retail_mortgage",
@@ -1047,14 +1049,23 @@ function DossierSummaryCard({
   );
 }
 
-function rememberResult(result: AssessResponse, form: AssessFormState) {
+function rememberResult(
+  result: AssessResponse,
+  form: AssessFormState,
+  applicationId?: string | null,
+) {
   enqueueAssessResult(result, {
     customer_name: form.declared.customer_name,
     product: form.product,
     amount: form.declared.amount,
-    application_id: "retail-demo",
+    application_id: applicationId ?? "retail-demo",
   });
 }
+
+type DossierListItem = ReturnType<typeof applicationToListRow> & {
+  /** mock-only scenario key when not from DB */
+  fromDb?: boolean;
+};
 
 export function AssessDashboard() {
   const [viewMode, setViewMode] = useState<"list" | "detail">("list");
@@ -1062,43 +1073,86 @@ export function AssessDashboard() {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const [form, setForm] = useState<AssessFormState>(HAPPY_DEMO);
-  const [dossier, setDossier] = useState<{ data: AssessFormState; scenario: string } | null>(
-    { data: HAPPY_DEMO, scenario: "happy" },
-  );
+  const [dossier, setDossier] = useState<{
+    data: AssessFormState;
+    scenario: string;
+    applicationId?: string | null;
+  } | null>({ data: HAPPY_DEMO, scenario: "happy" });
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
   const [result, setResult] = useState<AssessResponse | null>(null);
+  const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
+  const [listSource, setListSource] = useState<"db" | "mock">("mock");
+  const [listLoading, setListLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const baselineDossiers = [
+  const mockDossiers: DossierListItem[] = [
     {
       id: "happy",
+      application_id: "happy",
       customer_name: "NGUYỄN THỊ BÉ HOA",
       product: "retail_unsecured_salary",
       product_label: "Vay tiêu dùng theo lương (Salary Loan)",
       amount: 150_000_000,
+      db_status: "submitted",
       scenario: "happy",
       data: HAPPY_DEMO,
+      fromDb: false,
     },
     {
       id: "veto",
+      application_id: "veto",
       customer_name: "TRẦN THỊ VUI",
       product: "retail_unsecured_salary",
       product_label: "Vay tiêu dùng theo lương (Salary Loan)",
       amount: 150_000_000,
+      db_status: "submitted",
       scenario: "veto",
       data: VETO_DEMO,
+      fromDb: false,
     },
     {
       id: "hitl",
+      application_id: "hitl",
       customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
       product: "retail_mortgage",
       product_label: "Vay thế chấp mua nhà (Mortgage Loan)",
       amount: 2_500_000_000,
+      db_status: "submitted",
       scenario: "hitl",
       data: HITL_DEMO,
+      fromDb: false,
     },
   ];
+
+  const refreshDossiers = useCallback(async () => {
+    setListLoading(true);
+    try {
+      const rows = await listApplications(100);
+      if (rows.length > 0) {
+        setDossiers(
+          rows.map((r) => ({
+            ...applicationToListRow(r as unknown as ApplicationSectionA),
+            fromDb: true,
+          })),
+        );
+        setListSource("db");
+      } else {
+        setDossiers(mockDossiers);
+        setListSource("mock");
+      }
+    } catch {
+      setDossiers(mockDossiers);
+      setListSource("mock");
+    } finally {
+      setListLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mock is stable for fallback
+  }, []);
+
+  useEffect(() => {
+    void refreshDossiers();
+  }, [refreshDossiers]);
 
   function updateDeclared<K extends keyof DeclaredForm>(
     key: K,
@@ -1109,21 +1163,29 @@ export function AssessDashboard() {
 
   const cases = listHitlCases();
 
-  const getDossierStatusInfo = (scenario: string) => {
-    const match = cases.find((c: HitlCase) =>
-      c.customer_name.toUpperCase().includes(
-        scenario === "happy" ? "BÉ HOA" : scenario === "veto" ? "VUI" : "HUYỀN TRẦN"
-      )
+  const getDossierStatusInfo = (item: DossierListItem) => {
+    const match = cases.find(
+      (c: HitlCase) =>
+        (item.fromDb && c.application_id === item.application_id) ||
+        c.customer_name.toUpperCase() === item.customer_name.toUpperCase() ||
+        c.customer_name.toUpperCase().includes(item.customer_name.split(" ").slice(-1)[0] ?? ""),
     );
-    if (!match) return { key: "ingested", label: "Tiếp nhận hồ sơ", tone: "active" as const };
-    if (match.veto) return { key: "vetoed", label: "Bị từ chối (Veto)", tone: "warning" as const };
-    if (match.decision === "approved" || match.ticket_id) return { key: "approved", label: "Đã giải ngân", tone: "success" as const };
-    if (match.decision === "rejected") return { key: "vetoed", label: "Từ chối duyệt", tone: "warning" as const };
-    return { key: "pending", label: "Chờ xét duyệt (HITL)", tone: "pending" as const };
+    if (match) {
+      if (match.veto) return { key: "vetoed", label: "Bị từ chối (Veto)", tone: "warning" as const };
+      if (match.decision === "approved" || match.ticket_id)
+        return { key: "approved", label: "Đã giải ngân", tone: "success" as const };
+      if (match.decision === "rejected")
+        return { key: "vetoed", label: "Từ chối duyệt", tone: "warning" as const };
+      return { key: "pending", label: "Chờ xét duyệt (HITL)", tone: "pending" as const };
+    }
+    if (item.db_status === "approved")
+      return { key: "approved", label: "Đã giải ngân", tone: "success" as const };
+    if (item.db_status === "rejected")
+      return { key: "vetoed", label: "Từ chối / Veto", tone: "warning" as const };
+    if (item.db_status === "assessing")
+      return { key: "pending", label: "Chờ xét duyệt (HITL)", tone: "pending" as const };
+    return { key: "ingested", label: "Tiếp nhận hồ sơ", tone: "active" as const };
   };
-
-
-
 
   async function runSubmitted(event?: React.FormEvent) {
     if (event) event.preventDefault();
@@ -1138,9 +1200,10 @@ export function AssessDashboard() {
             : doc,
         ),
       };
-      const next = await assessApplication(body);
+      const appId = dossier?.applicationId;
+      const next = await assessApplication(toAssessRequest(body, appId && appId.length > 20 ? appId : null));
       setResult(next);
-      rememberResult(next, body);
+      rememberResult(next, body, appId && appId.length > 20 ? appId : null);
     } catch (err) {
       setError(
         err instanceof Error
@@ -1158,7 +1221,7 @@ export function AssessDashboard() {
     try {
       const next = await assess(keyword);
       setResult(next);
-      rememberResult(next, fallbackForm);
+      rememberResult(next, fallbackForm, dossier?.applicationId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không gọi được API seed.");
     } finally {
@@ -1242,14 +1305,15 @@ export function AssessDashboard() {
   ];
 
   if (viewMode === "list") {
-    const filteredDossiers = baselineDossiers.filter((d) => {
-      const statusInfo = getDossierStatusInfo(d.scenario);
+    const filteredDossiers = dossiers.filter((d) => {
+      const statusInfo = getDossierStatusInfo(d);
       if (filterStatus !== "all" && statusInfo.key !== filterStatus) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         return (
           d.customer_name.toLowerCase().includes(q) ||
-          d.product_label.toLowerCase().includes(q)
+          d.product_label.toLowerCase().includes(q) ||
+          (d.data.declared.national_id ?? "").toLowerCase().includes(q)
         );
       }
       return true;
@@ -1266,6 +1330,12 @@ export function AssessDashboard() {
             <h1 className="text-xl font-bold tracking-tight text-navy uppercase">Bộ hồ sơ khách hàng bán lẻ</h1>
             <p className="text-xs text-muted-foreground">
               Xem chi tiết hồ sơ, đối chiếu chứng từ gốc và thực thi quy trình phê duyệt tự động.
+              {" · "}
+              {listLoading
+                ? "Đang tải…"
+                : listSource === "db"
+                  ? `Nguồn: database (${dossiers.length} hồ sơ)`
+                  : "Nguồn: mock local (API/application-svc trống hoặc offline)"}
             </p>
           </div>
         </div>
@@ -1329,13 +1399,17 @@ export function AssessDashboard() {
                   </tr>
                 ) : (
                   filteredDossiers.map((item) => {
-                    const statusInfo = getDossierStatusInfo(item.scenario);
+                    const statusInfo = getDossierStatusInfo(item);
                     return (
                       <tr
                         key={item.id}
                         className="hover:bg-secondary/10 transition duration-150 cursor-pointer"
                         onClick={() => {
-                          setDossier({ data: item.data, scenario: item.scenario });
+                          setDossier({
+                            data: item.data,
+                            scenario: item.scenario,
+                            applicationId: item.fromDb ? item.application_id : null,
+                          });
                           setForm(item.data);
                           setResult(null); // Clear previous results when switching
                           setViewMode("detail");
@@ -1388,7 +1462,12 @@ export function AssessDashboard() {
           ← Quay lại danh sách bộ hồ sơ
         </button>
         <span className="text-[10px] text-muted-foreground">
-          Mã hồ sơ: <code className="bg-gray-100 px-1 py-0.5 rounded border">SHB-{dossier?.scenario.toUpperCase()}-2026</code>
+          Mã hồ sơ:{" "}
+          <code className="bg-gray-100 px-1 py-0.5 rounded border">
+            {dossier?.applicationId
+              ? dossier.applicationId.slice(0, 8).toUpperCase()
+              : `SHB-${dossier?.scenario.toUpperCase()}-2026`}
+          </code>
         </span>
       </div>
       {/* ── THANH TIẾN TRÌNH WIZARD ── */}

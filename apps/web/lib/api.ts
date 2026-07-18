@@ -5,6 +5,9 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:8080";
+/** Direct intake svc — used when API proxy returns empty / offline. */
+const APPLICATION_SVC_URL =
+  process.env.NEXT_PUBLIC_APPLICATION_SVC_URL ?? "http://127.0.0.1:8360";
 
 export interface ChatRequest {
   message: string;
@@ -291,4 +294,206 @@ export async function assessViaGateway(message: string): Promise<AssessResponse>
     throw new Error(`Gateway assess error ${res.status}`);
   }
   return (await res.json()) as AssessResponse;
+}
+
+// --- Loan product catalog (admin CRUD) ---
+
+export type ProductStatusApi = "ACTIVE" | "DRAFT" | "SUSPENDED";
+
+export interface ProductGroupDto {
+  id: string;
+  name: string;
+  description: string;
+  icon_name: string;
+  is_active: boolean;
+  display_order: number;
+}
+
+export interface LoanProductDto {
+  id: string;
+  customer_type: string;
+  customer_type_name: string;
+  product_group_id: string;
+  product_group_name: string;
+  product_code: string;
+  product_name: string;
+  short_name?: string | null;
+  loan_method: string;
+  secured_type: string;
+  min_amount?: number | null;
+  max_amount?: number | null;
+  min_term?: number | null;
+  max_term?: number | null;
+  status: ProductStatusApi;
+  interest_rate?: number | null;
+  purpose: string;
+  currency: string;
+  agent_product_id?: string | null;
+  segments: string[];
+  loan_structure?: Record<string, unknown> | null;
+  interest_config?: Record<string, unknown> | null;
+  repayment_config?: Record<string, unknown> | null;
+  collateral_config?: Record<string, unknown> | null;
+  eligibility?: Record<string, unknown> | null;
+  document_groups?: unknown[] | null;
+  channels?: string[] | null;
+  effective_start?: string | null;
+  effective_end?: string | null;
+  updated_at: string;
+}
+
+export interface LoanProductWriteBody {
+  customer_type?: "INDIVIDUAL" | "BUSINESS";
+  product_group_id: string;
+  product_code: string;
+  product_name: string;
+  short_name?: string | null;
+  loan_method?: string;
+  secured_type?: "SECURED" | "UNSECURED";
+  min_amount?: number | null;
+  max_amount?: number | null;
+  min_term?: number | null;
+  max_term?: number | null;
+  status?: ProductStatusApi;
+  interest_rate?: number | null;
+  purpose?: string;
+  currency?: string;
+  agent_product_id?: string | null;
+  segments?: string[];
+  loan_structure?: Record<string, unknown> | null;
+  interest_config?: Record<string, unknown> | null;
+  repayment_config?: Record<string, unknown> | null;
+  collateral_config?: Record<string, unknown> | null;
+  eligibility?: Record<string, unknown> | null;
+  document_groups?: unknown[] | null;
+  channels?: string[] | null;
+  effective_start?: string | null;
+  effective_end?: string | null;
+}
+
+async function catalogFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_URL}/api/v1${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`);
+  }
+  if (res.status === 204) return undefined as T;
+  return (await res.json()) as T;
+}
+
+export function listProductGroups(): Promise<ProductGroupDto[]> {
+  return catalogFetch("/product-groups");
+}
+
+export function createProductGroup(body: {
+  id?: string;
+  name: string;
+  description?: string;
+  icon_name?: string;
+  is_active?: boolean;
+  display_order?: number;
+}): Promise<ProductGroupDto> {
+  return catalogFetch("/product-groups", { method: "POST", body: JSON.stringify(body) });
+}
+
+export function updateProductGroup(
+  id: string,
+  body: {
+    name: string;
+    description?: string;
+    icon_name?: string;
+    is_active?: boolean;
+    display_order?: number;
+  },
+): Promise<ProductGroupDto> {
+  return catalogFetch(`/product-groups/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteProductGroup(id: string): Promise<void> {
+  return catalogFetch(`/product-groups/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+export function listLoanProducts(customerType?: string): Promise<LoanProductDto[]> {
+  const q = customerType ? `?customer_type=${encodeURIComponent(customerType)}` : "";
+  return catalogFetch(`/products${q}`);
+}
+
+export function createLoanProduct(body: LoanProductWriteBody): Promise<LoanProductDto> {
+  return catalogFetch("/products", { method: "POST", body: JSON.stringify(body) });
+}
+
+export function updateLoanProduct(id: string, body: LoanProductWriteBody): Promise<LoanProductDto> {
+  return catalogFetch(`/products/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export function patchLoanProductStatus(
+  id: string,
+  status: ProductStatusApi,
+): Promise<LoanProductDto> {
+  return catalogFetch(`/products/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+}
+
+export function deleteLoanProduct(id: string): Promise<void> {
+  return catalogFetch(`/products/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+export function seedLoanProducts(): Promise<{
+  groups_upserted: number;
+  products_upserted: number;
+  source: string;
+}> {
+  return catalogFetch("/products/seed", { method: "POST" });
+}
+
+// --- Application intake (proxy → application-svc) ---
+
+export type ApplicationSectionADto = Record<string, unknown> & {
+  id: string;
+  product: string;
+  total_amount: string | number;
+  term_months: number;
+  status: string;
+};
+
+export async function listApplications(limit = 100): Promise<ApplicationSectionADto[]> {
+  try {
+    const fromApi = await catalogFetch<ApplicationSectionADto[]>(`/applications?limit=${limit}`);
+    if (Array.isArray(fromApi) && fromApi.length > 0) return fromApi;
+  } catch {
+    // fall through to application-svc
+  }
+  try {
+    const res = await fetch(`${APPLICATION_SVC_URL}/applications?limit=${limit}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as ApplicationSectionADto[];
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getApplication(id: string): Promise<ApplicationSectionADto> {
+  try {
+    return await catalogFetch(`/applications/${encodeURIComponent(id)}`);
+  } catch {
+    const res = await fetch(`${APPLICATION_SVC_URL}/applications/${encodeURIComponent(id)}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`application not found: ${id}`);
+    return (await res.json()) as ApplicationSectionADto;
+  }
 }
