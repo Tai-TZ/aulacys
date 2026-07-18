@@ -5,9 +5,12 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:8080";
-/** Direct intake svc — used when API proxy returns empty / offline. */
-const APPLICATION_SVC_URL =
-  process.env.NEXT_PUBLIC_APPLICATION_SVC_URL ?? "http://127.0.0.1:8360";
+/** Healthy API with Rule Engineer + fast catalog (stale :8000 often hangs on Supabase). */
+const API_FALLBACK = process.env.NEXT_PUBLIC_API_FALLBACK ?? "http://127.0.0.1:8001";
+
+function apiBases(): string[] {
+  return [API_URL, API_FALLBACK].filter((b, i, arr) => Boolean(b) && arr.indexOf(b) === i);
+}
 
 export interface ChatRequest {
   message: string;
@@ -126,7 +129,7 @@ export interface PolicyViolation {
   description: string;
   legal_basis: string;
   metric: string;
-  actual: number;
+  actual: number | null;
   threshold: number;
   operator: string;
   unit: string;
@@ -136,6 +139,7 @@ export interface PolicyViolation {
   effective_to?: string | null;
   version?: string;
   unverified?: boolean;
+  missing_metric?: boolean;
 }
 
 export interface ComplianceVerdict {
@@ -384,16 +388,34 @@ export interface LoanProductWriteBody {
 }
 
 async function catalogFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}/api/v1${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`);
+  const bases = apiBases();
+  let lastErr: Error | null = null;
+  for (const base of bases) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    try {
+      const res = await fetch(`${base}/api/v1${path}`, {
+        ...init,
+        signal: ctrl.signal,
+        headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+      });
+      clearTimeout(timer);
+      if (!res.ok) {
+        const detail = await res.text().catch(() => "");
+        lastErr = new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`);
+        // 404 on stale process → try next base
+        if (res.status === 404 && base !== bases[bases.length - 1]) continue;
+        throw lastErr;
+      }
+      if (res.status === 204) return undefined as T;
+      return (await res.json()) as T;
+    } catch (e) {
+      clearTimeout(timer);
+      lastErr = e instanceof Error ? e : new Error(String(e));
+      if (base === bases[bases.length - 1]) break;
+    }
   }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+  throw lastErr ?? new Error("API unavailable");
 }
 
 export function listProductGroups(): Promise<ProductGroupDto[]> {
@@ -469,6 +491,93 @@ export function seedLoanProducts(): Promise<{
   return catalogFetch("/products/seed", { method: "POST" });
 }
 
+// --- Rule Engineer (policy attached to loan package) ---
+
+export type PolicyProfileApi = "secured" | "unsecured";
+
+export interface PolicyRuleDto {
+  id: string;
+  label_vi: string;
+  description: string;
+  kind: "legal" | "appetite";
+  metric: string;
+  operator: string;
+  threshold: number;
+  unit: string;
+  severity: "blocking" | "warning";
+  editable: boolean;
+  verified: boolean;
+  version: string;
+  legal_basis: string;
+  effective_from: string;
+  effective_to?: string | null;
+}
+
+export interface PolicyRulesResponseDto {
+  profile: PolicyProfileApi;
+  secured_type: string;
+  product_code?: string | null;
+  rules: PolicyRuleDto[];
+}
+
+export interface PolicyValidateResponseDto {
+  profile: PolicyProfileApi;
+  product_code?: string | null;
+  violations: Record<string, unknown>[];
+  veto: boolean;
+  rule_ids: string[];
+}
+
+export function listPolicyRules(
+  securedType: "SECURED" | "UNSECURED",
+  productCode?: string,
+): Promise<PolicyRulesResponseDto> {
+  const q = new URLSearchParams({ secured_type: securedType });
+  if (productCode?.trim()) q.set("product_code", productCode.trim());
+  return policyFetch(`/policy/rules?${q.toString()}`);
+}
+
+export function patchPolicyAppetite(
+  ruleId: string,
+  threshold: number,
+  securedType: "SECURED" | "UNSECURED",
+  productCode?: string,
+): Promise<PolicyRuleDto> {
+  return policyFetch(
+    `/policy/rules/${encodeURIComponent(ruleId)}?secured_type=${encodeURIComponent(securedType)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        threshold,
+        product_code: productCode?.trim() || null,
+      }),
+    },
+  );
+}
+
+export function validatePolicyRules(
+  securedType: "SECURED" | "UNSECURED",
+  metrics: Record<string, number>,
+  opts?: { asOf?: string; productCode?: string },
+): Promise<PolicyValidateResponseDto> {
+  return policyFetch(
+    `/policy/rules/validate?secured_type=${encodeURIComponent(securedType)}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        metrics,
+        as_of: opts?.asOf ?? null,
+        product_code: opts?.productCode?.trim() || null,
+      }),
+    },
+  );
+}
+
+async function policyFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  // Same bases as catalog — Rule Engineer lives on the healthy API (:8001 today).
+  return catalogFetch<T>(path, init);
+}
+
 // --- Application intake (proxy → application-svc) ---
 
 export type ApplicationSectionADto = Record<string, unknown> & {
@@ -480,32 +589,11 @@ export type ApplicationSectionADto = Record<string, unknown> & {
 };
 
 export async function listApplications(limit = 100): Promise<ApplicationSectionADto[]> {
-  try {
-    const fromApi = await catalogFetch<ApplicationSectionADto[]>(`/applications?limit=${limit}`);
-    if (Array.isArray(fromApi) && fromApi.length > 0) return fromApi;
-  } catch {
-    // fall through to application-svc
-  }
-  try {
-    const res = await fetch(`${APPLICATION_SVC_URL}/applications?limit=${limit}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as ApplicationSectionADto[];
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
+  // Browser talks only to apps/api. Do NOT fetch application-svc (:8360) from the client.
+  const fromApi = await catalogFetch<ApplicationSectionADto[]>(`/applications?limit=${limit}`);
+  return Array.isArray(fromApi) ? fromApi : [];
 }
 
 export async function getApplication(id: string): Promise<ApplicationSectionADto> {
-  try {
-    return await catalogFetch(`/applications/${encodeURIComponent(id)}`);
-  } catch {
-    const res = await fetch(`${APPLICATION_SVC_URL}/applications/${encodeURIComponent(id)}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error(`application not found: ${id}`);
-    return (await res.json()) as ApplicationSectionADto;
-  }
+  return catalogFetch(`/applications/${encodeURIComponent(id)}`);
 }

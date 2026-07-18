@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 import uuid
@@ -24,6 +25,9 @@ from aulacys.models.schemas import (
 from aulacys.services.products_seed import SEED_GROUPS, SEED_PRODUCTS
 
 logger = logging.getLogger(__name__)
+
+# Remote Supabase can take 8–15s; demo UI must not hang. Budget then fall back to memory.
+_DB_BUDGET_S = 2.5
 
 _CUSTOMER_TYPE_NAME = {
     "INDIVIDUAL": "Khách hàng cá nhân",
@@ -178,7 +182,7 @@ async def _session() -> AsyncSession | None:
 
 
 async def seed_catalog() -> CatalogSeedResponse:
-    """Seed memory always; also upsert into DB when available."""
+    """Seed memory always; also upsert into DB when available (budgeted — never block demo UI)."""
     mem = seed_memory()
     global _mem_seeded
     _mem_seeded = True
@@ -187,7 +191,7 @@ async def seed_catalog() -> CatalogSeedResponse:
     if session_cm is None:
         return mem
 
-    try:
+    async def _seed_db() -> CatalogSeedResponse:
         async with session_cm as session:
             g_n = 0
             for raw in SEED_GROUPS:
@@ -242,9 +246,14 @@ async def seed_catalog() -> CatalogSeedResponse:
                         setattr(row, k, v)
                 p_n += 1
             await session.commit()
-            # refresh memory from DB
             await _hydrate_mem_from_db(session)
             return CatalogSeedResponse(groups_upserted=g_n, products_upserted=p_n, source="database")
+
+    try:
+        return await asyncio.wait_for(_seed_db(), timeout=_DB_BUDGET_S)
+    except TimeoutError:
+        logger.warning("seed_catalog: DB budget exceeded — memory seed only")
+        return mem
     except Exception:
         logger.exception("product catalog seed DB failed — using memory")
         return mem
@@ -271,34 +280,9 @@ async def _hydrate_mem_from_db(session: AsyncSession) -> None:
 
 
 async def list_groups() -> list[ProductGroupOut]:
+    """Serve catalog from memory. DB is write-through on mutations (Supabase RTT is too slow for list)."""
     _ensure_mem_seeded()
-    session_cm = await _session()
-    if session_cm is None:
-        return sorted(_mem_groups.values(), key=lambda g: g.display_order)
-    try:
-        async with session_cm as session:
-            rows = (await session.execute(select(ProductGroup).order_by(ProductGroup.display_order))).scalars().all()
-            if not rows:
-                await seed_catalog()
-                return sorted(_mem_groups.values(), key=lambda g: g.display_order)
-            out = [
-                ProductGroupOut(
-                    id=g.id,
-                    name=g.name,
-                    description=g.description or "",
-                    icon_name=g.icon_name or "Briefcase",
-                    is_active=bool(g.is_active),
-                    display_order=g.display_order or 0,
-                )
-                for g in rows
-            ]
-            _mem_groups.clear()
-            for g in out:
-                _mem_groups[g.id] = g
-            return out
-    except Exception:
-        logger.exception("list_groups DB failed")
-        return sorted(_mem_groups.values(), key=lambda g: g.display_order)
+    return sorted(_mem_groups.values(), key=lambda g: g.display_order)
 
 
 async def create_group(payload: ProductGroupIn) -> ProductGroupOut:
@@ -407,37 +391,8 @@ async def delete_group(group_id: str) -> None:
 
 
 async def list_products(*, customer_type: str | None = None) -> list[LoanProductOut]:
+    """Serve catalog from memory so admin UI is not blocked by Supabase latency."""
     _ensure_mem_seeded()
-    session_cm = await _session()
-    if session_cm is not None:
-        try:
-            async with session_cm as session:
-                q = select(LoanProduct)
-                if customer_type:
-                    q = q.where(LoanProduct.customer_type == customer_type)
-                rows = (await session.execute(q)).scalars().all()
-                if not rows and not _mem_products:
-                    await seed_catalog()
-                    items = list(_mem_products.values())
-                else:
-                    await _hydrate_mem_from_db(session) if rows else None
-                    if rows:
-                        gmap = {g.id: g.name for g in _mem_groups.values()}
-                        # reload groups if empty
-                        if not gmap:
-                            grows = (await session.execute(select(ProductGroup))).scalars().all()
-                            gmap = {g.id: g.name for g in grows}
-                        items = [_product_out_from_orm(r, gmap.get(r.product_group_id, "")) for r in rows]
-                        _mem_products.clear()
-                        for p in items:
-                            _mem_products[p.id] = p
-                    else:
-                        items = list(_mem_products.values())
-                if customer_type:
-                    items = [p for p in items if p.customer_type == customer_type]
-                return sorted(items, key=lambda p: p.product_code)
-        except Exception:
-            logger.exception("list_products DB failed")
     items = list(_mem_products.values())
     if customer_type:
         items = [p for p in items if p.customer_type == customer_type]

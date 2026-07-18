@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 from app.core.config import get_settings
 
 Severity = Literal["blocking", "warning"]
+RuleKind = Literal["legal", "appetite"]
 
 _OPERATORS: dict[str, Callable[[float, float], bool]] = {
     "<=": operator.le,
@@ -45,6 +46,11 @@ class PolicyRule(BaseModel):
     version: str = ""
     verified: bool = Field(default=False)
 
+    kind: RuleKind = Field(
+        default="appetite",
+        description="legal = statutory/hard limit; appetite = tunable.",
+    )
+
     def check(self, actual: float) -> bool:
         return _OPERATORS[self.operator](actual, self.threshold)
 
@@ -54,7 +60,7 @@ class PolicyViolation(BaseModel):
     description: str
     legal_basis: str
     metric: str
-    actual: float
+    actual: float | None
     threshold: float
     operator: str
     unit: str
@@ -64,6 +70,7 @@ class PolicyViolation(BaseModel):
     effective_to: str | None = None
     version: str = ""
     unverified: bool = False
+    missing_metric: bool = False
 
     @property
     def is_blocking(self) -> bool:
@@ -125,7 +132,7 @@ def evaluate(metrics: dict[str, float], as_of: date | None = None) -> list[Polic
                 threshold=rule.threshold,
                 operator=rule.operator,
                 unit=rule.unit,
-                severity=rule.severity,
+                severity=rule.severity if rule.verified or rule.kind == "appetite" else "warning",
                 raised_by=rule.veto_agent,
                 effective_from=rule.effective_from,
                 effective_to=rule.effective_to,

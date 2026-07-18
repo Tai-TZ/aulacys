@@ -262,7 +262,6 @@ export function IndividualLoanProductTable({ products, onViewDetail, onEditDetai
         <table className="w-full text-left border-collapse text-sm">
           <thead>
             <tr className="bg-secondary/40 border-b border-border/50 text-[#003B71] font-bold">
-              <th className="p-4 text-xs uppercase tracking-wider">Mã sản phẩm</th>
               <th className="p-4 text-xs uppercase tracking-wider">Tên sản phẩm</th>
               <th className="p-4 text-xs uppercase tracking-wider">Nhóm sản phẩm</th>
               <th className="p-4 text-xs uppercase tracking-wider">Số tiền vay</th>
@@ -277,7 +276,6 @@ export function IndividualLoanProductTable({ products, onViewDetail, onEditDetai
               const isUnsecured = p.securedType === "UNSECURED" || p.collateralType === "UNSECURED";
               return (
                 <tr key={p.id} className="hover:bg-secondary/20 transition duration-150">
-                  <td className="p-4 font-bold text-navy text-xs">{p.productCode}</td>
                   <td className="p-4 font-semibold text-navy max-w-[200px] truncate" title={p.productName}>
                     <div className="flex flex-col gap-1 items-start text-left">
                       <span className="font-semibold text-navy">{p.productName}</span>
@@ -578,15 +576,26 @@ function getProductDetailConfig(p: LoanProduct) {
       disbursementMethod: p.securedType === "SECURED" ? "Chuyển khoản cho bên bán" : "Chuyển khoản / Tiền mặt",
       disbursementTimes: "Một lần hoặc theo tiến độ"
     },
-    interestConfig: p.interestConfig ?? {
-      rateType: "Ưu đãi sau đó thả nổi",
-      promoRate: p.interestRate,
-      promoTermMonths: undefined,
-      postPromoRateType: "Lãi suất tham chiếu + biên độ",
-      spread: undefined,
-      interestMethod: "Theo dư nợ giảm dần",
-      prepaymentFeePolicy: "Theo chính sách từng thời kỳ"
-    },
+    interestConfig: (p.interestConfig
+      ? {
+          ...p.interestConfig,
+          // Prefer explicit display copy when no positive published rate
+          displayText:
+            p.interestConfig.displayText ||
+            (!(Number(p.interestConfig.promoRate ?? p.interestConfig.publishedRate ?? p.interestRate) > 0)
+              ? "Theo chính sách từ SHB"
+              : undefined),
+        }
+      : Number(p.interestRate) > 0
+        ? {
+            promoRate: p.interestRate,
+            publishedRate: p.interestRate,
+          }
+        : {
+            displayText: "Theo chính sách từ SHB",
+            promoRate: null,
+            publishedRate: null,
+          }) as LoanProduct["interestConfig"],
     repaymentConfig: p.repaymentConfig ?? {
       method: "Trả góp",
       principalRepaymentMethod: "Gốc trả đều hàng tháng",
@@ -596,36 +605,12 @@ function getProductDetailConfig(p: LoanProduct) {
       prepaymentAllowed: true,
       collectionDay: "Theo ngày giải ngân hoặc thỏa thuận"
     },
-    collateralConfig: p.securedType === "SECURED" ? (p.collateralConfig ?? {
-      acceptedTypes: ["Nhà ở", "Quyền sử dụng đất", "Nhà đất hình thành từ vốn vay"],
-      futureAssetAllowed: true,
-      maxLtv: 80,
-      valuationRequired: true,
-      insuranceRequired: true,
-      owners: ["Khách hàng", "Vợ/chồng", "Người thân được SHB chấp thuận"]
-    }) : undefined,
-    documentGroups: p.documentGroups ?? [
-      {
-        title: "Hồ sơ nhân thân",
-        items: ["CCCD còn hiệu lực", "Thông tin cư trú", "Giấy đăng ký kết hôn hoặc xác nhận độc thân"]
-      },
-      {
-        title: "Hồ sơ chứng minh thu nhập",
-        items: ["Hợp đồng lao động", "Sao kê tài khoản nhận lương", "Hồ sơ nguồn thu nhập khác"]
-      },
-      {
-        title: "Hồ sơ mục đích vay",
-        items: ["Hợp đồng đặt cọc", "Hợp đồng mua bán hoặc chuyển nhượng", "Giấy tờ liên quan đến bất động sản"]
-      },
-      {
-        title: "Hồ sơ tài sản bảo đảm",
-        items: ["Giấy chứng nhận quyền sử dụng đất", "Hồ sơ pháp lý của tài sản", "Hồ sơ định giá"]
-      }
-    ],
+    collateralConfig: p.securedType === "SECURED" ? p.collateralConfig : undefined,
+    // Only show docs stored on the product — never invent checklist (esp. TSĐB for tín chấp).
+    documentGroups: Array.isArray(p.documentGroups) ? p.documentGroups : [],
     effectivePeriod: p.effectivePeriod ?? {
       startDate: p.updatedAt,
       endDate: null,
-      channels: ["Tại quầy", "Website", "Ứng dụng"]
     },
     eligibility: p.eligibility
   };
@@ -670,6 +655,25 @@ export function ProductPreview({ product, onClose, onEdit }: PreviewProps) {
 
   const maxLtvValue = config.collateralConfig?.maxLtv ?? config.loanStructure?.maxLtv;
 
+  const interestRateHighlight = (() => {
+    const rate =
+      config.interestConfig?.promoRate ??
+      config.interestConfig?.publishedRate ??
+      product.interestRate;
+    if (typeof rate === "number" && rate > 0) return `${rate}%/năm`;
+    const ic = config.interestConfig;
+    const displayText =
+      ic && "displayText" in ic && typeof ic.displayText === "string"
+        ? ic.displayText
+        : undefined;
+    return displayText || "Theo chính sách từ SHB";
+  })();
+
+  const maxTermMonths =
+    config.loanStructure?.maxTerm ??
+    config.loanStructure?.maxTermMonths ??
+    product.maxTerm;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
       <div className="bg-white border border-border w-full max-w-[960px] rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
@@ -708,13 +712,15 @@ export function ProductPreview({ product, onClose, onEdit }: PreviewProps) {
             <div>
               <span className="text-[11px] font-semibold text-[#6B7280] uppercase block">Lãi suất từ</span>
               <span className="text-xl font-extrabold text-[#F58220] mt-1 block">
-                {config.interestConfig?.promoRate != null ? `${config.interestConfig.promoRate}%/năm` : "Theo chính sách SHB"}
+                {interestRateHighlight}
               </span>
             </div>
             <div>
               <span className="text-[11px] font-semibold text-[#6B7280] uppercase block">Thời hạn tối đa</span>
               <span className="text-xl font-extrabold text-[#003B71] mt-1 block">
-                {config.loanStructure?.maxTerm != null ? `${config.loanStructure.maxTerm} tháng` : "—"}
+                {maxTermMonths != null && Number(maxTermMonths) > 0
+                  ? `${maxTermMonths} tháng`
+                  : "—"}
               </span>
             </div>
             <div>
@@ -739,7 +745,6 @@ export function ProductPreview({ product, onClose, onEdit }: PreviewProps) {
             <div className="bg-slate-50/50 p-5 rounded-2xl border border-border/50">
               <SectionHeader title="Thông tin chung" icon={FileText} />
               <div className="grid grid-cols-2 gap-4">
-                <DetailField label="Mã sản phẩm" value={config.id} />
                 <DetailField label="Nhóm sản phẩm" value={config.productGroup} />
                 <DetailField label="Đối tượng khách hàng" value={config.customerType} />
                 <DetailField label="Loại sản phẩm" value={isUnsecured ? "Vay không tài sản bảo đảm" : "Vay có tài sản bảo đảm"} />
@@ -828,7 +833,7 @@ export function ProductPreview({ product, onClose, onEdit }: PreviewProps) {
               <div className="grid grid-cols-2 gap-4">
                 {isUnsecured ? (
                   <>
-                    <DetailField label="Lãi suất" value={config.interestConfig?.displayText || "Theo chính sách SHB từng thời kỳ"} />
+                    <DetailField label="Lãi suất" value={interestRateHighlight} />
                     <DetailField label="Phí" value="Theo biểu phí và chính sách SHB từng thời kỳ" />
                   </>
                 ) : (
@@ -998,11 +1003,12 @@ export function ProductPreview({ product, onClose, onEdit }: PreviewProps) {
               </div>
             )}
 
-            {/* SECTION 6: Hồ sơ yêu cầu (Accordions) */}
+            {/* SECTION 6: Hồ sơ yêu cầu — only when product has configured groups */}
+            {config.documentGroups.length > 0 && (
             <div className="bg-slate-50/50 p-5 rounded-2xl border border-border/50 md:col-span-2 text-left">
               <SectionHeader title="Hồ sơ yêu cầu" icon={List} />
               <div className="space-y-3">
-                {config.documentGroups?.map((group, idx) => {
+                {config.documentGroups.map((group, idx) => {
                   const isOpen = !!openDocGroups[idx];
                   return (
                     <div key={idx} className="border border-border/70 rounded-xl overflow-hidden bg-white shadow-xs">
@@ -1039,6 +1045,7 @@ export function ProductPreview({ product, onClose, onEdit }: PreviewProps) {
                 })}
               </div>
             </div>
+            )}
 
           </div>
         </div>
@@ -1329,18 +1336,18 @@ export function ProductGroupManagement({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-bold text-[#003B71] mb-1">Biểu tượng (Icon)</label>
+                      <label className="block font-bold text-[#003B71] mb-1">Biểu tượng</label>
                       <select 
                         value={iconName}
                         onChange={(e) => setIconName(e.target.value)}
                         className="w-full h-10 border border-border bg-white rounded-xl px-3 outline-none text-xs text-foreground"
                       >
-                        <option value="Home">Home (Nhà ở)</option>
-                        <option value="Car">Car (Ô tô)</option>
-                        <option value="Briefcase">Briefcase (Kinh doanh)</option>
-                        <option value="ShoppingBag">ShoppingBag (Tiêu dùng)</option>
-                        <option value="GraduationCap">GraduationCap (Học tập)</option>
-                        <option value="Key">Key (Cầm cố)</option>
+                        <option value="Home">Nhà ở</option>
+                        <option value="Car">Ô tô</option>
+                        <option value="Briefcase">Kinh doanh</option>
+                        <option value="ShoppingBag">Tiêu dùng</option>
+                        <option value="GraduationCap">Học tập</option>
+                        <option value="Key">Cầm cố</option>
                       </select>
                     </div>
 

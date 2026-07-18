@@ -27,6 +27,7 @@ rules:
     # Verified 2026-07-18 against Công báo / Wikisource Điều 136 schedule:
     # 01/01/2026–31/12/2026 → 13% một khách hàng (NHTM). Next row needed for 2027 (12%).
     verified: true
+    kind: legal
 
   - id: related_party_credit_limit
     description: >-
@@ -43,6 +44,7 @@ rules:
     version: "2026.1-dieu136"
     # Same schedule: 21% khách hàng + người liên quan trong năm 2026.
     verified: true
+    kind: legal
 
   - id: sanctions_hit
     description: >-
@@ -57,6 +59,7 @@ rules:
     veto_agent: compliance
     version: "2023.1-aml"
     verified: true
+    kind: legal
 
   - id: pep_requires_enhanced_dd
     description: >-
@@ -72,6 +75,7 @@ rules:
     veto_agent: compliance
     version: "2023.1-aml"
     verified: true
+    kind: legal
 
   - id: min_dscr
     description: >-
@@ -86,6 +90,7 @@ rules:
     veto_agent: credit
     version: "mock-2026.1"
     verified: true
+    kind: appetite
 
   - id: max_ltv_real_estate
     description: >-
@@ -100,3 +105,4 @@ rules:
     veto_agent: credit
     version: "mock-2026.1"
     verified: true
+    kind: appetite

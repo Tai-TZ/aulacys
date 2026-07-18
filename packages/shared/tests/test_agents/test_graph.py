@@ -23,12 +23,22 @@ async def test_agent_state_structure():
 
 
 @pytest.mark.asyncio
-async def test_mortgage_demo_veto_replans_and_writes_ticket():
+async def test_unverified_mortgage_rule_escalates_without_auto_veto():
     result = await agent.ainvoke({"query": "retail mortgage"})
 
     assert result["application"].product == "retail_mortgage"
-    assert result["compliance"].veto is True
+    assert result["compliance"].veto is False
     assert "prohibited_purpose_refinance_other_bank" in result["compliance"].rule_ids
+    violation = next(
+        v for v in result["compliance"].violations if v.rule_id == "prohibited_purpose_refinance_other_bank"
+    )
+    assert violation.unverified is True
+    assert violation.severity == "warning"
+    assert result["replan_count"] == 0
+    assert result["run_trace"].lane == 3
+    assert result["critic"].passed is True  # lane 3 -> Critic runs
+    assert result["run_trace"].veto_fired is False
+    assert result["ticket"]["status"] == "ready_for_human_approval"
     assert result["credit"].proposed_limit == 2_500_000_000
     assert result["credit"].proposed_rate is not None
     assert "price_loan" in result["credit"].tool_results
@@ -36,17 +46,7 @@ async def test_mortgage_demo_veto_replans_and_writes_ticket():
     assert result["compliance"].kyc_status == "passed"
     assert result["compliance"].ubo_status in {"passed", "not_applicable"}
     assert "kyc_check" in result["compliance"].tool_results
-    # Hard veto never clears -> loop re-executes up to the cap, then escalates.
-    assert result["replan_count"] == 2
-    assert result["run_trace"].lane == 3
-    assert result["critic"].passed is True  # lane 3 -> Critic runs
-    assert result["critic"].memo
-    assert result["critic"].remediation_plan
-    assert result["run_trace"].veto_fired is True
-    assert result["ticket"]["status"] == "vetoed"
-    assert OperationsSpec.tools == ["core_banking_read", "workflow_write"]
-    # compliance re-ran each replan: initial + 2 replans = 3 compliance traces.
-    assert sum(1 for item in result["trace"] if item.node == "compliance") == 3
+    assert sum(1 for item in result["trace"] if item.node == "compliance") == 1
 
 
 @pytest.mark.asyncio
@@ -56,6 +56,10 @@ async def test_unsecured_salary_uses_same_graph_without_veto():
     assert result["application"].product == "retail_unsecured_salary"
     assert result["compliance"].veto is False
     assert result["replan_count"] == 0
+    report = result["compliance"].tool_results["metric_report"]
+    assert report["complete"] is True
+    assert report["missing"] == []
+    assert report["facts"]["dti"]["source"] == "compute_dti"
     assert result["run_trace"].lane == 1
     assert result.get("critic") is None  # lane 1 -> Critic does not run
     assert result["ticket"]["status"] == "stp_approved"

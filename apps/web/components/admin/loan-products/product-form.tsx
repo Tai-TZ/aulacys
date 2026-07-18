@@ -1,10 +1,144 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Save, AlertCircle, Info, ChevronDown, Check } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Save, AlertCircle, Plus, Trash2 } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { LoanProduct, LoanProductGroup, ProductStatus } from "./mock-data";
+import { ProductPolicyRulesPanel } from "./product-policy-rules";
+
+type DocAppliesTo = "ALL" | "SECURED" | "UNSECURED";
+
+type DocumentCatalogEntry = {
+  code: string;
+  title: string;
+  items: string[];
+  appliesTo: DocAppliesTo;
+};
+
+/** Master checklist — product only stores which groups/items are selected. */
+const DOCUMENT_CATALOG: DocumentCatalogEntry[] = [
+  {
+    code: "LEGAL_DOCUMENTS",
+    title: "Hồ sơ pháp lý",
+    appliesTo: "ALL",
+    items: [
+      "CCCD còn hiệu lực",
+      "Thông tin cư trú",
+      "Giấy tờ chứng minh mối quan hệ (nếu có)",
+      "Giấy đăng ký kết hôn hoặc xác nhận độc thân",
+    ],
+  },
+  {
+    code: "INCOME_DOCUMENTS",
+    title: "Hồ sơ chứng minh thu nhập trả nợ",
+    appliesTo: "ALL",
+    items: [
+      "Hợp đồng lao động",
+      "Sao kê lương 3 tháng gần nhất",
+      "Sao kê tài khoản nhận lương",
+      "Xác nhận thu nhập khác (nếu có)",
+      "Hồ sơ nguồn thu nhập khác",
+    ],
+  },
+  {
+    code: "LOAN_PURPOSE_DOCUMENTS",
+    title: "Hồ sơ chứng minh mục đích vay vốn",
+    appliesTo: "ALL",
+    items: [
+      "Phương án sử dụng vốn kiêm cam kết trả nợ",
+      "Giấy đề nghị vay vốn kiêm phương án trả nợ",
+      "Hợp đồng đặt cọc",
+      "Hợp đồng mua bán hoặc chuyển nhượng",
+      "Giấy tờ liên quan đến bất động sản",
+    ],
+  },
+  {
+    code: "COLLATERAL_DOCUMENTS",
+    title: "Hồ sơ tài sản bảo đảm",
+    appliesTo: "SECURED",
+    items: [
+      "Giấy chứng nhận quyền sử dụng đất",
+      "Hồ sơ pháp lý của tài sản",
+      "Hồ sơ định giá",
+    ],
+  },
+  {
+    code: "VEHICLE_DOCUMENTS",
+    title: "Hồ sơ liên quan phương tiện",
+    appliesTo: "SECURED",
+    items: [
+      "Đăng ký xe / cà vẹt",
+      "Hóa đơn mua xe",
+      "Giấy chứng nhận bảo hiểm xe",
+    ],
+  },
+  {
+    code: "STUDY_DOCUMENTS",
+    title: "Hồ sơ học tập / du học",
+    appliesTo: "ALL",
+    items: [
+      "Thư mời nhập học / Offer letter",
+      "Hóa đơn học phí",
+      "Hộ chiếu còn hiệu lực",
+    ],
+  },
+];
+
+type DocSelection = Record<string, string[]>; // code -> selected item labels
+
+function catalogForSecuredType(secured: "SECURED" | "UNSECURED"): DocumentCatalogEntry[] {
+  return DOCUMENT_CATALOG.filter(
+    (e) => e.appliesTo === "ALL" || e.appliesTo === secured,
+  );
+}
+
+function selectionFromProductDocs(
+  groups: LoanProduct["documentGroups"] | undefined,
+  secured: "SECURED" | "UNSECURED",
+): DocSelection {
+  const available = catalogForSecuredType(secured);
+  const out: DocSelection = {};
+  if (!groups?.length) {
+    // Defaults for unsecured demo product
+    if (secured === "UNSECURED") {
+      for (const code of ["LEGAL_DOCUMENTS", "INCOME_DOCUMENTS", "LOAN_PURPOSE_DOCUMENTS"]) {
+        const entry = available.find((e) => e.code === code);
+        if (entry) out[code] = [...entry.items.slice(0, 3)];
+      }
+    }
+    return out;
+  }
+  for (const g of groups) {
+    const byCode = available.find((e) => e.code && e.code === g.code);
+    const byTitle = available.find(
+      (e) => e.title === g.title || e.title === g.name,
+    );
+    const entry = byCode || byTitle;
+    if (!entry) continue;
+    const items = (g.items || []).filter(Boolean);
+    out[entry.code] = items.length ? items : [...entry.items];
+  }
+  return out;
+}
+
+function productDocsFromSelection(selection: DocSelection): {
+  title: string;
+  items: string[];
+  code: string;
+  name: string;
+  required: boolean;
+}[] {
+  return DOCUMENT_CATALOG.filter((e) => (selection[e.code]?.some((i) => i.trim()) ?? false)).map(
+    (e) => ({
+      code: e.code,
+      title: e.title,
+      name: e.title,
+      required: true,
+      items: selection[e.code]!.map((i) => i.trim()).filter(Boolean),
+    }),
+  );
+}
 
 // List of available customer segments
 const SEGMENTS = [
@@ -256,10 +390,19 @@ export function ProductClassificationSection({
 interface FormProps {
   groups: LoanProductGroup[];
   editingProduct: LoanProduct | null;
+  catalogSource?: "database" | "memory" | null;
+  saving?: boolean;
   onSave: (prod: LoanProduct) => void;
   onCancel: () => void;
 }
-export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCancel }: FormProps) {
+export function IndividualLoanProductForm({
+  groups,
+  editingProduct,
+  catalogSource,
+  saving = false,
+  onSave,
+  onCancel,
+}: FormProps) {
   // Classification states
   const [productGroupId, setProductGroupId] = useState(editingProduct?.productGroupId || "");
   const [selectedSegments, setSelectedSegments] = useState<string[]>(editingProduct?.segments || []);
@@ -277,8 +420,12 @@ export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCa
   const [minTerm, setMinTerm] = useState(editingProduct?.minTerm ? String(editingProduct.minTerm) : "12");
   const [maxTerm, setMaxTerm] = useState(editingProduct?.maxTerm ? String(editingProduct.maxTerm) : "120");
 
-  // Interest & repayment
-  const [interestRate, setInterestRate] = useState(editingProduct?.interestRate ? String(editingProduct.interestRate) : "6.5");
+  // Interest & repayment — 0 is valid ("theo chính sách"); don't coerce to 6.5
+  const [interestRate, setInterestRate] = useState(
+    editingProduct
+      ? String(editingProduct.interestRate ?? 0)
+      : "6.5",
+  );
   
   // Status
   const [status, setStatus] = useState<ProductStatus>(editingProduct?.status || "DRAFT");
@@ -319,8 +466,34 @@ export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCa
     editingProduct?.loanStructure?.creditMethods || (editingProduct?.securedType === "UNSECURED" ? ["TERM_LOAN", "CREDIT_LIMIT"] : ["TERM_LOAN"])
   );
 
+  const [docSelection, setDocSelection] = useState<DocSelection>(() =>
+    selectionFromProductDocs(
+      editingProduct?.documentGroups,
+      editingProduct?.securedType || "UNSECURED",
+    ),
+  );
+  const [docDraftByCode, setDocDraftByCode] = useState<Record<string, string>>({});
+
   // Validation errors state
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const prevSecuredType = useRef(securedType);
+
+  // Drop groups that không áp dụng khi user đổi hình thức bảo đảm (không chạy lần mount).
+  useEffect(() => {
+    if (prevSecuredType.current === securedType) return;
+    prevSecuredType.current = securedType;
+    const allowed = new Set(catalogForSecuredType(securedType).map((e) => e.code));
+    setDocSelection((prev) => {
+      const next: DocSelection = {};
+      let changed = false;
+      for (const [code, items] of Object.entries(prev)) {
+        if (allowed.has(code)) next[code] = items;
+        else changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [securedType]);
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
@@ -359,8 +532,11 @@ export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCa
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving || submitting) return;
     if (!validate()) return;
 
+    setSubmitting(true);
+    try {
     const groupName = groups.find(g => g.id === productGroupId)?.name || "";
 
     // Sync detailed configurations
@@ -397,9 +573,12 @@ export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCa
 
     const updatedInterestConfig = {
       ...(oldDetails.interestConfig || {}),
-      publishedRate: interestRate ? Number(interestRate) : null,
-      displayText: interestRate && Number(interestRate) > 0 ? undefined : "Theo chính sách SHB từng thời kỳ",
-      promoRate: interestRate ? Number(interestRate) : null,
+      publishedRate: interestRate && Number(interestRate) > 0 ? Number(interestRate) : null,
+      displayText:
+        interestRate && Number(interestRate) > 0
+          ? undefined
+          : "Theo chính sách từ SHB",
+      promoRate: interestRate && Number(interestRate) > 0 ? Number(interestRate) : null,
     };
 
     const updatedRepaymentConfig = {
@@ -428,29 +607,7 @@ export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCa
       repaymentCapacityProofRequired: repaymentProof
     };
 
-    const updatedDocumentGroups = oldDetails.documentGroups || [
-      {
-        title: "Hồ sơ pháp lý",
-        items: ["CCCD còn hiệu lực", "Thông tin cư trú", "Giấy tờ chứng minh mối quan hệ (nếu có)"],
-        code: "LEGAL_DOCUMENTS",
-        name: "Hồ sơ pháp lý",
-        required: true
-      },
-      {
-        title: "Hồ sơ chứng minh thu nhập trả nợ",
-        items: ["Hợp đồng lao động", "Sao kê lương 3 tháng gần nhất", "Xác nhận thu nhập khác (nếu có)"],
-        code: "INCOME_DOCUMENTS",
-        name: "Hồ sơ chứng minh thu nhập trả nợ",
-        required: true
-      },
-      {
-        title: "Hồ sơ chứng minh mục đích vay vốn",
-        items: ["Phương án sử dụng vốn kiêm cam kết trả nợ", "Giấy đề nghị vay vốn kiêm phương án trả nợ"],
-        code: "LOAN_PURPOSE_DOCUMENTS",
-        name: "Hồ sơ chứng minh mục đích vay vốn",
-        required: true
-      }
-    ];
+    const updatedDocumentGroups = productDocsFromSelection(docSelection);
 
     const savedProduct: LoanProduct = {
       id: editingProduct?.id || `prod-${Math.random().toString(36).substring(2, 9)}`,
@@ -487,6 +644,10 @@ export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCa
     };
 
     onSave(savedProduct);
+    } finally {
+      // Parent async save may still run; unlock local submit after tick.
+      setTimeout(() => setSubmitting(false), 400);
+    }
   };
 
   return (
@@ -501,7 +662,11 @@ export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCa
           <ArrowLeft size={16} /> Quay lại danh sách
         </button>
         <span className="text-[10px] text-muted-foreground italic font-semibold">
-          Dữ liệu mô phỏng — Không phải chính sách tín dụng chính thức của SHB
+          {catalogSource === "database"
+            ? "Catalog từ database — không phải chính sách tín dụng chính thức của SHB"
+            : catalogSource === "memory"
+              ? "Catalog từ API memory fallback — không phải chính sách tín dụng chính thức của SHB"
+              : "Không phải chính sách tín dụng chính thức của SHB"}
         </span>
       </div>
 
@@ -835,10 +1000,195 @@ export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCa
         </div>
       </div>
 
-      {/* 6. Status Configuration */}
+      {/* 6. Document requirements — select from catalog by loan type */}
+      <div className="bg-white border border-border/80 rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="border-b border-border/40 pb-2 space-y-1">
+          <h3 className="font-extrabold text-[#003B71] text-base">6. Hồ sơ yêu cầu</h3>
+          <p className="text-[11px] text-muted-foreground">
+            Tích chọn nhóm hồ sơ và từng giấy tờ áp dụng. Bỏ tích = không yêu cầu giấy tờ đó. Một số
+            nhóm chỉ hiện khi{" "}
+            <strong className="text-foreground">
+              {securedType === "SECURED" ? "có tài sản bảo đảm" : "không có tài sản bảo đảm (tín chấp)"}
+            </strong>
+            .
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {catalogForSecuredType(securedType).map((entry) => {
+            const selected = docSelection[entry.code];
+            const groupOn = Array.isArray(selected);
+            const selectedSet = new Set(selected || []);
+            const customItems = (selected || []).filter((i) => i && !entry.items.includes(i));
+
+            const toggleItem = (item: string, on: boolean) => {
+              setDocSelection((prev) => {
+                if (!Array.isArray(prev[entry.code])) {
+                  if (!on) return prev;
+                  return { ...prev, [entry.code]: [item] };
+                }
+                const cur = prev[entry.code] || [];
+                const nextItems = on
+                  ? cur.includes(item)
+                    ? cur
+                    : [...cur, item]
+                  : cur.filter((x) => x !== item);
+                return { ...prev, [entry.code]: nextItems };
+              });
+            };
+
+            return (
+              <div
+                key={entry.code}
+                className={cn(
+                  "rounded-xl border p-4 transition",
+                  groupOn ? "border-[#F58220]/40 bg-[#F58220]/5" : "border-border/70 bg-slate-50/40",
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 accent-[#F58220] shrink-0"
+                    checked={groupOn}
+                    id={`doc-group-${entry.code}`}
+                    onChange={(e) => {
+                      setDocSelection((prev) => {
+                        const next = { ...prev };
+                        if (e.target.checked) next[entry.code] = [...entry.items];
+                        else delete next[entry.code];
+                        return next;
+                      });
+                    }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <label
+                      htmlFor={`doc-group-${entry.code}`}
+                      className="flex flex-wrap items-center gap-2 cursor-pointer select-none"
+                    >
+                      <span className="text-xs font-extrabold text-[#003B71]">{entry.title}</span>
+                      {entry.appliesTo === "SECURED" && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">
+                          Chỉ vay có TSĐB
+                        </span>
+                      )}
+                    </label>
+
+                    {groupOn && (
+                      <div className="mt-3 space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {entry.items.map((item) => {
+                            const checked = selectedSet.has(item);
+                            return (
+                              <label
+                                key={item}
+                                className={cn(
+                                  "flex items-start gap-2 rounded-lg border px-2.5 py-2 text-xs cursor-pointer select-none transition",
+                                  checked
+                                    ? "border-[#003B71]/25 bg-white text-[#003B71] font-semibold"
+                                    : "border-border/60 bg-white/70 text-muted-foreground",
+                                )}
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="mt-0.5 h-3.5 w-3.5 accent-[#F58220] shrink-0"
+                                  checked={checked}
+                                  onChange={(e) => toggleItem(item, e.target.checked)}
+                                />
+                                <span>{item}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+
+                        {customItems.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-bold uppercase text-[#6B7280]">
+                              Giấy tờ tùy chỉnh
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {customItems.map((item) => (
+                                <div
+                                  key={item}
+                                  className="flex items-start gap-2 rounded-lg border border-[#003B71]/25 bg-white px-2.5 py-2 text-xs text-[#003B71] font-semibold"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    className="mt-0.5 h-3.5 w-3.5 accent-[#F58220] shrink-0"
+                                    checked
+                                    onChange={(e) => toggleItem(item, e.target.checked)}
+                                  />
+                                  <span className="flex-1 min-w-0">{item}</span>
+                                  <button
+                                    type="button"
+                                    aria-label={`Xóa ${item}`}
+                                    className="p-1 rounded-md text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition shrink-0"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      toggleItem(item, false);
+                                    }}
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Input
+                            value={docDraftByCode[entry.code] || ""}
+                            onChange={(e) =>
+                              setDocDraftByCode((prev) => ({
+                                ...prev,
+                                [entry.code]: e.target.value,
+                              }))
+                            }
+                            placeholder="Thêm giấy tờ tùy chỉnh…"
+                            className="h-10 rounded-xl text-xs flex-1"
+                            onKeyDown={(e) => {
+                              if (e.key !== "Enter") return;
+                              e.preventDefault();
+                              const draft = (docDraftByCode[entry.code] || "").trim();
+                              if (!draft) return;
+                              toggleItem(draft, true);
+                              setDocDraftByCode((prev) => ({ ...prev, [entry.code]: "" }));
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-10 rounded-xl text-xs font-bold shrink-0"
+                            disabled={!(docDraftByCode[entry.code] || "").trim()}
+                            onClick={() => {
+                              const draft = (docDraftByCode[entry.code] || "").trim();
+                              if (!draft) return;
+                              toggleItem(draft, true);
+                              setDocDraftByCode((prev) => ({ ...prev, [entry.code]: "" }));
+                            }}
+                          >
+                            <Plus size={14} className="mr-1" />
+                            Thêm
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 7. Rule Engineer — policy attached to package */}
+      <ProductPolicyRulesPanel securedType={securedType} productCode={productCode} />
+
+      {/* 8. Status Configuration */}
       <div className="bg-white border border-border/80 rounded-2xl p-6 shadow-xs space-y-4">
         <h3 className="font-extrabold text-[#003B71] text-base border-b border-border/40 pb-2">
-          6. Cấu hình trạng thái
+          8. Cấu hình trạng thái
         </h3>
         <div className="flex gap-4">
           <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-foreground select-none">
@@ -881,15 +1231,17 @@ export function IndividualLoanProductForm({ groups, editingProduct, onSave, onCa
           onClick={onCancel}
           variant="outline" 
           className="rounded-xl font-bold h-11 text-xs px-6"
+          disabled={saving || submitting}
         >
           Hủy bỏ
         </Button>
         <Button 
           type="submit"
+          disabled={saving || submitting}
           className="bg-[#F58220] hover:bg-[#F58220]/95 text-on-primary font-bold rounded-xl h-11 text-xs px-6 shadow-md"
         >
           <Save size={15} className="mr-1.5" />
-          Lưu sản phẩm
+          {saving || submitting ? "Đang lưu…" : "Lưu sản phẩm"}
         </Button>
       </div>
     </form>

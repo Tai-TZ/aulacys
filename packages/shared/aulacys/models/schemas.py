@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Any, Literal, Self
 
 from pydantic import BaseModel, Field, model_validator
@@ -211,3 +212,53 @@ class CatalogSeedResponse(BaseModel):
     groups_upserted: int
     products_upserted: int
     source: str = "memory"  # memory | database
+
+
+# --- Rule Engineer (policy attached to loan package profile) ---
+
+PolicyProfileName = Literal["secured", "unsecured"]
+RuleKindName = Literal["legal", "appetite"]
+
+
+class PolicyRuleOut(BaseModel):
+    id: str
+    label_vi: str
+    description: str
+    kind: RuleKindName
+    metric: str
+    operator: str
+    threshold: float
+    unit: str
+    severity: Literal["blocking", "warning"]
+    editable: bool
+    verified: bool
+    version: str
+    legal_basis: str
+    effective_from: str
+    effective_to: str | None = None
+
+
+class PolicyRulesResponse(BaseModel):
+    profile: PolicyProfileName
+    secured_type: str
+    product_code: str | None = None
+    rules: list[PolicyRuleOut]
+
+
+class AppetiteThresholdPatch(BaseModel):
+    threshold: float = Field(..., allow_inf_nan=False)
+    product_code: str | None = Field(default=None, max_length=64)
+
+
+class PolicyValidateRequest(BaseModel):
+    metrics: dict[str, float]
+    as_of: date | None = None
+    product_code: str | None = None
+
+
+class PolicyValidateResponse(BaseModel):
+    profile: PolicyProfileName
+    product_code: str | None = None
+    violations: list[dict[str, Any]]
+    veto: bool
+    rule_ids: list[str]
