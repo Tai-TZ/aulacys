@@ -1,5 +1,8 @@
 # Business (nghiệp vụ) review — FLOW-PROCESS-LOAN.md
 
+> **SOP đã confirm (2026-07-18):** [`FLOW-BUSINESS-CONFIRMED.md`](./FLOW-BUSINESS-CONFIRMED.md)
+> — 5 stage: Tiếp nhận → RM đề xuất → Thẩm định → Phê duyệt → Giải ngân (auto tín chấp).
+>
 > Đánh giá quy trình trong [`FLOW-PROCESS-LOAN.md`](./FLOW-PROCESS-LOAN.md) theo **góc nghiệp vụ
 > cho vay bán lẻ**, đối chiếu năng lực hiện có của dự án (`apps/api`, `services/`). Trọng tâm:
 > đúng trình tự, đủ chốt kiểm soát, tuân quy định. **Không** đánh giá theo tiêu chí demo.

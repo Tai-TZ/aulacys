@@ -59,11 +59,11 @@ Log every locked choice so agents and teammates don't re-litigate or drift.
 | 2026-07-17 | Branching: **`develop` + `main`(prod)** (was GitHub Flow) | Want a protected staging gate before production. See `docs/BRANCHING.md` |
 | 2026-07-17 | **Kịch bản demo = A. Phê duyệt tín dụng doanh nghiệp** (vay 20 tỷ, thế chấp BĐS, đòi giải ngân 5 ngày) | Kịch bản **duy nhất** có xung đột liên phòng ban vừa đủ mạnh vừa kể được trong 5 phút: Credit đề xuất → Compliance phủ quyết vì vượt trần cấp tín dụng → Planner replan. Không có nhánh đó thì multi-agent chỉ là fan-out và một single agent làm được y hệt. Đã chấm 5 ứng viên theo 6 tiêu chí — xem `00-START-HERE.md`. LC (B) tri thức gọn hơn nhưng **không có xung đột liên phòng ban** → để làm quy trình #2 chứng minh mở rộng, không phải case chính |
 | 2026-07-17 | **Thêm `pyyaml`** vào `apps/api/requirements.txt` | Policy-as-code (`src/policy/`) đọc ràng buộc pháp lý từ YAML. Đã có sẵn transitively qua langchain; khai báo tường minh vì import trực tiếp. Ngưỡng luật định **không được** nằm trong prompt — LLM nhớ số của luật cũ |
+| 2026-07-18 | **LLM primary = Gemini `gemini-3.1-flash-lite`** (`LLM_PROVIDER=gemini`); OpenAI vẫn là fallback provider | Chi phí/latency tốt cho prose agents; wire qua Gemini OpenAI-compat endpoint (giữ `langchain-openai`, không thêm dep). Số liệu vẫn từ tool — LLM chỉ prose (`AGENTS.md` §0 rule 1) |
 | YYYY-MM-DD | [next locked choice] | [why] |
 
 ### Quyết định đang mở — chưa chốt, đừng tự quyết
 
 | Việc | Ai chốt | Vì sao chưa chốt |
 |---|---|---|
-| **Model**: `AGENTS.md` §3 khoá `gpt-4o-mini`; Solution Design đề Opus (Planner/Critic) + Haiku (specialist) | Cả team, giờ 0 | `gpt-4o-mini` làm Planner là yếu — nó phải phân rã DAG và nuốt veto rồi lập lại kế hoạch. Đổi stack = quyết định team (`AGENTS.md` §1 luật 2), không phải của một người hay một agent |
 | **Trần cấp tín dụng** trong `policy/rules/credit_limits.yaml` | Chủ sở hữu compliance | Đang để `0.15, verified: false` — **đó là số của luật CŨ**. Luật các TCTD 2024 Điều 136 thay bằng lộ trình giảm theo năm. Phải mở luật tra. **Không hỏi LLM** |

@@ -19,13 +19,13 @@ _MAX_SCHEMA_RETRIES = 2
 
 
 def _llm_configured(spec: AgentSpec) -> bool:
-    """LLM runs only for prose specs with a key set.
+    """LLM runs only for prose specs with a key set for the active provider.
 
     A number/veto-bearing spec (`llm_prose=False`) NEVER touches the model — its verdict
     always comes from the deterministic fallback. This is the structural guard for
     LOAN-SOP §0 / P0-2: the LLM cannot invent a figure or a veto even when a key exists.
     """
-    return bool(spec.llm_prose) and bool(get_settings().openai_api_key.strip())
+    return bool(spec.llm_prose) and bool(get_settings().llm_api_key)
 
 
 def _try_llm(spec: AgentSpec, messages: list[dict[str, Any]]) -> tuple[BaseModel, int]:
@@ -65,7 +65,7 @@ def _try_llm(spec: AgentSpec, messages: list[dict[str, Any]]) -> tuple[BaseModel
 def run(spec: AgentSpec, state: AgentState) -> BaseModel:
     """Run one agent through the shared harness.
 
-    With ``OPENAI_API_KEY`` set: try the LLM (assemble → call → parse → retry).
+    With an API key for the active ``LLM_PROVIDER``: try the LLM (assemble → call → parse → retry).
     On missing key, timeout, or parse error: use ``spec.fallback`` (demo-proof).
     Tool calls are capped at ``spec.max_tool_calls`` in the fallback path via dispatch.
     """

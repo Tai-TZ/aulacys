@@ -1,14 +1,9 @@
 "use client";
 
-import { useState, Fragment, useEffect, useCallback } from "react";
+import { useState, Fragment, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
-  Activity,
   ArrowRight,
-  Bot,
-  CheckCircle2,
-  Clock3,
-  ShieldAlert,
   X,
 } from "lucide-react";
 import { Button, Card, Input } from "@/components/ui";
@@ -27,7 +22,21 @@ import {
   type AssessFormState as MappedAssessForm,
 } from "@/lib/application-map";
 import { enqueueAssessResult, listHitlCases, type HitlCase } from "@/lib/hitl-queue";
+import {
+  AgentRunProgress,
+  PIPELINE_RUN_STEPS,
+} from "@/components/admin/agent-run-progress";
+import { NodeTimeline } from "@/components/admin/node-timeline";
 import { cn } from "@/lib/cn";
+import {
+  docKindLabelVi,
+  laneLabelVi,
+  outcomeLabelVi,
+  productLabelVi,
+  recommendationLabelVi,
+  ruleLabelVi,
+  toolLabelVi,
+} from "@/lib/labels";
 
 /** Dashboard always edits a full body (id path is API-only for now). */
 type AssessFormState = MappedAssessForm;
@@ -268,12 +277,6 @@ const HITL_DEMO: AssessFormState = {
   ],
 };
 
-function laneLabel(lane: number): string {
-  if (lane === 1) return "Lane 1 · STP / rule-only";
-  if (lane === 2) return "Lane 2 · Cheap model";
-  return "Lane 3 · HITL / Critic";
-}
-
 function StatusBadge({ tone, children }: { tone: string; children: React.ReactNode }) {
   const styles: Record<string, string> = {
     warning: "bg-warning-soft text-warning-foreground",
@@ -308,11 +311,13 @@ function MoneyInput({
   onChange,
   required,
   "aria-label": ariaLabel,
+  className,
 }: {
   value: number | null | undefined;
   onChange: (next: number | null) => void;
   required?: boolean;
   "aria-label"?: string;
+  className?: string;
 }) {
   const display =
     value == null || Number.isNaN(value) ? "" : new Intl.NumberFormat("vi-VN").format(value);
@@ -327,7 +332,7 @@ function MoneyInput({
         required={required}
         aria-label={ariaLabel}
         placeholder="0"
-        className="pr-14"
+        className={cn("pr-14", className)}
       />
       <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-medium text-muted-foreground">
         VNĐ
@@ -651,7 +656,7 @@ function DossierPreviewCard({
                 className={cn("inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[11px] font-medium transition cursor-pointer active:scale-95", cls)}
               >
                 <span className={cn("h-2 w-2 rounded-full", doc.tier >= 2 ? "bg-green-500" : "bg-yellow-400")} />
-                {doc.kind}
+                {docKindLabelVi(doc.kind)}
                 <span className="font-normal opacity-60">· {tl[doc.tier] ?? "?"}</span>
               </button>
             );
@@ -669,7 +674,7 @@ function DossierPreviewCard({
             <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-gray-50">
               <div className="text-left">
                 <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
-                  Chi tiết chứng từ: {activeDoc.kind}
+                  Chi tiết chứng từ: {docKindLabelVi(activeDoc.kind)}
                 </h3>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
                   Hồ sơ khách hàng: {d.customer_name}
@@ -787,18 +792,18 @@ function DossierPreviewCard({
 function DossierSummaryCard({
   data,
   scenario,
+  ingested = false,
 }: {
   data: AssessFormState;
   scenario: string | null;
+  ingested?: boolean;
 }) {
   const [activeDoc, setActiveDoc] = useState<DocumentInput | null>(null);
   const d = data.declared;
   const fmt = (n?: number | null) =>
     n == null ? "—" : new Intl.NumberFormat("vi-VN").format(n) + " ₫";
 
-  const productName = data.product === "retail_mortgage" 
-    ? "retail_mortgage (Vay thế chấp mua nhà)" 
-    : "retail_unsecured_salary (Vay tiêu dùng theo lương)";
+  const productName = productLabelVi(data.product);
 
   return (
     <div className="overflow-hidden rounded-xl border border-border/85 bg-white shadow-card relative">
@@ -808,7 +813,12 @@ function DossierSummaryCard({
           Thông tin tiếp nhận hồ sơ & Gói vay đề nghị
         </h3>
         <p className="mt-0.5 text-[10px] text-muted-foreground">
-          Trạng thái: <span className="font-semibold text-green-600">Tiếp nhận thành công (Đã phân loại)</span>
+          Trạng thái:{" "}
+          <span className={cn("font-semibold", ingested ? "text-green-600" : "text-brand")}>
+            {ingested
+              ? "Đã tiếp nhận · multi-agent đang / đã xử lý"
+              : "Data mẫu sẵn · chờ bấm Tiếp nhận"}
+          </span>
         </p>
       </div>
 
@@ -910,7 +920,7 @@ function DossierSummaryCard({
                   className={cn("inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[11px] font-medium transition cursor-pointer active:scale-95", cls)}
                 >
                   <span className={cn("h-2 w-2 rounded-full", doc.tier >= 2 ? "bg-green-500" : "bg-yellow-400")} />
-                  {doc.kind}
+                  {docKindLabelVi(doc.kind)}
                   <span className="font-normal opacity-60">· {tl[doc.tier] ?? "?"}</span>
                 </button>
               );
@@ -918,10 +928,9 @@ function DossierSummaryCard({
           </div>
         </div>
 
-        {/* Helper Note Banner */}
-        <div className="rounded-xl bg-orange-50 border border-orange-200/50 p-4 text-xs text-orange-800 text-left">
-          💡 <strong>Quy trình tiếp theo:</strong> Bản hợp đồng vay vốn chính thức và các thông tin thẩm định chi tiết sẽ tự động được hiển thị sau khi chạy tiến trình thẩm định thành công.
-        </div>
+        <p className="text-left text-xs text-muted-foreground">
+          Sau khi chạy thẩm định multi-agent, kết quả graph hiện bên dưới.
+        </p>
 
       </div>
 
@@ -934,7 +943,7 @@ function DossierSummaryCard({
             <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-gray-50">
               <div className="text-left">
                 <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
-                  Chi tiết chứng từ: {activeDoc.kind}
+                  Chi tiết chứng từ: {docKindLabelVi(activeDoc.kind)}
                 </h3>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
                   Hồ sơ khách hàng: {d.customer_name}
@@ -1085,6 +1094,37 @@ export function AssessDashboard() {
   const [listLoading, setListLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Step 1 only completes after user clicks Tiếp nhận */
+  const [ingested, setIngested] = useState(false);
+  const [agentStepIndex, setAgentStepIndex] = useState(0);
+  const agentTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function clearAgentTimer() {
+    if (agentTimerRef.current) {
+      clearInterval(agentTimerRef.current);
+      agentTimerRef.current = null;
+    }
+  }
+
+  useEffect(() => () => clearAgentTimer(), []);
+
+  function startAgentProgress() {
+    clearAgentTimer();
+    setAgentStepIndex(0);
+    agentTimerRef.current = setInterval(() => {
+      setAgentStepIndex((i) => Math.min(i + 1, PIPELINE_RUN_STEPS.length - 1));
+    }, 700);
+  }
+
+  function resetPipeline() {
+    clearAgentTimer();
+    setIngested(false);
+    setResult(null);
+    setError(null);
+    setLoading(false);
+    setAgentStepIndex(0);
+    setTier3Confirmed(false);
+  }
 
   const mockDossiers: DossierListItem[] = [
     {
@@ -1189,8 +1229,11 @@ export function AssessDashboard() {
 
   async function runSubmitted(event?: React.FormEvent) {
     if (event) event.preventDefault();
+    setIngested(true);
     setLoading(true);
     setError(null);
+    setResult(null);
+    startAgentProgress();
     try {
       const body: AssessFormState = {
         ...form,
@@ -1201,10 +1244,15 @@ export function AssessDashboard() {
         ),
       };
       const appId = dossier?.applicationId;
-      const next = await assessApplication(toAssessRequest(body, appId && appId.length > 20 ? appId : null));
+      const next = await assessApplication(
+        toAssessRequest(body, appId && appId.length > 20 ? appId : null),
+      );
+      clearAgentTimer();
+      setAgentStepIndex(PIPELINE_RUN_STEPS.length - 1);
       setResult(next);
       rememberResult(next, body, appId && appId.length > 20 ? appId : null);
     } catch (err) {
+      clearAgentTimer();
       setError(
         err instanceof Error
           ? err.message
@@ -1216,13 +1264,19 @@ export function AssessDashboard() {
   }
 
   async function runSeedDemo(keyword: string, fallbackForm: AssessFormState) {
+    setIngested(true);
     setLoading(true);
     setError(null);
+    setResult(null);
+    startAgentProgress();
     try {
       const next = await assess(keyword);
+      clearAgentTimer();
+      setAgentStepIndex(PIPELINE_RUN_STEPS.length - 1);
       setResult(next);
       rememberResult(next, fallbackForm, dossier?.applicationId);
     } catch (err) {
+      clearAgentTimer();
       setError(err instanceof Error ? err.message : "Không gọi được API seed.");
     } finally {
       setLoading(false);
@@ -1232,74 +1286,106 @@ export function AssessDashboard() {
   const run = result?.run_trace;
   const compliance = result?.compliance;
   const veto = Boolean(compliance?.veto);
-  const unverified = (compliance?.violations ?? []).filter((v) => v.unverified);
-  const stats = [
-    {
-      label: "Lane",
-      value: run ? String(run.lane) : "—",
-      change: run ? laneLabel(run.lane) : "Chưa chạy",
-      icon: Activity,
-    },
-    {
-      label: "Replan",
-      value: run ? String(run.replan_count) : "—",
-      change: run?.veto_fired ? "Veto đã kích hoạt" : "Chưa veto",
-      icon: Clock3,
-    },
-    {
-      label: "Outcome",
-      value: result?.outcome ?? "—",
-      change: result?.response?.slice(0, 48) ?? "Submit hồ sơ để xem",
-      icon: CheckCircle2,
-    },
-    {
-      label: "Compliance",
-      value: veto ? "VETO" : result ? "OK" : "—",
-      change: compliance?.rule_ids?.join(", ") || "Không có rule fire",
-      icon: ShieldAlert,
-    },
-  ];
 
-  // Step status determination:
-  let step3Status: "complete" | "active" | "failed" | "pending" = "active";
-  let step4Status: "complete" | "active" | "failed" | "pending" = "pending";
-  let step5Status: "complete" | "active" | "failed" | "pending" = "pending";
+  // Step status — FLOW-BUSINESS-CONFIRMED.md (5 stages)
+  type StepStatus = "complete" | "active" | "failed" | "pending";
+  let step1Status: StepStatus = ingested ? "complete" : "active";
+  let step2Status: StepStatus = "pending";
+  let step3Status: StepStatus = "pending";
+  let step4Status: StepStatus = "pending";
+  let step5Status: StepStatus = "pending";
 
-  if (loading) {
-    step3Status = "active";
-  } else if (result) {
-    if (veto) {
-      step3Status = "failed";
-      step4Status = "pending";
-      step5Status = "pending";
+  if (!ingested) {
+    step1Status = "active";
+  } else if (loading) {
+    step1Status = "complete";
+    if (agentStepIndex <= 1) {
+      step2Status = "active";
     } else {
+      step2Status = "complete";
+      step3Status = "active";
+    }
+  } else if (result) {
+    step1Status = "complete";
+    if (veto || result.outcome === "vetoed") {
+      step2Status = "complete";
+      step3Status = "failed";
+    } else {
+      step2Status = "complete";
       step3Status = "complete";
-      if (result.ticket?.status === "approved" || result.ticket?.status === "disbursed" || result.ticket?.ticket_id) {
+      if (result.outcome === "stp_approved") {
         step4Status = "complete";
         step5Status = "complete";
+      } else if (
+        result.ticket?.status === "approved" ||
+        result.ticket?.status === "disbursed" ||
+        result.ticket?.ticket_id
+      ) {
+        step4Status = "complete";
+        step5Status =
+          form.product === "retail_unsecured_salary" || form.product.includes("unsecured")
+            ? "complete"
+            : "active";
       } else {
-        step4Status = "active"; // Waiting for HITL approval
+        step4Status = "active";
         step5Status = "pending";
       }
     }
+  } else if (ingested) {
+    step1Status = "complete";
+    step2Status = "active";
   }
 
   const steps = [
-    { title: "Tiếp nhận hồ sơ", desc: "Đã nhận đơn vay", status: "complete" as const },
-    { title: "Phân loại", desc: dossier?.data.product || "Hồ sơ bán lẻ", status: "complete" as const },
     {
-      title: "Thẩm định (Graph)",
-      desc: step3Status === "failed" ? "Compliance Veto" : step3Status === "complete" ? "Đã thẩm định" : "Đang thẩm định...",
+      title: "Tiếp nhận hồ sơ",
+      desc: ingested ? "Đã tiếp nhận" : "Chờ bấm Tiếp nhận",
+      status: step1Status,
+    },
+    {
+      title: "RM đề xuất",
+      desc:
+        step2Status === "active"
+          ? loading
+            ? "Agent lập phương án…"
+            : "Chỉnh phương án (CIC · DTI · LS)"
+          : step2Status === "complete"
+            ? productLabelVi(dossier?.data.product)
+            : "Sau tiếp nhận",
+      status: step2Status,
+    },
+    {
+      title: "Thẩm định",
+      desc:
+        step3Status === "failed"
+          ? "Compliance veto"
+          : step3Status === "complete"
+            ? "Credit · Ops · Compliance"
+            : step3Status === "active"
+              ? "Multi-agent đang chạy…"
+              : "Chờ phương án RM",
       status: step3Status,
     },
     {
-      title: "Xét duyệt (HITL)",
-      desc: step4Status === "complete" ? "Lãnh đạo đã duyệt" : step4Status === "active" ? "Chờ phê duyệt" : "Chưa chuyển tiếp",
+      title: "Phê duyệt",
+      desc:
+        step4Status === "complete"
+          ? result?.outcome === "stp_approved"
+            ? "Agent duyệt (STP)"
+            : "Người đã duyệt"
+          : step4Status === "active"
+            ? "Chờ người (HITL)"
+            : "STP hoặc HITL",
       status: step4Status,
     },
     {
       title: "Giải ngân",
-      desc: step5Status === "complete" ? "Đã tạo ticket SHB" : "Chưa giải ngân",
+      desc:
+        step5Status === "complete"
+          ? "Auto (tín chấp tiêu dùng)"
+          : step5Status === "active"
+            ? "Sẵn sàng giải ngân"
+            : "Sau phê duyệt",
       status: step5Status,
     },
   ];
@@ -1411,7 +1497,7 @@ export function AssessDashboard() {
                             applicationId: item.fromDb ? item.application_id : null,
                           });
                           setForm(item.data);
-                          setResult(null); // Clear previous results when switching
+                          resetPipeline();
                           setViewMode("detail");
                         }}
                       >
@@ -1451,59 +1537,65 @@ export function AssessDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Quay lại danh sách hồ sơ header */}
-      <div className="flex items-center justify-between pb-1 text-left">
+      <div className="flex items-center justify-between text-left">
         <button
           type="button"
           onClick={() => setViewMode("list")}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-navy hover:text-[#e8650a] transition cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-navy transition hover:text-brand cursor-pointer"
         >
           ← Quay lại danh sách bộ hồ sơ
         </button>
         <span className="text-[10px] text-muted-foreground">
           Mã hồ sơ:{" "}
-          <code className="bg-gray-100 px-1 py-0.5 rounded border">
+          <code className="rounded border border-border bg-secondary px-1 py-0.5">
             {dossier?.applicationId
               ? dossier.applicationId.slice(0, 8).toUpperCase()
               : `SHB-${dossier?.scenario.toUpperCase()}-2026`}
           </code>
         </span>
       </div>
-      {/* ── THANH TIẾN TRÌNH WIZARD ── */}
-      <Card className="border border-border/70 p-5 shadow-card bg-white">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2">
+
+      {/* Stepper */}
+      <Card className="border border-border/70 bg-card p-3 shadow-card sm:p-4">
+        <div className="flex flex-col items-center justify-between gap-3 md:flex-row md:gap-2">
           {steps.map((step, idx) => {
-            let circleBg = "bg-gray-100 text-gray-400 border-gray-300";
+            let circleBg = "border-border bg-secondary text-muted-foreground";
             let textColor = "text-muted-foreground";
             let icon = String(idx + 1);
 
             if (step.status === "complete") {
-              circleBg = "bg-green-500 text-white border-green-500";
-              textColor = "text-gray-800 font-medium";
+              circleBg = "border-success-foreground/40 bg-success-soft text-success-foreground";
+              textColor = "font-medium text-foreground";
               icon = "✓";
             } else if (step.status === "active") {
-              circleBg = "bg-[#e8650a] text-white border-[#e8650a] animate-pulse";
-              textColor = "text-[#e8650a] font-bold";
+              circleBg = "border-brand bg-brand text-on-primary animate-pulse";
+              textColor = "font-bold text-brand";
             } else if (step.status === "failed") {
-              circleBg = "bg-red-500 text-white border-red-500";
-              textColor = "text-red-600 font-bold";
+              circleBg = "border-warning-foreground/40 bg-warning-soft text-warning-foreground";
+              textColor = "font-bold text-warning-foreground";
               icon = "✗";
             }
 
             return (
               <Fragment key={idx}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold shadow-sm", circleBg)}>
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <span
+                    className={cn(
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold shadow-sm",
+                      circleBg,
+                    )}
+                  >
                     {icon}
                   </span>
                   <div className="text-left">
                     <p className={cn("text-xs leading-none", textColor)}>{step.title}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1 max-w-[150px] truncate">{step.desc}</p>
+                    <p className="mt-1 max-w-[140px] truncate text-[10px] text-muted-foreground">{step.desc}</p>
                   </div>
                 </div>
                 {idx < steps.length - 1 && (
-                  <div className="hidden md:block w-8 h-px bg-border shrink-0 mx-2" />
+                  <div className="mx-1 hidden h-px w-6 shrink-0 bg-border md:block" />
                 )}
               </Fragment>
             );
@@ -1511,213 +1603,243 @@ export function AssessDashboard() {
         </div>
       </Card>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map(({ label, value, change, icon: Icon }) => (
-          <Card key={label} className="overflow-hidden border-border/70 p-0 shadow-card">
-            <div className="h-1 bg-brand/80" aria-hidden />
-            <div className="p-4 sm:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-brand">
-                  <Icon size={18} />
-                </span>
-                <span className="max-w-[10rem] truncate text-right text-xs leading-5 text-muted-foreground">
-                  {change}
-                </span>
-              </div>
-              <p className="mt-4 text-2xl font-semibold tracking-tight text-navy">{value}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">{label}</p>
-            </div>
-          </Card>
-        ))}
-      </section>
-
-      {veto && (
-        <Card className="border-warning-foreground/15 bg-warning-soft p-5 shadow-card">
-          <div className="flex flex-wrap items-center gap-3">
-            <StatusBadge tone="warning">Compliance veto</StatusBadge>
-            <p className="font-semibold text-warning-foreground">
-              Hard limit: {(compliance?.rule_ids ?? []).join(", ") || "unknown rule"}
-            </p>
-            {unverified.length > 0 && <StatusBadge tone="pending">unverified</StatusBadge>}
-          </div>
-          <p className="mt-2 text-sm text-warning-foreground/90">
-            Planner đã replan {run?.replan_count ?? 0} lần. Timeline lặp node{" "}
-            <code className="rounded bg-card px-1.5 py-0.5 text-xs">compliance</code> — money shot.
-          </p>
-          {unverified.length > 0 && (
-            <ul className="mt-3 space-y-1 text-sm text-warning-foreground">
-              {unverified.map((v) => (
-                <li key={v.rule_id}>
-                  <strong>{v.rule_id}</strong> · v{v.version ?? "?"} — ngưỡng chưa verify, không trích dẫn ra ngoài.
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      )}
-
-      {result && (
-        <Card className="flex flex-wrap items-center justify-between gap-3 border-active-foreground/10 bg-active-soft p-4 shadow-card">
-          <p className="text-sm text-active-foreground">
-            Hồ sơ đã vào hàng đợi HITL. Tiếp theo: người phê duyệt ghi ticket.
-          </p>
-          <Link
-            href="/admin/approvals"
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-on-primary shadow-brand transition hover:opacity-90"
-          >
-            Mở Người phê duyệt <ArrowRight size={16} />
-          </Link>
-        </Card>
-      )}
-
-      {/* ── BÀN ĐIỀU KHIỂN THẨM ĐỊNH (CONTROL PANEL) ── */}
-      <Card className="border border-border/70 p-5 shadow-card sm:p-6 bg-secondary/10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      {/* CTA */}
+      <Card className="border border-border/70 bg-card p-4 shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="text-left">
-            <h2 className="text-sm font-semibold tracking-tight text-[#c05000]">Bàn làm việc của Nhân viên Thẩm định</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Thực hiện quy trình thẩm định tự động (Graph) cho hồ sơ: <strong className="text-navy">{dossier?.data.declared.customer_name}</strong>
+            <h2 className="text-sm font-semibold text-navy">
+              {dossier?.data.declared.customer_name}
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {productLabelVi(form.product)}
+              {form.declared.amount != null
+                ? ` · ${new Intl.NumberFormat("vi-VN").format(form.declared.amount)} ₫`
+                : ""}
             </p>
           </div>
-          
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Simulation Options */}
-            <label className="flex items-center gap-2 text-xs text-muted-foreground font-medium select-none cursor-pointer">
-              <input
-                type="checkbox"
-                className="rounded border-border text-[#e8650a] focus:ring-[#e8650a]"
-                checked={tier3Confirmed}
-                onChange={(e) => setTier3Confirmed(e.target.checked)}
-              />
-              Nhân viên xác nhận Tier-3 (confirmed_by)
-            </label>
-
-            {/* Submit / Trigger Action */}
-            <div className="flex items-center gap-2 border-l border-border pl-3">
-              <Button
-                type="button"
-                disabled={loading}
-                onClick={() => runSubmitted()}
-                size="sm"
-                className="bg-[#e8650a] hover:bg-[#c05000] text-white text-xs font-semibold px-4 py-2"
-              >
-                {loading ? "Đang chạy..." : "Chạy Thẩm Định (API)"}
-                <ArrowRight size={14} className="ml-1" />
-              </Button>
-              <Button
-                type="button"
-                disabled={loading}
-                variant="outline"
-                onClick={() => dossier && runSeedDemo(dossier.scenario, dossier.data)}
-                size="sm"
-                className="text-xs font-semibold px-4 py-2"
-              >
-                Seed tự động
-              </Button>
-            </div>
-          </div>
+          <Button type="button" disabled={loading} onClick={() => runSubmitted()} size="sm">
+            {loading ? "Đang xử lý…" : result ? "Chạy lại" : "Tiếp nhận"}
+            <ArrowRight size={14} />
+          </Button>
         </div>
         {error && (
-          <p className="mt-3 rounded-lg bg-warning-soft p-3 text-xs text-warning-foreground">{error}</p>
+          <p className="mt-3 rounded-lg bg-warning-soft p-2.5 text-xs text-warning-foreground">{error}</p>
+        )}
+        {loading && (
+          <AgentRunProgress
+            activeIndex={agentStepIndex}
+            customerName={dossier?.data.declared.customer_name}
+          />
+        )}
+        {!result && !loading && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Chỉnh phương án bên dưới, rồi bấm <strong>Tiếp nhận</strong> để chạy agent.
+          </p>
         )}
       </Card>
 
-      <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+      {/* RM đề xuất */}
+      {!result && !loading && (
+        <Card className="border border-border/70 bg-card p-4 shadow-card">
+          <h3 className="mb-3 text-left text-sm font-semibold text-navy">Phương án đề xuất (RM)</h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="text-left text-[11px] text-muted-foreground">
+              Số tiền đề nghị (₫)
+              <div className="mt-1">
+                <MoneyInput
+                  value={form.declared.amount}
+                  onChange={(n) => updateDeclared("amount", n ?? 0)}
+                  aria-label="Số tiền đề nghị"
+                  className="text-xs"
+                />
+              </div>
+            </label>
+            <label className="text-left text-[11px] text-muted-foreground">
+              Kỳ hạn (tháng)
+              <Input
+                type="number"
+                className="mt-1 text-xs"
+                value={form.declared.term_months ?? ""}
+                onChange={(e) => updateDeclared("term_months", Number(e.target.value) || 0)}
+              />
+            </label>
+            <label className="text-left text-[11px] text-muted-foreground">
+              Lãi suất (%/năm)
+              <Input
+                type="number"
+                step="0.1"
+                className="mt-1 text-xs"
+                value={
+                  form.declared.annual_rate != null
+                    ? Number((form.declared.annual_rate * 100).toFixed(2))
+                    : ""
+                }
+                onChange={(e) =>
+                  updateDeclared("annual_rate", (Number(e.target.value) || 0) / 100)
+                }
+              />
+            </label>
+            <label className="text-left text-[11px] text-muted-foreground">
+              Nợ hiện hữu / tháng (₫)
+              <div className="mt-1">
+                <MoneyInput
+                  value={form.declared.existing_monthly_debt}
+                  onChange={(n) => updateDeclared("existing_monthly_debt", n ?? 0)}
+                  aria-label="Nợ hiện hữu hàng tháng"
+                  className="text-xs"
+                />
+              </div>
+            </label>
+          </div>
+        </Card>
+      )}
+
+      {/* Kết quả — gọn: outcome + values + agent process + hồ sơ */}
+      {result && (
         <div className="space-y-4">
+          {/* Outcome banner */}
+          <Card
+            className={cn(
+              "border p-4 shadow-card",
+              veto && "border-warning-foreground/25 bg-warning-soft/40",
+              !veto && result.outcome === "stp_approved" && "border-brand/25 bg-accent/50",
+              !veto &&
+                result.outcome === "ready_for_human_approval" &&
+                "border-active-foreground/20 bg-active-soft/40",
+            )}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3 text-left">
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Kết quả
+                </p>
+                <p
+                  className={cn(
+                    "mt-1 text-lg font-bold",
+                    veto ? "text-warning-foreground" : "text-navy",
+                  )}
+                >
+                  {outcomeLabelVi(result.outcome)}
+                </p>
+                {veto && (
+                  <ul className="mt-2 space-y-1 text-sm text-warning-foreground">
+                    {(compliance?.rule_ids ?? []).map((id) => (
+                      <li key={id}>· {ruleLabelVi(id)}</li>
+                    ))}
+                    {(compliance?.rule_ids ?? []).length === 0 && (
+                      <li>· Vi phạm hạn mức tuân thủ</li>
+                    )}
+                  </ul>
+                )}
+                {veto && (run?.replan_count ?? 0) > 0 && (
+                  <p className="mt-2 text-xs text-warning-foreground/80">
+                    Hệ thống đã điều chỉnh phương án {run?.replan_count} lần nhưng vẫn bị chặn.
+                  </p>
+                )}
+                {!veto && result.outcome === "ready_for_human_approval" && (
+                  <Link
+                    href="/admin/approvals"
+                    className="mt-3 inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-on-primary"
+                  >
+                    Mở phê duyệt <ArrowRight size={14} />
+                  </Link>
+                )}
+              </div>
+              <StatusBadge tone={veto ? "warning" : result.outcome === "stp_approved" ? "success" : "pending"}>
+                {laneLabelVi(run?.lane ?? 3)}
+              </StatusBadge>
+            </div>
+          </Card>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            {/* Values */}
+            <Card className="border border-border/70 p-4 shadow-card text-left">
+              <h3 className="text-sm font-semibold text-navy">Chỉ số &amp; phương án</h3>
+              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Số tiền</dt>
+                  <dd className="font-semibold text-navy">
+                    {form.declared.amount != null
+                      ? `${new Intl.NumberFormat("vi-VN").format(form.declared.amount)} ₫`
+                      : "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Kỳ hạn</dt>
+                  <dd className="font-semibold text-navy">
+                    {form.declared.term_months != null ? `${form.declared.term_months} tháng` : "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Lãi suất</dt>
+                  <dd className="font-semibold text-navy">
+                    {form.declared.annual_rate != null
+                      ? `${(form.declared.annual_rate * 100).toFixed(1)}%/năm`
+                      : "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">DTI</dt>
+                  <dd className="font-semibold text-navy">
+                    {result.credit?.dti != null
+                      ? `${(Number(result.credit.dti) * 100).toFixed(1)}%`
+                      : "—"}
+                  </dd>
+                </div>
+                <div className="col-span-2">
+                  <dt className="text-[11px] text-muted-foreground">Khuyến nghị tín dụng</dt>
+                  <dd className="font-semibold text-navy">
+                    {recommendationLabelVi(result.credit?.recommendation)}
+                  </dd>
+                </div>
+                {result.credit?.tool_results && (
+                  <div className="col-span-2">
+                    <dt className="text-[11px] text-muted-foreground">Công cụ đã chạy</dt>
+                    <dd className="text-xs text-muted-foreground">
+                      {Object.keys(result.credit.tool_results)
+                        .map((t) => toolLabelVi(t))
+                        .join(" · ")}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </Card>
+
+            {/* Agent process */}
+            <Card className="border border-border/70 p-4 shadow-card text-left">
+              <h3 className="text-sm font-semibold text-navy">Tiến trình agent</h3>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {result.trace.length} bước · Planner → Credit / Compliance → Critic
+              </p>
+              <div className="mt-3">
+                <NodeTimeline
+                  trace={result.trace}
+                  vetoFired={Boolean(run?.veto_fired)}
+                  emptyHint="Chưa có tiến trình."
+                />
+              </div>
+            </Card>
+          </div>
+
+          {/* Hồ sơ data — summary only, not full form dump */}
           {dossier && (
-            result ? (
-              <DossierPreviewCard data={dossier.data} scenario={dossier.scenario} />
-            ) : (
-              <DossierSummaryCard data={dossier.data} scenario={dossier.scenario} />
-            )
+            <DossierSummaryCard
+              data={dossier.data}
+              scenario={dossier.scenario}
+              ingested={true}
+            />
           )}
         </div>
+      )}
 
-        
-
-        <Card className="border-border/70 p-5 shadow-card sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold tracking-tight text-navy">Node timeline</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {result ? `${result.trace.length} bước · harness trace` : "Chưa có trace"}
-              </p>
-            </div>
-            {run && (
-              <StatusBadge tone={run.veto_fired ? "warning" : "success"}>lane {run.lane}</StatusBadge>
-            )}
-          </div>
-          <div className="mt-6 max-h-[28rem] space-y-4 overflow-y-auto pr-1">
-            {(result?.trace ?? []).length === 0 && (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-secondary/50 px-6 py-14 text-center">
-                <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-brand">
-                  <Bot size={22} />
-                </span>
-                <p className="text-sm font-medium text-navy">Chưa có trace</p>
-                <p className="mt-1.5 max-w-xs text-sm text-muted-foreground">
-                  Submit hồ sơ để xem Planner → agents → replan.
-                </p>
-              </div>
-            )}
-            {(result?.trace ?? []).map((item, index) => (
-              <div key={`${item.node}-${index}`} className="relative flex gap-4">
-                <div className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-brand ring-4 ring-card">
-                  <Bot size={16} />
-                </div>
-                {index < (result?.trace.length ?? 0) - 1 && (
-                  <span className="absolute left-[17px] top-9 h-[calc(100%-0.25rem)] w-px bg-border" />
-                )}
-                <div className="min-w-0 flex-1 rounded-xl border border-border/60 bg-secondary/40 px-3.5 py-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-semibold text-navy">{item.node}</p>
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {item.latency_ms}ms · {item.fallback_fired ? "fallback" : item.model}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {item.tool_calls.length > 0 ? item.tool_calls.join(", ") : "no tools"}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {(result?.ticket || result?.audit) && (
-            <div className="mt-6 space-y-2 border-t border-border pt-4 text-sm">
-              {result.ticket && (
-                <p>
-                  <span className="font-medium text-navy">Ticket:</span>{" "}
-                  {String(result.ticket.ticket_id ?? "—")} · {String(result.ticket.status ?? "")}
-                </p>
-              )}
-              {result.audit && (
-                <p className="break-all text-muted-foreground">
-                  Audit seq={String(result.audit.seq ?? "—")} hash=
-                  {String(result.audit.content_hash ?? "—")}
-                </p>
-              )}
-            </div>
-          )}
-
-          {result?.credit && (
-            <div className="mt-4 rounded-xl border border-border/60 bg-secondary/50 p-3.5 text-sm">
-              <p className="font-medium text-navy">Credit</p>
-              <p className="mt-1 text-muted-foreground">
-                DTI {result.credit.dti ?? "—"} · {result.credit.recommendation}
-              </p>
-            </div>
-          )}
-          {result?.operations && (
-            <div className="mt-2 rounded-xl border border-border/60 bg-secondary/50 p-3.5 text-sm">
-              <p className="font-medium text-navy">Operations</p>
-              <p className="mt-1 text-muted-foreground">
-                Valuation {result.operations.valuation?.toLocaleString("vi-VN") ?? "—"} ·{" "}
-                {result.operations.doc_status}
-              </p>
-            </div>
-          )}
-        </Card>
-      </section>
+      {/* Hồ sơ trước khi chạy */}
+      {!result && !loading && dossier && (
+        <DossierSummaryCard
+          data={dossier.data}
+          scenario={dossier.scenario}
+          ingested={ingested}
+        />
+      )}
     </div>
   );
 }

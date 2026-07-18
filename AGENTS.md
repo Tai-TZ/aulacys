@@ -94,7 +94,7 @@ These exist so 5 agents on 5 machines produce **one coherent codebase**, not fiv
 | Backend | FastAPI + Uvicorn | 0.115+ / 0.34+ |
 | Agent | LangGraph + LangChain | 0.2+ / 0.3+ |
 | Validation | Pydantic + pydantic-settings | 2.10+ / 2.7+ |
-| LLM | OpenAI API (`gpt-4o-mini` default) | via `apps/api/src/services/llm.py` |
+| LLM | Google Gemini (`gemini-3.1-flash-lite` default; OpenAI fallback) | via `apps/api/src/services/llm.py` |
 | Lint/format (api) | Ruff | 0.8+ (line-length 120) |
 | Test (api) | pytest + pytest-asyncio | 8+ |
 | Frontend | Next.js (App Router) + TypeScript + Tailwind | Next 14 / React 18 |

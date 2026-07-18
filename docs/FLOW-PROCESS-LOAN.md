@@ -1,4 +1,8 @@
-# 
+# Flow draft (cũ)
+
+> **Đã superseded.** Quy trình nghiệp vụ đã confirm (5 stage, tín chấp tiêu dùng):
+> [`FLOW-BUSINESS-CONFIRMED.md`](./FLOW-BUSINESS-CONFIRMED.md).  
+> File này giữ làm bản nháp lịch sử — đừng build theo số bước 1343/2290 bên dưới.
 
 ## Tiếp nhận hồ sơ
 
