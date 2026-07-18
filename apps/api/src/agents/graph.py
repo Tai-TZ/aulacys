@@ -277,6 +277,8 @@ def seed_application(query: str) -> LoanApplication:
                 "spouse_workplace_phone": "0243123456",
                 "consent_data_processing": True,
                 "consent_advertising": False,
+                "id_number": "001099000003",  # overdue 120d — demo CIC bad path
+                "cic_consent": True,
             },
             "documents": [
                 Document(kind="cccd", tier=1, extracted={"verified": True}),

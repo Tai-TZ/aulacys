@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Bot,
   FileCheck2,
@@ -22,6 +23,12 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/client/brand-mark";
 import { Button, Input } from "@/components/ui";
+import {
+  adminInitials,
+  clearAdminSession,
+  readAdminSession,
+  type AdminSession,
+} from "@/lib/admin-session";
 import { cn } from "@/lib/cn";
 
 export type AdminActiveHref = "/admin" | "/admin/approvals" | "/admin/san-pham/ca-nhan" | "/admin/bo-ho-so";
@@ -164,14 +171,13 @@ function NavItems({
   );
 }
 
-function SidebarFooter() {
+function SidebarFooter({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="mt-auto space-y-1 border-t border-on-primary/12 pt-5">
       <button
         type="button"
-        className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-on-primary/40"
-        disabled
-        title="Chưa có trong slice demo"
+        className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-on-primary/70 transition hover:bg-on-primary/8 hover:text-on-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        onClick={onLogout}
       >
         <LogOut size={18} /> Đăng xuất
       </button>
@@ -190,7 +196,39 @@ export function AdminShell({
   activeHref: AdminActiveHref;
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [session, setSession] = useState<AdminSession | null | undefined>(undefined);
+
+  useEffect(() => {
+    const next = readAdminSession();
+    setSession(next);
+    if (!next) router.replace("/admin/login");
+  }, [router]);
+
+  function handleLogout() {
+    clearAdminSession();
+    setSession(null);
+    router.replace("/admin/login");
+  }
+
+  if (session === undefined) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-secondary text-muted-foreground">
+        <p className="text-sm">Đang tải console…</p>
+      </main>
+    );
+  }
+
+  if (!session) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-secondary text-muted-foreground">
+        <p className="text-sm">Chuyển tới đăng nhập…</p>
+      </main>
+    );
+  }
+
+  const initials = adminInitials(session);
 
   return (
     <main className="min-h-screen bg-secondary text-foreground lg:flex">
@@ -212,7 +250,7 @@ export function AdminShell({
           <div className="mt-8 min-h-0 flex-1 overflow-y-auto pr-1">
             <NavItems activeHref={activeHref} />
           </div>
-          <SidebarFooter />
+          <SidebarFooter onLogout={handleLogout} />
         </div>
       </aside>
 
@@ -252,7 +290,7 @@ export function AdminShell({
               <div className="min-h-0 flex-1 overflow-y-auto">
                 <NavItems activeHref={activeHref} onNavigate={() => setMobileOpen(false)} />
               </div>
-              <SidebarFooter />
+              <SidebarFooter onLogout={handleLogout} />
             </div>
           </aside>
         </div>
@@ -290,11 +328,15 @@ export function AdminShell({
                 disabled
               />
             </div>
+            <div className="hidden text-right sm:block">
+              <p className="text-sm font-medium text-navy">{session.name}</p>
+              <p className="text-xs text-muted-foreground">{session.email}</p>
+            </div>
             <div
               className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-xs font-bold text-on-primary shadow-brand"
-              title="Admin demo"
+              title={session.email}
             >
-              AD
+              {initials}
             </div>
           </div>
         </header>

@@ -17,12 +17,20 @@ import {
   assessApplication,
   type AssessApplicationRequest,
   type AssessResponse,
+  type DeclaredForm,
   type DocumentInput,
 } from "@/lib/api";
 import { enqueueAssessResult, listHitlCases, type HitlCase } from "@/lib/hitl-queue";
 import { cn } from "@/lib/cn";
 
-const MORTGAGE_DEMO: AssessApplicationRequest = {
+/** Dashboard always edits a full body (id path is API-only for now). */
+type AssessFormState = {
+  product: string;
+  declared: DeclaredForm;
+  documents: DocumentInput[];
+};
+
+const MORTGAGE_DEMO: AssessFormState = {
   product: "retail_mortgage",
   declared: {
     customer_name: "TRẦN THỊ BÌNH",
@@ -72,6 +80,8 @@ const MORTGAGE_DEMO: AssessApplicationRequest = {
     ref2_relationship: "Bạn thân",
     ref2_phone: "0904567890",
     ref2_same_address: false,
+    id_number: "001099000003",
+    cic_consent: true,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true } },
@@ -92,7 +102,7 @@ const MORTGAGE_DEMO: AssessApplicationRequest = {
 // ---------------------------------------------------------------------------
 
 /** Happy path — NGUYỄN THỊ BÉ HOA (CCCD 074300004128) */
-const HAPPY_DEMO: AssessApplicationRequest = {
+const HAPPY_DEMO: AssessFormState = {
   product: "retail_unsecured_salary",
   declared: {
     customer_name: "NGUYỄN THỊ BÉ HOA",
@@ -135,6 +145,8 @@ const HAPPY_DEMO: AssessApplicationRequest = {
     ref2_same_address: false,
     consent_data_processing: true,
     consent_advertising: true,
+    id_number: "001099000001",
+    cic_consent: true,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "074300004128" } },
@@ -144,7 +156,7 @@ const HAPPY_DEMO: AssessApplicationRequest = {
 };
 
 /** Veto path — TRẦN THỊ VUI (CCCD 091185013867) — mục đích thực là tất toán nợ */
-const VETO_DEMO: AssessApplicationRequest = {
+const VETO_DEMO: AssessFormState = {
   product: "retail_unsecured_salary",
   declared: {
     customer_name: "TRẦN THỊ VUI",
@@ -187,6 +199,8 @@ const VETO_DEMO: AssessApplicationRequest = {
     ref2_same_address: false,
     consent_data_processing: true,
     consent_advertising: true,
+    id_number: "091185013867",
+    cic_consent: true,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "091185013867" } },
@@ -198,7 +212,7 @@ const VETO_DEMO: AssessApplicationRequest = {
 };
 
 /** HITL / biên giới — NGUYỄN THỊ HUYỀN TRẦN (CCCD 054301008970) */
-const HITL_DEMO: AssessApplicationRequest = {
+const HITL_DEMO: AssessFormState = {
   product: "retail_unsecured_salary",
   declared: {
     customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
@@ -241,6 +255,8 @@ const HITL_DEMO: AssessApplicationRequest = {
     ref2_same_address: false,
     consent_data_processing: true,
     consent_advertising: false,
+    id_number: "054301008970",
+    cic_consent: true,
   },
   documents: [
     { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "054301008970" } },
@@ -394,7 +410,7 @@ function DossierPreviewCard({
   data,
   scenario,
 }: {
-  data: AssessApplicationRequest;
+  data: AssessFormState;
   scenario: string | null;
 }) {
   const [activeDoc, setActiveDoc] = useState<DocumentInput | null>(null);
@@ -770,7 +786,7 @@ function DossierSummaryCard({
   data,
   scenario,
 }: {
-  data: AssessApplicationRequest;
+  data: AssessFormState;
   scenario: string | null;
 }) {
   const [activeDoc, setActiveDoc] = useState<DocumentInput | null>(null);
@@ -1031,7 +1047,7 @@ function DossierSummaryCard({
   );
 }
 
-function rememberResult(result: AssessResponse, form: AssessApplicationRequest) {
+function rememberResult(result: AssessResponse, form: AssessFormState) {
   enqueueAssessResult(result, {
     customer_name: form.declared.customer_name,
     product: form.product,
@@ -1045,8 +1061,8 @@ export function AssessDashboard() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const [form, setForm] = useState<AssessApplicationRequest>(HAPPY_DEMO);
-  const [dossier, setDossier] = useState<{ data: AssessApplicationRequest; scenario: string } | null>(
+  const [form, setForm] = useState<AssessFormState>(HAPPY_DEMO);
+  const [dossier, setDossier] = useState<{ data: AssessFormState; scenario: string } | null>(
     { data: HAPPY_DEMO, scenario: "happy" },
   );
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
@@ -1084,6 +1100,13 @@ export function AssessDashboard() {
     },
   ];
 
+  function updateDeclared<K extends keyof DeclaredForm>(
+    key: K,
+    value: DeclaredForm[K],
+  ) {
+    setForm((prev) => ({ ...prev, declared: { ...prev.declared, [key]: value } }));
+  }
+
   const cases = listHitlCases();
 
   const getDossierStatusInfo = (scenario: string) => {
@@ -1107,7 +1130,7 @@ export function AssessDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const body: AssessApplicationRequest = {
+      const body: AssessFormState = {
         ...form,
         documents: form.documents.map((doc) =>
           doc.tier === 3
@@ -1129,7 +1152,7 @@ export function AssessDashboard() {
     }
   }
 
-  async function runSeedDemo(keyword: string, fallbackForm: AssessApplicationRequest) {
+  async function runSeedDemo(keyword: string, fallbackForm: AssessFormState) {
     setLoading(true);
     setError(null);
     try {

@@ -18,7 +18,11 @@ def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessmen
     )
 
     tool_calls: list[str] = []
-    cic = dispatch(spec, "cic_lookup", {"customer_name": declared.customer_name})
+    cic = dispatch(
+        spec,
+        "cic_lookup",
+        {"cccd": declared.id_number, "consent_granted": declared.cic_consent},
+    )
     tool_calls.append("cic_lookup")
     income = dispatch(
         spec,
@@ -54,9 +58,15 @@ def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessmen
     tool_calls.append("compute_dti")
 
     dti = dti_result.get("dti")
+    max_overdue = int(cic.get("max_overdue_days") or cic.get("overdue_days") or 0)
+    has_bad_debt = bool(cic.get("has_bad_debt", False))
+    consent_blocked = cic.get("error") == "consent_required" or bool(cic.get("consent_required"))
     recommendation = "review"
-    if isinstance(dti, int | float):
-        recommendation = "support" if dti <= 0.5 and cic.get("overdue_days", 0) == 0 else "manual_review"
+    if consent_blocked:
+        recommendation = "manual_review"
+    elif isinstance(dti, int | float):
+        clean_cic = max_overdue == 0 and not has_bad_debt
+        recommendation = "support" if dti <= 0.5 and clean_cic else "manual_review"
 
     return (
         CreditAssessment(
@@ -64,7 +74,7 @@ def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessmen
             income=verified_income,
             recommendation=recommendation,
             evidence=[
-                Citation(source="cic_lookup", reference="seeded CIC snapshot"),
+                Citation(source="cic_lookup", reference="CIC bureau lookup"),
                 Citation(source="income_verify", reference="seeded bank statement"),
                 Citation(source="compute_dti", reference="deterministic tool result"),
             ],

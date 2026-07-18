@@ -56,3 +56,54 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # Postgres-backed microservices (audit / los / application) — REQUIRE_DB fails on skip
+  db-services:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: audit-svc
+            schema: audit
+          - service: los-svc
+            schema: los
+          - service: application-svc
+            schema: application
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: services/${{ matrix.service }}/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Pytest (REQUIRE_DB)
+        run: pytest -q --tb=short
+        env:
+          REQUIRE_DB: "1"
+          DB_SCHEMA: ${{ matrix.schema }}
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres?options=-csearch_path%3D${{ matrix.schema }}&connect_timeout=3
+          DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres?options=-csearch_path%3D${{ matrix.schema }}&connect_timeout=3

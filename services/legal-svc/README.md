@@ -9,7 +9,7 @@ Real police / court APIs are not callable in this hackathon. This service is a
 
 Distinct from `aml-svc` (international sanctions / PEP under PCRT).
 
-- Port: **8360**
+- Port: **8370**
 - Storage: `seed/legal_records.json` (no SQL)
 - Unknown CCCD → `CLEAR` (demo never breaks)
 - Agent wiring: **not done here**
@@ -49,12 +49,12 @@ Distinct from `aml-svc` (international sanctions / PEP under PCRT).
 ```bash
 cd services/legal-svc
 pip install -r requirements.txt
-uvicorn app.main:app --port 8360 --reload
+uvicorn app.main:app --port 8370 --reload
 pytest -q
 ```
 
 ```bash
-curl -s http://127.0.0.1:8360/check -H "content-type: application/json" \
+curl -s http://127.0.0.1:8370/check -H "content-type: application/json" \
   -d "{\"cccd\":\"001099000010\"}"
 ```
 

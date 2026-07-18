@@ -44,10 +44,12 @@ def test_gateway_status_aggregates_service_health(monkeypatch):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
-    assert data["summary"] == {"total": 14, "up": 14, "down": 0}
+    total_expected = len(module.SERVICES) + 1
+    assert data["summary"] == {"total": total_expected, "up": total_expected, "down": 0}
     assert data["services"][0]["name"] == "api-gateway"
     assert any(item["name"] == "monolith" for item in data["services"])
     assert any(item["name"] == "catalog-svc" for item in data["services"])
+    assert any(item["name"] == "application-svc" for item in data["services"])
     assert any(item["name"] == "credit-svc" for item in data["services"])
 
 

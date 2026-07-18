@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import time
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -54,7 +55,8 @@ SERVICES = [
     ServiceSpec("property-svc", "PROPERTY_SVC_URL", "http://127.0.0.1:8330"),
     ServiceSpec("income-svc", "INCOME_SVC_URL", "http://127.0.0.1:8340"),
     ServiceSpec("catalog-svc", "CATALOG_SVC_URL", "http://127.0.0.1:8350"),
-    ServiceSpec("legal-svc", "LEGAL_SVC_URL", "http://127.0.0.1:8360"),
+    ServiceSpec("application-svc", "APPLICATION_SVC_URL", "http://127.0.0.1:8360"),
+    ServiceSpec("legal-svc", "LEGAL_SVC_URL", "http://127.0.0.1:8370"),
     ServiceSpec("credit-svc", "CREDIT_AGENT_URL", "http://127.0.0.1:8401"),
     ServiceSpec("operations-svc", "OPERATIONS_AGENT_URL", "http://127.0.0.1:8402"),
     ServiceSpec("compliance-svc", "COMPLIANCE_AGENT_URL", "http://127.0.0.1:8403"),
@@ -62,6 +64,7 @@ SERVICES = [
 ]
 
 _CATALOG = ServiceSpec("catalog-svc", "CATALOG_SVC_URL", "http://127.0.0.1:8350")
+_APPLICATION = ServiceSpec("application-svc", "APPLICATION_SVC_URL", "http://127.0.0.1:8360")
 
 
 def _now() -> str:
@@ -236,3 +239,37 @@ def catalog_product(product_id: str) -> dict[str, Any]:
         return _get_json(f"{_base_url(_CATALOG)}/products/{product_id}", timeout=3)
     except Exception as exc:
         return {**_catalog_fallback(str(exc)), "id": product_id}
+
+
+@app.post("/applications")
+def create_application(payload: dict[str, Any]) -> dict[str, Any]:
+    """Proxy intake to application-svc (pass through 4xx; degraded if down)."""
+    try:
+        return _post_json(f"{_base_url(_APPLICATION)}/applications", payload, timeout=10)
+    except urllib.error.HTTPError as exc:
+        try:
+            body = json.loads(exc.read().decode("utf-8"))
+        except Exception:
+            body = {"detail": str(exc)}
+        return {"status_code": exc.code, **(body if isinstance(body, dict) else {"detail": body})}
+    except Exception as exc:
+        return {
+            "error": "application_svc_unavailable",
+            "detail": str(exc),
+            "degraded": True,
+            "checked_at": _now(),
+        }
+
+
+@app.get("/applications/{application_id}")
+def get_application(application_id: str) -> dict[str, Any]:
+    try:
+        return _get_json(f"{_base_url(_APPLICATION)}/applications/{application_id}", timeout=5)
+    except Exception as exc:
+        return {
+            "id": application_id,
+            "error": "application_svc_unavailable",
+            "detail": str(exc),
+            "degraded": True,
+            "checked_at": _now(),
+        }

@@ -57,6 +57,14 @@
 | `DIRECT_URL` | own · secret | falls back to `DATABASE_URL` | ✅ | Session pooler + `search_path=los` |
 | `DB_SCHEMA` | own | `los` | — | used if URL has no `search_path` |
 
+## application-svc (:8360)
+
+| Var | Kind | Default | Prod? | Notes |
+|-----|------|---------|-------|-------|
+| `DATABASE_URL` | own · secret | — | ✅ | `search_path=application` — SHBFinance Section A intake |
+| `DIRECT_URL` | own · secret | falls back to `DATABASE_URL` | ✅ | Alembic |
+| `DB_SCHEMA` | own | `application` | — | used if URL has no `search_path` |
+
 ## agent-worker-svc (:8400 / 8401–8404)
 
 | Var | Kind | Default | Prod? | Notes |
@@ -104,6 +112,7 @@ own no DB. (If a seed path is ever externalized, add one `own` var here.)
 | api-gateway | `services/api-gateway/.env.example` | `services/api-gateway/.env` |
 | audit-svc | `services/audit-svc/.env.example` | `services/audit-svc/.env` |
 | los-svc | `services/los-svc/.env.example` | `services/los-svc/.env` |
+| application-svc | `services/application-svc/.env.example` | `services/application-svc/.env` |
 | agent-worker | `services/agent-worker-svc/.env.example` | `services/agent-worker-svc/.env` |
 | policy / cic / aml / property / income / catalog | `services/<name>/.env.example` | `services/<name>/.env` |
 | web | `apps/web/.env.example` | `apps/web/.env.local` |
@@ -114,6 +123,22 @@ cp apps/api/.env.example apps/api/.env
 cp services/audit-svc/.env.example services/audit-svc/.env
 # …or copy each services/*/.env.example → .env
 ```
+
+## Local / CI Postgres tests (audit · los · application)
+
+```bash
+# start Postgres only (schemas from services/db/init-schemas.sql)
+docker compose -f docker-compose.db.yml up -d --wait
+
+# Windows
+.\scripts\test-db.ps1
+# Unix / make
+make test-db
+
+# REQUIRE_DB=1 → skip becomes fail (used in CI job db-services)
+```
+
+Same Postgres credentials as `docker-compose.services.yml` (`postgres`/`postgres` @ `:5432`).
 
 
 ## ❌ Anti-patterns

@@ -9,17 +9,24 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-# Default local URL matches docker-compose postgres + search_path=audit
+# Default local URL matches docker-compose.db.yml / services postgres + search_path=audit
 _DEFAULT_URL = (
-    "postgresql://postgres:postgres@127.0.0.1:5432/postgres?options=-csearch_path%3Daudit"
+    "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
+    "?options=-csearch_path%3Daudit&connect_timeout=3"
 )
+
+
+def _unavailable(msg: str) -> None:
+    if os.getenv("REQUIRE_DB", "").strip().lower() in {"1", "true", "yes"}:
+        pytest.fail(msg)
+    pytest.skip(msg)
 
 
 @pytest.fixture(scope="session")
 def database_url() -> str:
     url = os.getenv("DATABASE_URL", _DEFAULT_URL)
     if not url.startswith("postgres"):
-        pytest.skip("DATABASE_URL must be postgres")
+        _unavailable("DATABASE_URL must be postgres")
     return url
 
 
@@ -39,7 +46,7 @@ def pg(database_url: str, monkeypatch: pytest.MonkeyPatch):
             conn.execute(text("CREATE SCHEMA IF NOT EXISTS audit"))
             conn.commit()
     except Exception as exc:
-        pytest.skip(f"Postgres unavailable: {exc}")
+        _unavailable(f"Postgres unavailable: {exc}")
 
     audit_service.init()
     ledger._truncate_all()

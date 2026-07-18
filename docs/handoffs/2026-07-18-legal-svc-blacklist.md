@@ -13,7 +13,7 @@ JSON-seeded mock: lookup by CCCD (+ optional name) → `CLEAR` / `HIT` / `POSSIB
 
 ## Files touched
 
-- `services/legal-svc/` — new service (port **8360**): schemas, check logic, seed, tests, README
+- `services/legal-svc/` — new service (port **8370**): schemas, check logic, seed, tests, README
 - `services/api-gateway/app/main.py` — health monitor entry
 - `docker-compose.yml` / `docker-compose.services.yml` — service + `LEGAL_SVC_URL`
 - `services/README.md`, `docs/MICROSERVICES-STATUS.md` — inventory
@@ -26,13 +26,13 @@ pip install -r requirements.txt
 pytest -q
 # expect: 8 passed
 
-uvicorn app.main:app --port 8360 --reload
+uvicorn app.main:app --port 8370 --reload
 
-curl -s http://127.0.0.1:8360/check -H "content-type: application/json" \
+curl -s http://127.0.0.1:8370/check -H "content-type: application/json" \
   -d "{\"cccd\":\"001099000010\"}"
 # result=HIT, blocking=true, list=police_wanted
 
-curl -s http://127.0.0.1:8360/check -H "content-type: application/json" \
+curl -s http://127.0.0.1:8370/check -H "content-type: application/json" \
   -d "{\"cccd\":\"001099000001\"}"
 # result=CLEAR
 ```

@@ -27,10 +27,11 @@
 | 8 | **income-svc** | 8340 | none | no | thin | P2 |
 | 9 | **agent-worker-svc** (all 4 agents, §12) | 8400 | none | no | now 4 procs → target **1** | P2 |
 | 13 | **catalog-svc** | 8350 | JSON seed | seed only | **NOT BUILT** | P1 (product demo) |
-| 14 | **orchestrator DB** | — | none | `loan_run` designed | **NOT BUILT** | P3 |
+| 14 | **application-svc** | 8360 | Postgres schema `application` | **yes** | Phase 1–2 ✅ | P1 (intake) |
+| 15 | **orchestrator DB** | — | none | `loan_run` designed | **NOT BUILT** | P3 |
 
 **Data-ownership rule (never violate):**
-- Only **audit-svc**, **los-svc**, and (later) **orchestrator** own mutable SQL.
+- Only **audit-svc**, **los-svc**, **application-svc**, and (later) **orchestrator** own mutable SQL.
 - No shared database, no cross-service FK.
 - Seed/reference services ship data in the image (git-versioned).
 
