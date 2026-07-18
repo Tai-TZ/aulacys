@@ -91,7 +91,7 @@ export function ClientNav() {
               {t.nav.login}
             </Button>
           </Link>
-          <Link href="/workspace" className="hidden sm:inline-flex">
+          <Link href="/customer-portal" className="hidden sm:inline-flex">
             <Button variant="outline" className="border-navy/20 text-navy hover:bg-muted">
               {t.workspace.goWorkspace}
             </Button>

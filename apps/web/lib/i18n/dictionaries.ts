@@ -190,7 +190,13 @@ export type Dictionary = {
     agentThinking: string;
     agentPlaceholder: string;
     agentSend: string;
-    agentPrompts: string;
+    agentProcessTitle: string;
+    agentProcessSub: string;
+    agentProcessIdle: string;
+    agentProcessRunning: string;
+    agentProcessDone: string;
+    agentProcessVeto: string;
+    agentProcessParallel: string;
     agentDisclaimer: string;
     agentFallback: string;
     goWorkspace: string;
@@ -360,8 +366,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       hasAccount: "Đã có tài khoản?",
       backHome: "Về trang chủ",
       demoNote: "Demo: chưa kết nối backend — thông tin chỉ mang tính minh họa.",
-      successLogin: "Đăng nhập demo thành công. Đang mở workspace của bạn…",
-      successRegister: "Đăng ký demo thành công. Đang mở workspace vay vốn của bạn…",
+      successLogin: "Đăng nhập demo thành công. Đang mở customer portal…",
+      successRegister: "Đăng ký demo thành công. Đang mở customer portal của bạn…",
       panelBadge: "Vay vốn cá nhân",
       panelCard1Title: "Chủ động kế hoạch tài chính",
       panelCard1Text: "Ước tính khoản vay và lịch trả rõ ràng trước khi đăng ký.",
@@ -388,12 +394,12 @@ export const dictionaries: Record<Locale, Dictionary> = {
     },
     workspace: {
       shellEyebrow: "Không gian khách hàng",
-      shellTitle: "Workspace vay vốn",
+      shellTitle: "Customer portal",
       exit: "Về trang chủ",
       welcome: "Xin chào, {name}",
       welcomeSub:
-        "Theo dõi hạn mức, hoàn thiện hồ sơ và nhờ Digital Expert Agents chuẩn bị khoản vay — đúng quy trình retail_mortgage / tín chấp của Aulacys.",
-      tabsNav: "Tab workspace",
+        "Theo dõi hạn mức, hoàn thiện hồ sơ và nhờ Digital Expert Agents chuẩn bị khoản vay.",
+      tabsNav: "Tab customer portal",
       tabs: {
         dashboard: "Dashboard",
         dossier: "Hồ sơ",
@@ -407,25 +413,25 @@ export const dictionaries: Record<Locale, Dictionary> = {
       statDossier: "Độ sẵn sàng hồ sơ",
       statDossierHint: "Trước khi Credit & Compliance chạy",
       limitsTitle: "Hạn mức theo sản phẩm",
-      limitsSub: "Hai sản phẩm cấu hình YAML: retail_mortgage và retail_unsecured_salary (+ du học).",
+      limitsSub: "Hạn mức sơ bộ theo từng sản phẩm vay của bạn.",
       viewProduct: "Chi tiết",
       limitLabel: "Hạn mức",
       usedLabel: "Đã dùng",
       rateLabel: "LS từ",
       dtiTitle: "DTI hiện tại",
-      dtiSub: "Tỷ lệ trả nợ / thu nhập — ngưỡng cứng nằm trong policy/, không trong prompt.",
+      dtiSub: "Tỷ lệ trả nợ / thu nhập — theo chính sách sản phẩm hiện hành.",
       dtiStatus: "Trong ngưỡng mềm · còn room để vay thêm",
       repayTitle: "Dự kiến trả nợ (triệu ₫)",
       repaySub: "Minh họa dòng tiền sau khi giải ngân thêm khoản mua nhà.",
       pipelineTitle: "Hồ sơ đang chạy",
       dossierTitle: "Checklist hồ sơ vay",
       dossierSub:
-        "Mỗi giấy tờ gắn với agent/tool tương ứng. Thiếu định giá → Compliance không tính được LTV.",
+        "Mỗi giấy tờ gắn với bước thẩm định tương ứng. Thiếu định giá → chưa tính được LTV.",
       dossierReady: "sẵn sàng cho agent",
       upload: "Tải lên",
       replace: "Thay file",
       dossierAgentCta: "Thiếu giấy tờ? Hãy hỏi Agent",
-      dossierAgentHint: "Digital Expert giúp liệt kê chứng từ và giải thích bước Credit → Compliance.",
+      dossierAgentHint: "Digital Expert giúp liệt kê chứng từ và giải thích các bước thẩm định.",
       openAgent: "Mở Agent hỗ trợ",
       historyTitle: "Lịch sử quan hệ tín dụng tại ngân hàng",
       historySub: "Dữ liệu demo — minh họa CIF khách bán lẻ.",
@@ -442,12 +448,18 @@ export const dictionaries: Record<Locale, Dictionary> = {
       agentThinking: "Các chuyên gia đang phối hợp…",
       agentPlaceholder: "Hỏi về hồ sơ, hạn mức, hoặc quy trình thẩm định…",
       agentSend: "Gửi",
-      agentPrompts: "Gợi ý nhanh",
+      agentProcessTitle: "Tiến trình multi-agent",
+      agentProcessSub: "Quy trình thẩm định · theo cấu hình sản phẩm",
+      agentProcessIdle: "Gửi câu hỏi để xem các agent chạy theo bước",
+      agentProcessRunning: "Đang chạy graph…",
+      agentProcessDone: "Chuỗi agent hoàn tất",
+      agentProcessVeto: "Compliance veto — chờ replan",
+      agentProcessParallel: "Song song",
       agentDisclaimer:
         "Demo: phản hồi qua API chat có fallback. Không thay thế tư vấn tín dụng chính thức.",
       agentFallback:
         "Hệ thống đang chạy chế độ dự phòng. Yêu cầu đã được ghi nhận — hãy bổ sung sổ đỏ và báo cáo định giá để Compliance tính LTV.",
-      goWorkspace: "Vào workspace của tôi",
+      goWorkspace: "Vào customer portal",
     },
   },
   en: {
@@ -604,8 +616,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       hasAccount: "Already have an account?",
       backHome: "Back to home",
       demoNote: "Demo only — not connected to a backend.",
-      successLogin: "Demo sign-in successful. Opening your workspace…",
-      successRegister: "Demo sign-up successful. Opening your loan workspace…",
+      successLogin: "Demo sign-in successful. Opening your customer portal…",
+      successRegister: "Demo sign-up successful. Opening your customer portal…",
       panelBadge: "Personal lending",
       panelCard1Title: "Take control of your finances",
       panelCard1Text: "Estimate payments and schedules before you apply.",
@@ -632,12 +644,12 @@ export const dictionaries: Record<Locale, Dictionary> = {
     },
     workspace: {
       shellEyebrow: "Customer space",
-      shellTitle: "Loan workspace",
+      shellTitle: "Customer portal",
       exit: "Back home",
       welcome: "Hello, {name}",
       welcomeSub:
-        "Track limits, complete your file, and let Digital Expert Agents prep your loan — retail_mortgage / unsecured flows.",
-      tabsNav: "Workspace tabs",
+        "Track limits, complete your file, and let Digital Expert Agents prep your loan.",
+      tabsNav: "Customer portal tabs",
       tabs: {
         dashboard: "Dashboard",
         dossier: "Documents",
@@ -651,25 +663,25 @@ export const dictionaries: Record<Locale, Dictionary> = {
       statDossier: "File readiness",
       statDossierHint: "Before Credit & Compliance run",
       limitsTitle: "Limits by product",
-      limitsSub: "YAML-configured products: retail_mortgage and retail_unsecured_salary (+ study).",
+      limitsSub: "Indicative limits by loan product.",
       viewProduct: "Details",
       limitLabel: "Limit",
       usedLabel: "Used",
       rateLabel: "From",
       dtiTitle: "Current DTI",
-      dtiSub: "Debt service / income — hard caps live in policy/, not in prompts.",
+      dtiSub: "Debt service / income — per current product policy.",
       dtiStatus: "Within soft cap · room to borrow more",
       repayTitle: "Projected repayment (VND m)",
       repaySub: "Illustrative cashflow after an additional home loan.",
       pipelineTitle: "Active application",
       dossierTitle: "Loan document checklist",
       dossierSub:
-        "Each document maps to an agent/tool. Missing valuation → Compliance cannot compute LTV.",
+        "Each document maps to an underwriting step. Missing valuation → LTV cannot be computed.",
       dossierReady: "agent-ready",
       upload: "Upload",
       replace: "Replace",
       dossierAgentCta: "Missing papers? Ask the Agent",
-      dossierAgentHint: "Digital Expert lists documents and explains Credit → Compliance.",
+      dossierAgentHint: "Digital Expert lists documents and explains the underwriting steps.",
       openAgent: "Open support agent",
       historyTitle: "Credit history at the bank",
       historySub: "Demo CIF data for a retail customer.",
@@ -686,12 +698,18 @@ export const dictionaries: Record<Locale, Dictionary> = {
       agentThinking: "Specialists are coordinating…",
       agentPlaceholder: "Ask about documents, limits, or underwriting…",
       agentSend: "Send",
-      agentPrompts: "Quick prompts",
+      agentProcessTitle: "Multi-agent process",
+      agentProcessSub: "Underwriting flow · from product config",
+      agentProcessIdle: "Send a message to watch agents run step by step",
+      agentProcessRunning: "Graph running…",
+      agentProcessDone: "Agent chain complete",
+      agentProcessVeto: "Compliance veto — awaiting replan",
+      agentProcessParallel: "Parallel",
       agentDisclaimer:
         "Demo: chat API with fallback. Not a substitute for formal credit advice.",
       agentFallback:
         "Running in fallback mode. Please add the land title and valuation so Compliance can compute LTV.",
-      goWorkspace: "Open my workspace",
+      goWorkspace: "Open customer portal",
     },
   },
 };

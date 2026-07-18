@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function ProductRedirect() {
+export default function CustomerPortalRedirect() {
   redirect("/admin");
 }
