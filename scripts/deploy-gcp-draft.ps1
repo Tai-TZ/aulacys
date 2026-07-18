@@ -424,18 +424,15 @@ function Deploy-DbServices {
 
 function Deploy-AgentWorkers {
     param([hashtable]$Urls)
-    Write-Step "Deploying agent workers"
-    Deploy-Service -Name "credit-svc" -Image (Get-Image "agent-worker-svc") -Port 8400 `
-        -Env @{ AGENT_NAME = "credit"; CIC_SVC_URL = $Urls["cic-svc"]; INCOME_SVC_URL = $Urls["income-svc"] }
-
-    Deploy-Service -Name "operations-svc" -Image (Get-Image "agent-worker-svc") -Port 8400 `
-        -Env @{ AGENT_NAME = "operations"; PROPERTY_SVC_URL = $Urls["property-svc"] }
-
-    Deploy-Service -Name "compliance-svc" -Image (Get-Image "agent-worker-svc") -Port 8400 `
-        -Env @{ AGENT_NAME = "compliance"; AML_SVC_URL = $Urls["aml-svc"]; POLICY_SVC_URL = $Urls["policy-svc"] }
-
-    Deploy-Service -Name "critic-svc" -Image (Get-Image "agent-worker-svc") -Port 8400 `
-        -Env @{ AGENT_NAME = "critic" }
+    Write-Step "Deploying agent runtime"
+    Deploy-Service -Name "agent-worker-svc" -Image (Get-Image "agent-worker-svc") -Port 8400 `
+        -Env @{
+            CIC_SVC_URL = $Urls["cic-svc"]
+            INCOME_SVC_URL = $Urls["income-svc"]
+            PROPERTY_SVC_URL = $Urls["property-svc"]
+            AML_SVC_URL = $Urls["aml-svc"]
+            POLICY_SVC_URL = $Urls["policy-svc"]
+        }
 }
 
 function Build-BackendImages {
@@ -491,10 +488,7 @@ function Deploy-OrchestratorAndGateway {
             INCOME_SVC_URL = $Urls["income-svc"]
             APPLICATION_SVC_URL = $Urls["application-svc"]
             LEGAL_SVC_URL = $Urls["legal-svc"]
-            CREDIT_AGENT_URL = $Urls["credit-svc"]
-            OPERATIONS_AGENT_URL = $Urls["operations-svc"]
-            COMPLIANCE_AGENT_URL = $Urls["compliance-svc"]
-            CRITIC_AGENT_URL = $Urls["critic-svc"]
+            AGENT_WORKER_URL = $Urls["agent-worker-svc"]
         } `
         -Secrets @{
             GEMINI_API_KEY = "gemini-api-key"
@@ -518,10 +512,7 @@ function Deploy-OrchestratorAndGateway {
             CATALOG_SVC_URL = $Urls["catalog-svc"]
             APPLICATION_SVC_URL = $Urls["application-svc"]
             LEGAL_SVC_URL = $Urls["legal-svc"]
-            CREDIT_AGENT_URL = $Urls["credit-svc"]
-            OPERATIONS_AGENT_URL = $Urls["operations-svc"]
-            COMPLIANCE_AGENT_URL = $Urls["compliance-svc"]
-            CRITIC_AGENT_URL = $Urls["critic-svc"]
+            AGENT_WORKER_URL = $Urls["agent-worker-svc"]
         }
     $Urls["api-gateway"] = Get-ServiceUrl "api-gateway"
 }
@@ -649,7 +640,7 @@ try {
 
     $urls = Read-DeployedUrls
     Deploy-AgentWorkers -Urls $urls
-    foreach ($name in @("credit-svc", "operations-svc", "compliance-svc", "critic-svc")) {
+    foreach ($name in @("agent-worker-svc")) {
         $urls[$name] = Get-ServiceUrl $name
     }
 
