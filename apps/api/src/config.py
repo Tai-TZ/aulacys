@@ -4,6 +4,9 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Gemini OpenAI-compatible API (no extra langchain package needed).
+GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -20,12 +23,18 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     cors_origins: str = "http://localhost:3000"
 
-    # LLM
-    # Pinned snapshot + temperature 0 so a decision is reproducible for audit (P0-3).
-    # An unpinned alias silently drifts; temperature > 0 makes the same file score twice.
-    openai_api_key: str = ""
-    model_name: str = "gpt-4o-mini"
+    # LLM — primary Gemini (TEAM_RULES 2026-07-18); OpenAI remains a switchable fallback.
+    # Temperature 0 so a decision is reproducible for audit (P0-3).
+    llm_provider: Literal["gemini", "openai"] = "gemini"
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+
+    openai_api_key: str = ""
+    model_name: str = "gpt-4o-mini"  # used when llm_provider=openai
+
+    # Google AI Studio / Gemini — https://aistudio.google.com/apikey
+    gemini_api_key: str = ""
+    google_api_key: str = ""  # alias accepted in .env (GOOGLE_API_KEY)
+    gemini_model_name: str = "gemini-3.1-flash-lite"
 
     # Database — Supabase Postgres (see src/db/session.py, docs/DATABASE.md)
     # Runtime queries go through the transaction pooler (:6543, pgbouncer=true).
@@ -37,6 +46,22 @@ class Settings(BaseSettings):
     @property
     def db_enabled(self) -> bool:
         return self.database_url.startswith("postgres")
+
+    @property
+    def active_gemini_key(self) -> str:
+        return self.gemini_api_key.strip() or self.google_api_key.strip()
+
+    @property
+    def llm_api_key(self) -> str:
+        if self.llm_provider == "gemini":
+            return self.active_gemini_key
+        return self.openai_api_key.strip()
+
+    @property
+    def active_model_name(self) -> str:
+        if self.llm_provider == "gemini":
+            return self.gemini_model_name
+        return self.model_name
 
     # Vector Store
     chroma_persist_dir: str = "./data/chroma"

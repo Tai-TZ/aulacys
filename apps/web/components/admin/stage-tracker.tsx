@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 
 type StageState = "done" | "current" | "stopped" | "pending";
 
-/** Map an assess result onto the 4 business stages (docs/LOAN-SOP.md). */
+/** Map an assess result onto the 5 business stages (FLOW-BUSINESS-CONFIRMED.md). */
 function stageStates(result: AssessResponse): Record<SopStage, { state: StageState; note: string }> {
   const veto = Boolean(result.compliance?.veto || result.run_trace?.veto_fired);
   const replans = result.run_trace?.replan_count ?? 0;
@@ -16,6 +16,7 @@ function stageStates(result: AssessResponse): Record<SopStage, { state: StageSta
   if (veto) {
     return {
       intake: { state: "done", note: "Hồ sơ đã nhận" },
+      rm_proposal: { state: "done", note: "Phương án đã lập" },
       appraisal: {
         state: "stopped",
         note: replans > 0 ? `Veto — điều chỉnh ×${replans}` : "Veto cứng",
@@ -27,17 +28,19 @@ function stageStates(result: AssessResponse): Record<SopStage, { state: StageSta
   if (outcome === "stp_approved") {
     return {
       intake: { state: "done", note: "Hồ sơ đã nhận" },
+      rm_proposal: { state: "done", note: "Phương án đã lập" },
       appraisal: { state: "done", note: "Đạt điều kiện" },
-      approval: { state: "done", note: "Duyệt tự động (STP)" },
-      disbursement: { state: "current", note: "Sẵn sàng giải ngân" },
+      approval: { state: "done", note: "Agent duyệt (STP)" },
+      disbursement: { state: "done", note: "Auto giải ngân (tín chấp)" },
     };
   }
   // ready_for_human_approval (or anything non-veto, non-STP)
   return {
     intake: { state: "done", note: "Hồ sơ đã nhận" },
+    rm_proposal: { state: "done", note: "Phương án đã lập" },
     appraisal: { state: "done", note: "Đã thẩm định" },
     approval: { state: "current", note: "Chờ người phê duyệt" },
-    disbursement: { state: "pending", note: "—" },
+    disbursement: { state: "pending", note: "Sau khi duyệt" },
   };
 }
 
@@ -80,7 +83,7 @@ export function StageTracker({ result }: { result: AssessResponse }) {
                   <Icon size={14} />
                 </span>
                 <span className="truncate text-sm font-semibold text-navy">
-                  {i + 1}. {stage.label}
+                  {i + 1}. {stage.short}
                 </span>
               </div>
               <p className="mt-1 truncate text-xs text-muted-foreground" title={note}>

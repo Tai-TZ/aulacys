@@ -30,6 +30,9 @@ def _mortgage_state() -> AgentState:
 
 
 def test_llm_not_configured_without_key(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "")
+    monkeypatch.setenv("GOOGLE_API_KEY", "")
     monkeypatch.setenv("OPENAI_API_KEY", "")
     get_settings.cache_clear()
     assert _llm_configured(PlannerSpec) is False
@@ -38,7 +41,8 @@ def test_llm_not_configured_without_key(monkeypatch):
 def test_number_spec_never_calls_llm_even_with_key(monkeypatch):
     """P0-2 guard: a number/veto-bearing spec (llm_prose=False) stays deterministic
     even when a key is present. Only prose specs may reach the model."""
-    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     get_settings.cache_clear()
     assert PlannerSpec.llm_prose is False
     assert _llm_configured(PlannerSpec) is False
@@ -46,6 +50,9 @@ def test_number_spec_never_calls_llm_even_with_key(monkeypatch):
 
 
 def test_run_uses_fallback_when_no_api_key(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "")
+    monkeypatch.setenv("GOOGLE_API_KEY", "")
     monkeypatch.setenv("OPENAI_API_KEY", "")
     get_settings.cache_clear()
     state = _mortgage_state()
