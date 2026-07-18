@@ -26,7 +26,7 @@ async def test_agent_state_structure():
 @pytest.mark.asyncio
 async def test_mortgage_purpose_contradiction_vetoes_and_replans():
     """Wow path: purpose evidence contradiction → blocking veto → Planner replan loop."""
-    result = await agent.ainvoke({"query": "retail mortgage"})
+    result = await agent.ainvoke({"query": "retail mortgage veto"})
 
     assert result["application"].product == "retail_mortgage"
     assert result["compliance"].veto is True
@@ -44,6 +44,21 @@ async def test_mortgage_purpose_contradiction_vetoes_and_replans():
     assert "price_loan" in result["credit"].tool_results
     assert result["operations"].valuation_task["status"] == "scheduled"
     assert "kyc_check" in result["compliance"].tool_results
+
+
+@pytest.mark.asyncio
+async def test_mortgage_clean_seed_ready_for_human_approval():
+    """Clean mortgage: purpose matches → no purpose veto; gate never STP → HITL."""
+    result = await agent.ainvoke({"query": "retail mortgage"})
+
+    assert result["application"].product == "retail_mortgage"
+    assert result["compliance"].veto is False
+    assert "prohibited_purpose_refinance_other_bank" not in result["compliance"].rule_ids
+    assert result["replan_count"] == 0
+    assert result["run_trace"].veto_fired is False
+    assert result["outcome"] == "ready_for_human_approval"
+    assert result["ticket"]["status"] == "ready_for_human_approval"
+    assert result["operations"].valuation_task["status"] == "scheduled"
 
 
 @pytest.mark.asyncio
