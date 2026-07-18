@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clock3,
   ShieldAlert,
+  X,
 } from "lucide-react";
 import { Button, Card, Input } from "@/components/ui";
 import {
@@ -362,6 +363,7 @@ function DossierPreviewCard({
   data: AssessApplicationRequest;
   scenario: string | null;
 }) {
+  const [activeDoc, setActiveDoc] = useState<DocumentInput | null>(null);
   const meta = scenario ? SCENARIO_META[scenario] : null;
   const d = data.declared;
   const fmt = (n?: number | null) =>
@@ -378,7 +380,7 @@ function DossierPreviewCard({
   const isStaff = !isMgr && !posKw.includes("khác") && posKw.length > 0;
 
   return (
-    <div className={cn("overflow-hidden rounded-xl border-2 bg-white shadow-card", meta?.border ?? "border-border/70")}>
+    <div className={cn("overflow-hidden rounded-xl border-2 bg-white shadow-card relative", meta?.border ?? "border-border/70")}>
       {/* Tiêu đề */}
       <div className="bg-[#e8650a] px-6 py-3 text-center">
         <p className="text-sm font-bold uppercase tracking-wide text-white">
@@ -503,20 +505,146 @@ function DossierPreviewCard({
         <div className="col-span-2 flex flex-wrap gap-2">
           {data.documents.map((doc, i) => {
             const cls = doc.tier >= 2
-              ? "border-green-300 bg-green-50 text-green-700"
-              : "border-yellow-300 bg-yellow-50 text-yellow-700";
+              ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
+              : "border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100";
             const tl = ["—", "Đã nộp", "Đã xác minh", "Phê duyệt"];
             return (
-              <span key={i} className={cn("inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[11px] font-medium", cls)}>
+              <button
+                key={i}
+                type="button"
+                onClick={() => setActiveDoc(doc)}
+                className={cn("inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[11px] font-medium transition cursor-pointer active:scale-95", cls)}
+              >
                 <span className={cn("h-2 w-2 rounded-full", doc.tier >= 2 ? "bg-green-500" : "bg-yellow-400")} />
                 {doc.kind}
                 <span className="font-normal opacity-60">· {tl[doc.tier] ?? "?"}</span>
-              </span>
+              </button>
             );
           })}
         </div>
 
       </div>
+
+      {/* Modal Popup Chi tiết tài liệu */}
+      {activeDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-border max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-gray-50">
+              <div className="text-left">
+                <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
+                  Chi tiết chứng từ: {activeDoc.kind}
+                </h3>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Hồ sơ khách hàng: {d.customer_name}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveDoc(null)}
+                className="text-gray-400 hover:text-gray-600 transition p-1 hover:bg-gray-200 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex flex-col md:flex-row gap-6 p-5 overflow-y-auto min-h-0 text-left">
+              {/* Left column: Document Preview */}
+              <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-xl border border-border overflow-hidden min-h-[300px] md:min-h-0 relative">
+                {activeDoc.kind === "cccd" ? (
+                  <img
+                    src={
+                      d.customer_name.includes("BÉ HOA")
+                        ? "/aulacys/cccd-be-hoa.png"
+                        : d.customer_name.includes("VUI")
+                        ? "/aulacys/cccd-tran-vui.png"
+                        : "/aulacys/cccd-huyen-tran.png"
+                    }
+                    alt="CCCD"
+                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
+                  />
+                ) : activeDoc.kind === "sao_ke_luong" || activeDoc.kind === "sao_ke_tai_khoan" ? (
+                  <img
+                    src="/aulacys/help-1.png"
+                    alt="Sao kê lương"
+                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
+                  />
+                ) : activeDoc.kind === "purpose_evidence" ? (
+                  <img
+                    src="/aulacys/help-2.png"
+                    alt="Minh chứng mục đích"
+                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
+                  />
+                ) : activeDoc.kind === "cic" ? (
+                  <img
+                    src="/aulacys/help-3.png"
+                    alt="CIC Report"
+                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
+                  />
+                ) : (
+                  <div className="text-center text-xs text-muted-foreground p-6">
+                    Không có hình ảnh đính kèm cho loại hồ sơ này
+                  </div>
+                )}
+              </div>
+
+              {/* Right column: OCR Data Panel */}
+              <div className="w-full md:w-[320px] shrink-0 flex flex-col gap-4">
+                <div className="rounded-xl border border-border p-4 bg-secondary/10">
+                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide mb-2">Trạng thái xác minh</h4>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "inline-flex h-2.5 w-2.5 rounded-full",
+                      activeDoc.tier >= 2 ? "bg-green-500 animate-pulse" : "bg-yellow-400"
+                    )} />
+                    <span className="text-xs font-semibold text-gray-700">
+                      Tier {activeDoc.tier} · {activeDoc.tier === 1 ? "Đã nộp" : activeDoc.tier === 2 ? "Đã xác minh" : "Phê duyệt"}
+                    </span>
+                  </div>
+                  {activeDoc.confirmed_by && (
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Xác nhận bởi: <code className="bg-white px-1 py-0.5 rounded border">{activeDoc.confirmed_by}</code>
+                    </p>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-border p-4 bg-secondary/10 flex-1 min-h-[180px]">
+                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide mb-3">Dữ liệu trích xuất (OCR)</h4>
+                  {activeDoc.extracted && Object.keys(activeDoc.extracted).length > 0 ? (
+                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                      {Object.entries(activeDoc.extracted).map(([key, val]) => (
+                        <div key={key} className="border-b border-border/50 pb-1.5 last:border-0 text-left">
+                          <span className="text-[10px] text-muted-foreground block font-mono">{key}</span>
+                          <span className="text-xs font-semibold text-gray-800 break-all">
+                            {typeof val === "boolean" ? (val ? "True ✅" : "False ❌") : String(val)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Không có dữ liệu trích xuất tự động.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end border-t border-border px-5 py-3 bg-gray-50">
+              <Button
+                type="button"
+                onClick={() => setActiveDoc(null)}
+                size="sm"
+                className="px-4 text-xs font-medium"
+              >
+                Đóng
+              </Button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
