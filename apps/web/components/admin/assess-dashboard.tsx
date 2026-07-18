@@ -94,6 +94,45 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function parseMoneyInput(raw: string): number | null {
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return null;
+  return Number(digits);
+}
+
+function MoneyInput({
+  value,
+  onChange,
+  required,
+  "aria-label": ariaLabel,
+}: {
+  value: number | null | undefined;
+  onChange: (next: number | null) => void;
+  required?: boolean;
+  "aria-label"?: string;
+}) {
+  const display =
+    value == null || Number.isNaN(value) ? "" : new Intl.NumberFormat("vi-VN").format(value);
+
+  return (
+    <div className="relative">
+      <Input
+        inputMode="numeric"
+        autoComplete="off"
+        value={display}
+        onChange={(e) => onChange(parseMoneyInput(e.target.value))}
+        required={required}
+        aria-label={ariaLabel}
+        placeholder="0"
+        className="pr-14"
+      />
+      <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-medium text-muted-foreground">
+        VNĐ
+      </span>
+    </div>
+  );
+}
+
 function rememberResult(result: AssessResponse, form: AssessApplicationRequest) {
   enqueueAssessResult(result, {
     customer_name: form.declared.customer_name,
@@ -205,24 +244,29 @@ export function AssessDashboard() {
   ];
 
   return (
-    <div className="space-y-7">
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="space-y-6">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map(({ label, value, change, icon: Icon }) => (
-          <Card key={label} className="border-0 p-5 shadow-sm">
-            <div className="flex items-start justify-between">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-active-soft text-brand">
-                <Icon size={20} />
-              </span>
-              <span className="max-w-[9rem] truncate text-right text-xs text-muted-foreground">{change}</span>
+          <Card key={label} className="overflow-hidden border-border/70 p-0 shadow-card">
+            <div className="h-1 bg-brand/80" aria-hidden />
+            <div className="p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-brand">
+                  <Icon size={18} />
+                </span>
+                <span className="max-w-[10rem] truncate text-right text-xs leading-5 text-muted-foreground">
+                  {change}
+                </span>
+              </div>
+              <p className="mt-4 text-2xl font-semibold tracking-tight text-navy">{value}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">{label}</p>
             </div>
-            <p className="mt-5 text-2xl font-semibold text-navy">{value}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{label}</p>
           </Card>
         ))}
       </section>
 
       {veto && (
-        <Card className="border-0 bg-warning-soft p-5 shadow-sm">
+        <Card className="border-warning-foreground/15 bg-warning-soft p-5 shadow-card">
           <div className="flex flex-wrap items-center gap-3">
             <StatusBadge tone="warning">Compliance veto</StatusBadge>
             <p className="font-semibold text-warning-foreground">
@@ -232,7 +276,7 @@ export function AssessDashboard() {
           </div>
           <p className="mt-2 text-sm text-warning-foreground/90">
             Planner đã replan {run?.replan_count ?? 0} lần. Timeline lặp node{" "}
-            <code className="rounded bg-card px-1">compliance</code> — money shot.
+            <code className="rounded bg-card px-1.5 py-0.5 text-xs">compliance</code> — money shot.
           </p>
           {unverified.length > 0 && (
             <ul className="mt-3 space-y-1 text-sm text-warning-foreground">
@@ -247,27 +291,30 @@ export function AssessDashboard() {
       )}
 
       {result && (
-        <Card className="flex flex-wrap items-center justify-between gap-3 border-0 bg-active-soft p-4 shadow-sm">
+        <Card className="flex flex-wrap items-center justify-between gap-3 border-active-foreground/10 bg-active-soft p-4 shadow-card">
           <p className="text-sm text-active-foreground">
             Hồ sơ đã vào hàng đợi HITL. Tiếp theo: người phê duyệt ghi ticket.
           </p>
           <Link
             href="/admin/approvals"
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-on-primary hover:opacity-90"
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-on-primary shadow-brand transition hover:opacity-90"
           >
             Mở Người phê duyệt <ArrowRight size={16} />
           </Link>
         </Card>
       )}
 
-      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <Card className="border-0 p-5 shadow-sm">
-          <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <Card className="border-border/70 p-5 shadow-card sm:p-6">
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="font-semibold text-navy">Hồ sơ vay bán lẻ</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                <code className="text-xs">POST /assess/application</code> — API{" "}
-                <code className="text-xs">{process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}</code>
+              <h2 className="text-base font-semibold tracking-tight text-navy">Hồ sơ vay bán lẻ</h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">POST /assess/application</code>
+                <span className="mx-1.5 text-border">·</span>
+                <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">
+                  {process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}
+                </code>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -319,12 +366,12 @@ export function AssessDashboard() {
                   required
                 />
               </Field>
-              <Field label="Số tiền vay (VND)">
-                <Input
-                  type="number"
+              <Field label="Số tiền vay">
+                <MoneyInput
                   value={form.declared.amount}
-                  onChange={(e) => updateDeclared("amount", Number(e.target.value))}
+                  onChange={(next) => updateDeclared("amount", next ?? 0)}
                   required
+                  aria-label="Số tiền vay"
                 />
               </Field>
               <Field label="Kỳ hạn (tháng)">
@@ -336,18 +383,18 @@ export function AssessDashboard() {
                 />
               </Field>
               <Field label="Thu nhập tháng">
-                <Input
-                  type="number"
+                <MoneyInput
                   value={form.declared.monthly_income}
-                  onChange={(e) => updateDeclared("monthly_income", Number(e.target.value))}
+                  onChange={(next) => updateDeclared("monthly_income", next ?? 0)}
                   required
+                  aria-label="Thu nhập tháng"
                 />
               </Field>
               <Field label="Nợ trả tháng hiện có">
-                <Input
-                  type="number"
+                <MoneyInput
                   value={form.declared.existing_monthly_debt ?? 0}
-                  onChange={(e) => updateDeclared("existing_monthly_debt", Number(e.target.value))}
+                  onChange={(next) => updateDeclared("existing_monthly_debt", next ?? 0)}
+                  aria-label="Nợ trả tháng hiện có"
                 />
               </Field>
               <Field label="Mục đích khai báo">
@@ -358,15 +405,10 @@ export function AssessDashboard() {
                 />
               </Field>
               <Field label="Giá trị TSBĐ khai báo">
-                <Input
-                  type="number"
-                  value={form.declared.collateral_value_declared ?? ""}
-                  onChange={(e) =>
-                    updateDeclared(
-                      "collateral_value_declared",
-                      e.target.value === "" ? null : Number(e.target.value),
-                    )
-                  }
+                <MoneyInput
+                  value={form.declared.collateral_value_declared}
+                  onChange={(next) => updateDeclared("collateral_value_declared", next)}
+                  aria-label="Giá trị TSBĐ khai báo"
                 />
               </Field>
             </div>
@@ -377,7 +419,7 @@ export function AssessDashboard() {
                 {form.documents.map((doc, index) => (
                   <div
                     key={`${doc.kind}-${index}`}
-                    className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-secondary px-3 py-2"
+                    className="flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-secondary/50 px-3 py-2.5"
                   >
                     <span className="min-w-36 text-sm font-medium text-navy">{doc.kind}</span>
                     <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -424,34 +466,42 @@ export function AssessDashboard() {
           </form>
         </Card>
 
-        <Card className="border-0 p-5 shadow-sm">
-          <div className="flex items-center justify-between">
+        <Card className="border-border/70 p-5 shadow-card sm:p-6">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="font-semibold text-navy">Node timeline</h2>
+              <h2 className="text-base font-semibold tracking-tight text-navy">Node timeline</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {result ? `${result.trace.length} bước` : "Chưa có trace"}
+                {result ? `${result.trace.length} bước · harness trace` : "Chưa có trace"}
               </p>
             </div>
             {run && (
               <StatusBadge tone={run.veto_fired ? "warning" : "success"}>lane {run.lane}</StatusBadge>
             )}
           </div>
-          <div className="mt-6 max-h-[28rem] space-y-4 overflow-y-auto">
+          <div className="mt-6 max-h-[28rem] space-y-4 overflow-y-auto pr-1">
             {(result?.trace ?? []).length === 0 && (
-              <p className="text-sm text-muted-foreground">Submit hồ sơ để xem Planner → agents → replan.</p>
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-secondary/50 px-6 py-14 text-center">
+                <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-brand">
+                  <Bot size={22} />
+                </span>
+                <p className="text-sm font-medium text-navy">Chưa có trace</p>
+                <p className="mt-1.5 max-w-xs text-sm text-muted-foreground">
+                  Submit hồ sơ để xem Planner → agents → replan.
+                </p>
+              </div>
             )}
             {(result?.trace ?? []).map((item, index) => (
               <div key={`${item.node}-${index}`} className="relative flex gap-4">
-                <div className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary text-brand">
-                  <Bot size={17} />
+                <div className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-brand ring-4 ring-card">
+                  <Bot size={16} />
                 </div>
                 {index < (result?.trace.length ?? 0) - 1 && (
-                  <span className="absolute left-[17px] top-9 h-8 w-px bg-border" />
+                  <span className="absolute left-[17px] top-9 h-[calc(100%-0.25rem)] w-px bg-border" />
                 )}
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 rounded-xl border border-border/60 bg-secondary/40 px-3.5 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold text-navy">{item.node}</p>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="shrink-0 text-xs text-muted-foreground">
                       {item.latency_ms}ms · {item.fallback_fired ? "fallback" : item.model}
                     </span>
                   </div>
@@ -481,7 +531,7 @@ export function AssessDashboard() {
           )}
 
           {result?.credit && (
-            <div className="mt-4 rounded-lg bg-secondary p-3 text-sm">
+            <div className="mt-4 rounded-xl border border-border/60 bg-secondary/50 p-3.5 text-sm">
               <p className="font-medium text-navy">Credit</p>
               <p className="mt-1 text-muted-foreground">
                 DTI {result.credit.dti ?? "—"} · {result.credit.recommendation}
@@ -489,7 +539,7 @@ export function AssessDashboard() {
             </div>
           )}
           {result?.operations && (
-            <div className="mt-2 rounded-lg bg-secondary p-3 text-sm">
+            <div className="mt-2 rounded-xl border border-border/60 bg-secondary/50 p-3.5 text-sm">
               <p className="font-medium text-navy">Operations</p>
               <p className="mt-1 text-muted-foreground">
                 Valuation {result.operations.valuation?.toLocaleString("vi-VN") ?? "—"} ·{" "}
