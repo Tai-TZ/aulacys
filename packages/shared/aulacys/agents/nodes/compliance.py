@@ -21,9 +21,10 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
     tool_calls: list[str] = []
     cccd_doc = next((doc for doc in app.documents if doc.kind == "cccd" and doc.extracted), None)
     cccd_verified = bool(cccd_doc and cccd_doc.extracted.get("verified"))
-    data_consent = (
-        declared.consent_data_processing if declared.consent_data_processing is not None else declared.cic_consent
-    )
+    # Mirror Credit: cic/KYC consent must be explicit; general data consent cannot grant it alone.
+    data_consent = bool(declared.cic_consent)
+    if declared.consent_data_processing is False:
+        data_consent = False
 
     kyc = dispatch(
         spec,
@@ -93,7 +94,8 @@ def compliance_fallback(state: AgentState, spec: AgentSpec) -> tuple[ComplianceV
     elif operations is not None:
         metrics["docs_complete"] = 1.0 if operations.doc_status == "complete" else 0.0
     else:
-        metrics["docs_complete"] = 1.0
+        # No checklist and no Operations report — fail closed rather than invent completeness.
+        metrics["docs_complete"] = 0.0
 
     # --- Tenor vs product limits ---
     term_ok = True
@@ -226,7 +228,7 @@ def _compliance_rationale(
 ComplianceSpec = AgentSpec(
     name="compliance",
     line=2,
-    reads=["application", "credit", "operations"],
+    reads=["application", "credit", "operations", "metadata"],
     tools=["core_banking_read", "aml_screening"],
     kb="regulation",
     policy="retail_lending.yaml",

@@ -13,6 +13,9 @@ PolicyProfile = Literal["secured", "unsecured"]
 
 # Shared retail controls (both package families).
 _COMMON: tuple[str, ...] = (
+    "kyc_identity_verified",
+    "ubo_related_control_clear",
+    "prohibited_purpose_refinance_other_bank",
     "max_retail_dti",
     "max_cic_group",
     "no_bad_debt",
@@ -26,7 +29,6 @@ _COMMON: tuple[str, ...] = (
 # Rules that apply when underwriting each package family.
 PROFILE_RULE_IDS: dict[PolicyProfile, tuple[str, ...]] = {
     "secured": (
-        "prohibited_purpose_refinance_other_bank",
         "max_ltv_product_cap",
         "land_title_clear",
         *_COMMON,
@@ -39,6 +41,8 @@ PROFILE_RULE_IDS: dict[PolicyProfile, tuple[str, ...]] = {
 
 # Vietnamese labels for admin Rule Engineer UI.
 RULE_LABELS_VI: dict[str, str] = {
+    "kyc_identity_verified": "KYC / định danh đã xác minh",
+    "ubo_related_control_clear": "UBO / bên liên quan rõ ràng",
     "prohibited_purpose_refinance_other_bank": "Cấm mục đích tất toán nợ ngân hàng khác",
     "max_ltv_product_cap": "Trần LTV theo sản phẩm",
     "max_retail_dti": "Trần DTI (khả năng trả nợ)",
