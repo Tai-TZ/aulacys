@@ -1354,65 +1354,16 @@ export function AssessDashboard() {
       {/* ── BÀN ĐIỀU KHIỂN THẨM ĐỊNH (CONTROL PANEL) ── */}
       <Card className="border border-border/70 p-5 shadow-card sm:p-6 bg-secondary/10">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
+          <div className="text-left">
             <h2 className="text-sm font-semibold tracking-tight text-[#c05000]">Bàn làm việc của Nhân viên Thẩm định</h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Chọn kịch bản/khách hàng để thực hiện quy trình thẩm định tự động (Graph).
+              Thực hiện quy trình thẩm định tự động (Graph) cho hồ sơ: <strong className="text-navy">{dossier?.data.declared.customer_name}</strong>
             </p>
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-            {/* Profile Selection */}
-            <div className="flex rounded-lg border border-border bg-background p-1 gap-1">
-              <button
-                type="button"
-                className={cn(
-                  "px-3 py-1.5 text-xs font-medium rounded-md transition",
-                  dossier?.scenario === "happy" ? "bg-[#e8650a] text-white" : "text-muted-foreground hover:text-foreground"
-                )}
-                onClick={() => {
-                  setForm(HAPPY_DEMO);
-                  setDossier({ data: HAPPY_DEMO, scenario: "happy" });
-                  setTier3Confirmed(false);
-                  setResult(null);
-                }}
-              >
-                ✅ Happy — Bé Hoa
-              </button>
-              <button
-                type="button"
-                className={cn(
-                  "px-3 py-1.5 text-xs font-medium rounded-md transition",
-                  dossier?.scenario === "veto" ? "bg-[#e8650a] text-white" : "text-muted-foreground hover:text-foreground"
-                )}
-                onClick={() => {
-                  setForm(VETO_DEMO);
-                  setDossier({ data: VETO_DEMO, scenario: "veto" });
-                  setTier3Confirmed(false);
-                  setResult(null);
-                }}
-              >
-                🚫 Veto — Trần Vui
-              </button>
-              <button
-                type="button"
-                className={cn(
-                  "px-3 py-1.5 text-xs font-medium rounded-md transition",
-                  dossier?.scenario === "hitl" ? "bg-[#e8650a] text-white" : "text-muted-foreground hover:text-foreground"
-                )}
-                onClick={() => {
-                  setForm(HITL_DEMO);
-                  setDossier({ data: HITL_DEMO, scenario: "hitl" });
-                  setTier3Confirmed(false);
-                  setResult(null);
-                }}
-              >
-                ⏳ HITL — Huyền Trần
-              </button>
-            </div>
-
             {/* Simulation Options */}
-            <label className="flex items-center gap-2 text-xs text-muted-foreground font-medium border-l border-border pl-3 select-none cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground font-medium select-none cursor-pointer">
               <input
                 type="checkbox"
                 className="rounded border-border text-[#e8650a] focus:ring-[#e8650a]"
