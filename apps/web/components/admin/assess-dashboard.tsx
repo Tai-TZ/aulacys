@@ -649,7 +649,270 @@ function DossierPreviewCard({
   );
 }
 
+function DossierSummaryCard({
+  data,
+  scenario,
+}: {
+  data: AssessApplicationRequest;
+  scenario: string | null;
+}) {
+  const [activeDoc, setActiveDoc] = useState<DocumentInput | null>(null);
+  const d = data.declared;
+  const fmt = (n?: number | null) =>
+    n == null ? "—" : new Intl.NumberFormat("vi-VN").format(n) + " ₫";
 
+  const productName = data.product === "retail_mortgage" 
+    ? "retail_mortgage (Vay thế chấp mua nhà)" 
+    : "retail_unsecured_salary (Vay tiêu dùng theo lương)";
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-border/85 bg-white shadow-card relative">
+      {/* Title Banner */}
+      <div className="bg-orange-50/70 border-b border-border px-6 py-4 text-left">
+        <h3 className="text-sm font-bold uppercase tracking-wide text-[#e8650a]">
+          Thông tin tiếp nhận hồ sơ & Gói vay đề nghị
+        </h3>
+        <p className="mt-0.5 text-[10px] text-muted-foreground">
+          Trạng thái: <span className="font-semibold text-green-600">Tiếp nhận thành công (Đã phân loại)</span>
+        </p>
+      </div>
+
+      <div className="p-5 sm:p-6 space-y-6">
+        
+        {/* Info Grid */}
+        <div className="grid md:grid-cols-2 gap-6 text-left">
+          {/* Customer Profile Column */}
+          <div className="space-y-4">
+            <h4 className="text-[11px] font-bold text-navy uppercase tracking-wider border-b border-border pb-1.5">
+              1. Thông tin khách hàng
+            </h4>
+            <div className="space-y-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Họ và tên:</span>
+                <span className="font-semibold text-gray-800">{d.customer_name}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Ngày sinh:</span>
+                <span className="font-medium text-gray-800">{d.dob || "—"}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Giới tính:</span>
+                <span className="font-medium text-gray-800">{d.gender || "—"}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Số CCCD:</span>
+                <span className="font-mono font-medium text-gray-800">{d.national_id || "—"}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">SĐT liên hệ:</span>
+                <span className="font-medium text-gray-800">{d.phone || "—"}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Công việc / Chức vụ:</span>
+                <span className="font-medium text-gray-800">
+                  {d.occupation ? `${d.occupation} (${d.position || "Nhân viên"})` : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Thu nhập hàng tháng:</span>
+                <span className="font-semibold text-[#e8650a]">{fmt(d.monthly_income)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Loan Package Column */}
+          <div className="space-y-4">
+            <h4 className="text-[11px] font-bold text-navy uppercase tracking-wider border-b border-border pb-1.5">
+              2. Gói vay đề nghị
+            </h4>
+            <div className="space-y-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Sản phẩm vay:</span>
+                <span className="font-semibold text-gray-800">{productName}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Số tiền đề nghị:</span>
+                <span className="font-semibold text-[#e8650a]">{fmt(d.amount)}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Thời hạn vay:</span>
+                <span className="font-medium text-gray-800">{d.term_months ? `${d.term_months} tháng` : "—"}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Lãi suất dự kiến:</span>
+                <span className="font-medium text-gray-800">
+                  {d.annual_rate != null ? `${(d.annual_rate * 100).toFixed(1)}%/năm` : "Theo quy định SHB"}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Mục đích vay vốn:</span>
+                <span className="font-medium text-gray-800">{d.declared_purpose || "—"}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Phương thức nhận:</span>
+                <span className="font-medium text-gray-800">{d.disbursement_method || "—"}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section D: Documents */}
+        <div className="space-y-3 pt-2 text-left">
+          <h4 className="text-[11px] font-bold text-navy uppercase tracking-wider border-b border-border pb-1.5">
+            3. Hồ sơ tài liệu kèm theo (Nhấp để xem bản gốc)
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {data.documents.map((doc, i) => {
+              const cls = doc.tier >= 2
+                ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
+                : "border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100";
+              const tl = ["—", "Đã nộp", "Đã xác minh", "Phê duyệt"];
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setActiveDoc(doc)}
+                  className={cn("inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[11px] font-medium transition cursor-pointer active:scale-95", cls)}
+                >
+                  <span className={cn("h-2 w-2 rounded-full", doc.tier >= 2 ? "bg-green-500" : "bg-yellow-400")} />
+                  {doc.kind}
+                  <span className="font-normal opacity-60">· {tl[doc.tier] ?? "?"}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Helper Note Banner */}
+        <div className="rounded-xl bg-orange-50 border border-orange-200/50 p-4 text-xs text-orange-800 text-left">
+          💡 <strong>Quy trình tiếp theo:</strong> Bản hợp đồng vay vốn chính thức và các thông tin thẩm định chi tiết sẽ tự động được hiển thị sau khi chạy tiến trình thẩm định thành công.
+        </div>
+
+      </div>
+
+      {/* Modal Popup Chi tiết tài liệu */}
+      {activeDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-border max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-gray-50">
+              <div className="text-left">
+                <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
+                  Chi tiết chứng từ: {activeDoc.kind}
+                </h3>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Hồ sơ khách hàng: {d.customer_name}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveDoc(null)}
+                className="text-gray-400 hover:text-gray-600 transition p-1 hover:bg-gray-200 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex flex-col md:flex-row gap-6 p-5 overflow-y-auto min-h-0 text-left">
+              {/* Left column: Document Preview */}
+              <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-xl border border-border overflow-hidden min-h-[300px] md:min-h-0 relative">
+                {activeDoc.kind === "cccd" ? (
+                  <img
+                    src={
+                      d.customer_name.includes("BÉ HOA")
+                        ? "/aulacys/cccd-be-hoa.png"
+                        : d.customer_name.includes("VUI")
+                        ? "/aulacys/cccd-tran-vui.png"
+                        : "/aulacys/cccd-huyen-tran.png"
+                    }
+                    alt="CCCD"
+                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
+                  />
+                ) : activeDoc.kind === "sao_ke_luong" || activeDoc.kind === "sao_ke_tai_khoan" ? (
+                  <img
+                    src="/aulacys/help-1.png"
+                    alt="Sao kê lương"
+                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
+                  />
+                ) : activeDoc.kind === "purpose_evidence" ? (
+                  <img
+                    src="/aulacys/help-2.png"
+                    alt="Minh chứng mục đích"
+                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
+                  />
+                ) : activeDoc.kind === "cic" ? (
+                  <img
+                    src="/aulacys/help-3.png"
+                    alt="CIC Report"
+                    className="max-w-full max-h-[400px] object-contain shadow-md rounded"
+                  />
+                ) : (
+                  <div className="text-center text-xs text-muted-foreground p-6">
+                    Không có hình ảnh đính kèm cho loại hồ sơ này
+                  </div>
+                )}
+              </div>
+
+              {/* Right column: OCR Data Panel */}
+              <div className="w-full md:w-[320px] shrink-0 flex flex-col gap-4">
+                <div className="rounded-xl border border-border p-4 bg-secondary/10">
+                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide mb-2">Trạng thái xác minh</h4>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "inline-flex h-2.5 w-2.5 rounded-full",
+                      activeDoc.tier >= 2 ? "bg-green-500 animate-pulse" : "bg-yellow-400"
+                    )} />
+                    <span className="text-xs font-semibold text-gray-700">
+                      Tier {activeDoc.tier} · {activeDoc.tier === 1 ? "Đã nộp" : activeDoc.tier === 2 ? "Đã xác minh" : "Phê duyệt"}
+                    </span>
+                  </div>
+                  {activeDoc.confirmed_by && (
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Xác nhận bởi: <code className="bg-white px-1 py-0.5 rounded border">{activeDoc.confirmed_by}</code>
+                    </p>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-border p-4 bg-secondary/10 flex-1 min-h-[180px]">
+                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide mb-3">Dữ liệu trích xuất (OCR)</h4>
+                  {activeDoc.extracted && Object.keys(activeDoc.extracted).length > 0 ? (
+                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                      {Object.entries(activeDoc.extracted).map(([key, val]) => (
+                        <div key={key} className="border-b border-border/50 pb-1.5 last:border-0 text-left">
+                          <span className="text-[10px] text-muted-foreground block font-mono">{key}</span>
+                          <span className="text-xs font-semibold text-gray-800 break-all">
+                            {typeof val === "boolean" ? (val ? "True ✅" : "False ❌") : String(val)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Không có dữ liệu trích xuất tự động.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end border-t border-border px-5 py-3 bg-gray-50">
+              <Button
+                type="button"
+                onClick={() => setActiveDoc(null)}
+                size="sm"
+                className="px-4 text-xs font-medium"
+              >
+                Đóng
+              </Button>
+            </div>
+
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function rememberResult(result: AssessResponse, form: AssessApplicationRequest) {
   enqueueAssessResult(result, {
@@ -994,7 +1257,11 @@ export function AssessDashboard() {
       <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="space-y-4">
           {dossier && (
-            <DossierPreviewCard data={dossier.data} scenario={dossier.scenario} />
+            result ? (
+              <DossierPreviewCard data={dossier.data} scenario={dossier.scenario} />
+            ) : (
+              <DossierSummaryCard data={dossier.data} scenario={dossier.scenario} />
+            )
           )}
         </div>
 
