@@ -154,6 +154,7 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
 
     tool_calls = [name for name in tool_calls if is_tool_allowed(spec.tools, name)][: spec.max_tool_calls]
 
+    latency_ms = timer.elapsed_ms()
     trace.emit(
         state,
         NodeTrace(
@@ -161,11 +162,23 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
             model=model_label,
             tokens_in=len(str(messages)),
             tokens_out=len(obj.model_dump_json()),
-            latency_ms=timer.elapsed_ms(),
+            latency_ms=latency_ms,
             tool_calls=tool_calls,
             schema_retries=schema_retries,
             fallback_fired=fallback_fired,
         ),
+    )
+    # One line per agent call for debugging: which model answered, whether the LLM prose
+    # path won or fell back to deterministic, latency, tools used, schema retries.
+    logger.info(
+        "agent=%-11s tier=%-13s model=%-22s source=%-13s latency=%4dms tools=%s retries=%d",
+        spec.name,
+        spec.model_tier,
+        model_label,
+        "deterministic" if fallback_fired else "llm",
+        latency_ms,
+        tool_calls or "-",
+        schema_retries,
     )
     return obj
 
