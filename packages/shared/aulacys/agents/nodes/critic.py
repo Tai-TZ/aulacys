@@ -22,6 +22,84 @@ def _money(value: float | None) -> str:
     return f"{value:,.0f} ₫".replace(",", ".")
 
 
+def _product_vi(product: str | None) -> str:
+    if not product:
+        return "—"
+    mapping = {
+        "retail_unsecured_salary": "Vay tiêu dùng theo lương",
+        "retail_mortgage": "Vay thế chấp mua nhà",
+    }
+    return mapping.get(product, product)
+
+
+def _rec_vi(rec: str | None) -> str:
+    if not rec:
+        return "—"
+    mapping = {
+        "support": "Đủ điều kiện",
+        "manual_review": "Cần thẩm định tay",
+        "review": "Xem xét",
+    }
+    return mapping.get(rec, rec)
+
+
+def _doc_status_vi(status: str | None) -> str:
+    if not status:
+        return "—"
+    mapping = {
+        "complete": "Đủ chứng từ",
+        "incomplete": "Thiếu chứng từ",
+        "missing": "Thiếu chứng từ",
+        "pending": "Đang chờ",
+    }
+    return mapping.get(status, status)
+
+
+def _doc_kind_vi(kind: str) -> str:
+    mapping = {
+        "cccd": "CCCD / CMND",
+        "sao_ke_luong": "Sao kê lương",
+        "sao_ke_tai_khoan": "Sao kê tài khoản",
+        "so_do": "Sổ đỏ",
+        "hop_dong_mua_ban": "HĐ mua bán",
+        "cic": "Báo cáo CIC",
+        "purpose_evidence": "Chứng từ mục đích",
+        "dang_ky_ket_hon": "Đăng ký kết hôn",
+        "hdld": "Hợp đồng lao động",
+    }
+    return mapping.get(kind, kind.replace("_", " "))
+
+
+def _proposal_status_vi(status: str | None) -> str:
+    if not status:
+        return "—"
+    mapping = {
+        "accepted": "Chấp nhận",
+        "revised": "Đã điều chỉnh",
+        "rejected": "Từ chối",
+    }
+    return mapping.get(status, status)
+
+
+def _outcome_vi(outcome: str) -> str:
+    mapping = {
+        "stp_candidate": "Ứng viên duyệt tự động",
+        "manual_review_candidate": "Ứng viên thẩm định tay",
+        "vetoed": "Bị chặn cứng (veto)",
+    }
+    return mapping.get(outcome, outcome)
+
+
+def _status_pass_vi(status: str | None) -> str:
+    if not status:
+        return "—"
+    if status == "passed":
+        return "Đạt"
+    if status == "failed":
+        return "Không đạt"
+    return status
+
+
 def critic_fallback(state: AgentState, spec: AgentSpec) -> tuple[CriticVerdict, list[str]]:
     """Evidence audit + Vietnamese synthesis memo (base for LLM remediation polish)."""
     rejections: list[str] = []
@@ -107,16 +185,16 @@ def critic_fallback(state: AgentState, spec: AgentSpec) -> tuple[CriticVerdict, 
         amount = application.declared.amount
 
     lines: list[str] = [
-        "BÁO CÁO TỔNG HỢP THẨM ĐỊNH (Critic — tuyến 3)",
+        "BÁO CÁO TỔNG HỢP THẨM ĐỊNH (Kiểm soát tuyến 3)",
         f"Khách hàng: {customer or '—'}",
-        f"Sản phẩm: {product or '—'}",
+        f"Sản phẩm: {_product_vi(product)}",
         f"Số tiền đề nghị: {_money(float(amount) if amount is not None else None)}",
         "",
         "1) Kết luận kiểm chứng bằng chứng",
         (
-            "- Đạt: mọi số liệu/claim quan trọng đều truy được về tool call hoặc policy rule."
+            "- Đạt: mọi số liệu/khẳng định quan trọng đều truy được về gọi công cụ hoặc quy tắc chính sách."
             if not rejections
-            else "- Chưa đạt: phát hiện lỗ hổng bằng chứng (xem remediation)."
+            else "- Chưa đạt: phát hiện lỗ hổng bằng chứng (xem phần việc cần làm tiếp)."
         ),
         "",
         "2) Tóm tắt Credit",
@@ -124,78 +202,82 @@ def critic_fallback(state: AgentState, spec: AgentSpec) -> tuple[CriticVerdict, 
     if credit:
         lines.extend(
             [
-                f"- Khuyến nghị: {credit.recommendation}",
+                f"- Khuyến nghị: {_rec_vi(credit.recommendation)}",
                 f"- DTI: {_pct(credit.dti)} · Thu nhập xác minh: {_money(credit.income)}",
                 f"- Hạn mức / lãi đề nghị: {_money(credit.proposed_limit)} / {_pct(credit.proposed_rate)}",
                 f"- Nhận định Credit: {credit.rationale or '—'}",
             ]
         )
     else:
-        lines.append("- Chưa có output Credit.")
+        lines.append("- Chưa có kết quả Credit.")
 
     if proposal is not None:
         lines.extend(
             [
                 "",
-                "2b) LoanProposal",
-                f"- Status: {proposal.status} · revisions={len(proposal.revisions)}",
-                f"- Limit / rate: {_money(proposal.proposed_limit)} / {_pct(proposal.proposed_rate)}",
+                "2b) Phương án vay",
+                f"- Trạng thái: {_proposal_status_vi(proposal.status)} · số lần chỉnh: {len(proposal.revisions)}",
+                f"- Hạn mức / lãi suất: {_money(proposal.proposed_limit)} / {_pct(proposal.proposed_rate)}",
             ]
         )
 
     lines.extend(["", "3) Tóm tắt Operations"])
     if operations:
+        missing_vi = ", ".join(_doc_kind_vi(d) for d in operations.missing) if operations.missing else ""
         lines.extend(
             [
-                f"- Chứng từ: {operations.doc_status}"
-                + (f" (thiếu: {', '.join(operations.missing)})" if operations.missing else ""),
+                f"- Chứng từ: {_doc_status_vi(operations.doc_status)}"
+                + (f" (thiếu: {missing_vi})" if missing_vi else ""),
                 f"- Định giá TSBĐ: {_money(operations.valuation if isinstance(operations.valuation, int | float) else None)}",
                 f"- Cờ pháp lý: {', '.join(operations.legal_flags) or 'không'}",
                 f"- Nhận định Operations: {operations.rationale or '—'}",
             ]
         )
     else:
-        lines.append("- Không chạy Operations trong DAG sản phẩm này (hoặc chưa có output).")
+        lines.append("- Không chạy Operations trong luồng sản phẩm này (hoặc chưa có kết quả).")
 
     lines.extend(["", "4) Tóm tắt Compliance"])
     if compliance:
+        rule_labels = ", ".join(compliance.rule_ids) if compliance.rule_ids else "không"
         lines.extend(
             [
                 f"- Veto: {'CÓ' if compliance.veto else 'không'}",
-                f"- Rule chặn/cảnh báo: {', '.join(compliance.rule_ids) or 'không'}",
-                f"- KYC / UBO: {compliance.kyc_status} / {compliance.ubo_status}",
+                f"- Rule chặn/cảnh báo: {rule_labels}",
+                f"- KYC / UBO: {_status_pass_vi(compliance.kyc_status)} / {_status_pass_vi(compliance.ubo_status)}",
                 f"- Nhận định Compliance: {compliance.rationale or '—'}",
             ]
         )
     else:
-        lines.append("- Chưa có output Compliance.")
+        lines.append("- Chưa có kết quả Compliance.")
 
     lines.extend(
         [
             "",
             "5) Đề xuất cho người phê duyệt",
-            f"- Outcome graph: {outcome or '—'}",
+            f"- Kết quả luồng: {_outcome_vi(outcome)}",
         ]
     )
     if compliance and compliance.veto:
         lines.append(
-            "- Hồ sơ bị chặn bởi hạn mức cứng/policy. Không giải ngân STP; "
-            "cần HITL hoặc từ chối / điều chỉnh phương án."
+            "- Hồ sơ bị chặn bởi hạn mức cứng/chính sách. Không giải ngân tự động; "
+            "cần phê duyệt người hoặc từ chối / điều chỉnh phương án."
         )
     elif credit and credit.recommendation == "support" and not (compliance and compliance.veto):
-        lines.append("- Hồ sơ đủ điều kiện theo tool+policy; có thể xem xét STP/phê duyệt theo gate sản phẩm.")
+        lines.append(
+            "- Hồ sơ đủ điều kiện theo công cụ và chính sách; có thể xem xét duyệt tự động theo cổng sản phẩm."
+        )
     else:
-        lines.append("- Cần thẩm định tay / HITL trước khi giải ngân.")
+        lines.append("- Cần thẩm định tay / phê duyệt người trước khi giải ngân.")
 
     if rejections:
         remediation = [
-            "Repair evidence gaps before human approval.",
-            *[f"Fix: {item}" for item in rejections],
+            "Khắc phục lỗ hổng bằng chứng trước khi phê duyệt người.",
+            *[f"Cần sửa: {item}" for item in rejections],
         ]
     else:
         remediation = [
-            "Người phê duyệt đọc memo Critic + ticket; Critic không phát hiện lỗ hổng bằng chứng.",
-            "Đối chiếu rule_ids / DTI / CIC trong tool_results trước khi quyết định cuối.",
+            "Người phê duyệt đọc báo cáo kiểm soát tuyến 3 + ticket; không phát hiện lỗ hổng bằng chứng.",
+            "Đối chiếu mã rule / DTI / CIC trong kết quả công cụ trước khi quyết định cuối.",
         ]
 
     return (

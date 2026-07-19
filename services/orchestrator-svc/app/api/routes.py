@@ -24,11 +24,18 @@ from aulacys.models.schemas import (
     ProductGroupOut,
     ProductStatusPatch,
 )
-from aulacys.policy.loader import AppetitePatchError, evaluate, list_rules_for_profile, patch_appetite_threshold
+from aulacys.policy.loader import (
+    AppetitePatchError,
+    delete_appetite_override,
+    evaluate,
+    list_rules_for_profile,
+    patch_appetite_threshold,
+)
 from aulacys.policy.profiles import profile_from_secured_type
 from aulacys.services import applications_proxy, products as products_svc
 
 router = APIRouter()
+
 
 
 def _to_assess_response(state: dict) -> AssessResponse:
@@ -347,6 +354,26 @@ async def patch_policy_appetite(
     code = (body.product_code or "").strip() or None
     try:
         patch_appetite_threshold(profile, rule_id, body.threshold, product_code=code)
+    except AppetitePatchError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    rows = {r["id"]: r for r in list_rules_for_profile(profile, product_code=code)}
+    row = rows.get(rule_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"rule not found: {rule_id}")
+    return PolicyRuleOut(**row)
+
+
+@router.delete("/policy/rules/{rule_id}", response_model=PolicyRuleOut)
+async def delete_policy_appetite(
+    rule_id: str,
+    secured_type: str = "SECURED",
+    product_code: str | None = None,
+) -> PolicyRuleOut:
+    """Revert an appetite threshold override back to default."""
+    profile = profile_from_secured_type(secured_type)
+    code = (product_code or "").strip() or None
+    try:
+        delete_appetite_override(profile, rule_id, product_code=code)
     except AppetitePatchError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     rows = {r["id"]: r for r in list_rules_for_profile(profile, product_code=code)}

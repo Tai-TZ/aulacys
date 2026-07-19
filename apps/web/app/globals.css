@@ -255,3 +255,28 @@ input[type="range"].loan-range:focus-visible {
     transform: none;
   }
 }
+
+/* Official appraisal / credit-contract sheets — print like formal VN docs */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .appraisal-report-sheet,
+  .appraisal-report-sheet *,
+  .credit-contract-sheet,
+  .credit-contract-sheet * {
+    visibility: visible !important;
+  }
+  .appraisal-report-sheet,
+  .credit-contract-sheet {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 18mm 16mm !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+  }
+}
