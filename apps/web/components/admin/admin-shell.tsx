@@ -11,6 +11,7 @@ import {
   Menu,
   Package,
   Users,
+  Workflow,
   X,
 } from "lucide-react";
 import { BrandMark } from "@/components/client/brand-mark";
@@ -28,13 +29,15 @@ export type AdminActiveHref =
   | "/admin/bo-ho-so"
   | "/admin/approvals"
   | "/admin/san-pham/ca-nhan"
-  | "/admin/tieu-chi";
+  | "/admin/tieu-chi"
+  | "/admin/agent-builder";
 
 const nav = [
   { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
   { href: "/admin/bo-ho-so", label: "Yêu cầu vay", icon: FolderOpen },
   { href: "/admin/san-pham/ca-nhan", label: "Sản phẩm vay", icon: Package },
   { href: "/admin/tieu-chi", label: "Tiêu chí thẩm định", icon: ClipboardCheck },
+  { href: "/admin/agent-builder", label: "Agent builder", icon: Workflow },
   { href: "/admin/approvals", label: "Người dùng & phân quyền", icon: Users },
 ] as const;
 
