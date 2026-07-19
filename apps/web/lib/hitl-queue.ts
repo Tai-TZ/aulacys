@@ -1,4 +1,6 @@
 import type { AssessResponse } from "@/lib/api";
+import type { AppraisalReportData } from "@/lib/appraisal-report";
+import { buildAppraisalReportData } from "@/lib/appraisal-report";
 
 const QUEUE_KEY = "shb.hitl.queue";
 
@@ -17,10 +19,28 @@ export interface HitlCase {
   replan_count: number;
   ticket_id: string | null;
   summary: string;
+  /** Official appraisal report for approver review */
+  report?: AppraisalReportData;
   decision?: "approved" | "rejected";
   decided_at?: string;
   decided_ticket_id?: string;
 }
+
+export type EnqueueAssessMeta = {
+  customer_name: string;
+  product: string;
+  amount: number;
+  application_id?: string;
+  national_id?: string;
+  phone?: string;
+  dob?: string;
+  address?: string;
+  occupation?: string;
+  term_months?: number;
+  annual_rate?: number | null;
+  monthly_income?: number | null;
+  purpose?: string;
+};
 
 function readAll(): HitlCase[] {
   if (typeof window === "undefined") return [];
@@ -42,13 +62,11 @@ export function listHitlCases(): HitlCase[] {
   return readAll();
 }
 
-export function enqueueAssessResult(
-  result: AssessResponse,
-  meta: { customer_name: string; product: string; amount: number; application_id?: string },
-): HitlCase {
+export function enqueueAssessResult(result: AssessResponse, meta: EnqueueAssessMeta): HitlCase {
   const unverified = (result.compliance?.violations ?? [])
     .filter((v) => v.unverified)
     .map((v) => v.rule_id);
+  const report = buildAppraisalReportData(result, meta);
   const item: HitlCase = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     created_at: new Date().toISOString(),
@@ -64,6 +82,7 @@ export function enqueueAssessResult(
     replan_count: result.run_trace.replan_count,
     ticket_id: result.ticket?.ticket_id != null ? String(result.ticket.ticket_id) : null,
     summary: result.response,
+    report,
   };
   writeAll([item, ...readAll()]);
   return item;

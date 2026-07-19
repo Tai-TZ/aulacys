@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FileText, ShieldCheck, Sparkles } from "lucide-react";
 import { Badge, Button, Dialog, DialogContent, DialogFooter } from "@/components/ui";
 import type { CreditAssessment, LoanProposal } from "@/lib/api";
-import { recommendationLabelVi } from "@/lib/labels";
+import { recommendationLabelVi, sanitizeBusinessText } from "@/lib/labels";
 import { cn } from "@/lib/cn";
 
 function formatMoney(n?: number | null): string {
@@ -193,8 +193,8 @@ export function CreditProposalDashboard({
                   {customerName ? ` · ${customerName}` : ""}
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Xem đầy đủ báo cáo CIC trước, rồi mới xuất phương án vay cuối. Credit không phê duyệt
-                  và không veto.
+                  Xem đầy đủ báo cáo lịch sử tín dụng (CIC) trước, rồi mới xuất phương án vay cuối.
+                  Credit chỉ đề xuất — không phê duyệt hồ sơ.
                 </p>
               </div>
             </div>
@@ -228,17 +228,17 @@ export function CreditProposalDashboard({
               </div>
             ) : (
               <p className="text-xs text-warning-foreground">
-                Không có kết quả cic_lookup trong tool_results — không thể xuất báo cáo CIC.
+                Chưa có kết quả lịch sử tín dụng — không thể xuất báo cáo CIC.
               </p>
             )}
 
             {credit.rationale ? (
-              <div className="rounded-lg border border-border/60 bg-card p-3">
+              <div className="rounded-lg border border-border/60 bg-card p-3.5">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                   Nhận định Credit
                 </p>
-                <p className="mt-1 max-h-28 overflow-y-auto text-sm text-navy whitespace-pre-wrap">
-                  {credit.rationale}
+                <p className="mt-2 max-h-48 overflow-y-auto text-sm leading-relaxed text-navy whitespace-pre-wrap">
+                  {sanitizeBusinessText(credit.rationale)}
                 </p>
               </div>
             ) : null}

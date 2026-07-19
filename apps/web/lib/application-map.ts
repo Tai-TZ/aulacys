@@ -8,6 +8,8 @@ export type ApplicationSectionA = {
   total_amount: string | number;
   term_months: number;
   status: string;
+  source?: string;
+  summary?: boolean;
   applicant?: {
     full_name?: string;
     dob?: string | null;

@@ -61,6 +61,7 @@ Log every locked choice so agents and teammates don't re-litigate or drift.
 | 2026-07-18 | **Kịch bản demo = retail mortgage + retail unsecured salary** | `retail_mortgage` giữ nhánh veto → replan: mục đích vay khai báo mâu thuẫn bằng chứng và bị chặn bởi policy. `retail_unsecured_salary` chứng minh STP bằng cùng graph/config. |
 | 2026-07-17 | **Thêm `pyyaml`** vào `apps/api/requirements.txt` | Policy-as-code (`src/policy/`) đọc ràng buộc pháp lý từ YAML. Đã có sẵn transitively qua langchain; khai báo tường minh vì import trực tiếp. Ngưỡng luật định **không được** nằm trong prompt — LLM nhớ số của luật cũ |
 | 2026-07-18 | **LLM primary = Gemini `gemini-3.1-flash-lite`** (`LLM_PROVIDER=gemini`); OpenAI vẫn là fallback provider | Chi phí/latency tốt cho prose agents; wire qua Gemini OpenAI-compat endpoint (giữ `langchain-openai`, không thêm dep). Số liệu vẫn từ tool — LLM chỉ prose (`AGENTS.md` §0 rule 1) |
+| 2026-07-19 | **Frontend: thêm `@xyflow/react`** cho `/admin/agent-builder` | Visual builder (P2 roadmap UI) trên schema product YAML. Load client-only (`next/dynamic` `ssr:false`) — React Flow cần DOM. Không thay wow-flow; lưu nháp localStorage + export YAML. Không thêm LLM-edit DAG. |
 | YYYY-MM-DD | [next locked choice] | [why] |
 
 ### Quyết định đang mở — chưa chốt, đừng tự quyết

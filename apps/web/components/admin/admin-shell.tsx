@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ClipboardCheck,
   FolderOpen,
   LayoutDashboard,
   LogOut,
   Menu,
   Package,
   Users,
+  Workflow,
   X,
 } from "lucide-react";
 import { BrandMark } from "@/components/client/brand-mark";
@@ -26,12 +28,16 @@ export type AdminActiveHref =
   | "/admin"
   | "/admin/bo-ho-so"
   | "/admin/approvals"
-  | "/admin/san-pham/ca-nhan";
+  | "/admin/san-pham/ca-nhan"
+  | "/admin/tieu-chi"
+  | "/admin/agent-builder";
 
 const nav = [
   { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
   { href: "/admin/bo-ho-so", label: "Yêu cầu vay", icon: FolderOpen },
   { href: "/admin/san-pham/ca-nhan", label: "Sản phẩm vay", icon: Package },
+  { href: "/admin/tieu-chi", label: "Tiêu chí thẩm định", icon: ClipboardCheck },
+  { href: "/admin/agent-builder", label: "Luồng agent", icon: Workflow },
   { href: "/admin/approvals", label: "Người dùng & phân quyền", icon: Users },
 ] as const;
 
@@ -97,9 +103,33 @@ export function AdminShell({
   const [session, setSession] = useState<AdminSession | null | undefined>(undefined);
 
   useEffect(() => {
-    const next = readAdminSession();
-    setSession(next);
-    if (!next) router.replace("/admin/login");
+    let cancelled = false;
+    try {
+      const next = readAdminSession();
+      if (!cancelled) {
+        setSession(next);
+        if (!next) router.replace("/admin/login");
+      }
+    } catch {
+      if (!cancelled) {
+        setSession(null);
+        router.replace("/admin/login");
+      }
+    }
+    // Fail-safe: never leave the UI stuck on "Đang tải…"
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      setSession((prev) => {
+        if (prev !== undefined) return prev;
+        const again = readAdminSession();
+        if (!again) router.replace("/admin/login");
+        return again;
+      });
+    }, 1200);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [router]);
 
   function handleLogout() {
@@ -110,8 +140,11 @@ export function AdminShell({
 
   if (session === undefined) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-secondary text-muted-foreground">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-secondary px-4 text-muted-foreground">
         <p className="text-sm">Đang tải console…</p>
+        <Link href="/admin/login" className="text-sm font-medium text-brand underline-offset-2 hover:underline">
+          Tới trang đăng nhập
+        </Link>
       </main>
     );
   }

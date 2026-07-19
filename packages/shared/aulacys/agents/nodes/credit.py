@@ -318,26 +318,42 @@ def _recommendation(reasonableness: dict[str, Any]) -> str:
 
 
 _CHECK_LABEL_VI: dict[str, str] = {
-    "term_within_product_max": "kỳ hạn trong giới hạn sản phẩm",
-    "amount_ceiling_configured": "đã cấu hình trần số tiền",
-    "amount_within_ceiling": "số tiền xin vay trong trần sản phẩm",
-    "amount_within_proposed_limit": "số tiền xin vay trong hạn mức định giá",
-    "rate_within_product_band": "lãi suất khai báo trong khung sản phẩm",
-    "proposed_rate_available": "đã có lãi suất đề xuất từ tool định giá",
-    "proposed_rate_within_band": "lãi suất đề xuất trong khung sản phẩm",
-    "max_dti_configured": "đã cấu hình DTI tối đa",
-    "dti_within_max": "DTI trong hạn mức cho phép",
-    "cic_consent_ok": "đã có đồng ý tra CIC",
-    "cic_clean": "lịch sử tín dụng CIC đạt (không nợ xấu / quá hạn / nhóm nợ vượt ngưỡng)",
-    "pricing_full_support": "tool định giá hỗ trợ đủ phương án",
-    "monthly_payment_computed": "đã tính được khoản trả hàng tháng",
+    "term_within_product_max": "Kỳ hạn vay",
+    "amount_ceiling_configured": "Trần số tiền sản phẩm",
+    "amount_within_ceiling": "Số tiền xin vay so với trần sản phẩm",
+    "amount_within_proposed_limit": "Số tiền xin vay so với hạn mức định giá",
+    "rate_within_product_band": "Lãi suất khai báo so với khung sản phẩm",
+    "proposed_rate_available": "Lãi suất đề xuất",
+    "proposed_rate_within_band": "Lãi suất đề xuất so với khung sản phẩm",
+    "max_dti_configured": "Trần khả năng trả nợ (DTI)",
+    "dti_within_max": "Khả năng trả nợ (DTI)",
+    "cic_consent_ok": "Đồng ý tra cứu lịch sử tín dụng",
+    "cic_clean": "Lịch sử tín dụng (CIC)",
+    "pricing_full_support": "Khả năng định giá phương án",
+    "monthly_payment_computed": "Khoản trả hàng tháng",
+}
+
+_CHECK_FAIL_DETAIL_VI: dict[str, str] = {
+    "term_within_product_max": "Kỳ hạn vượt giới hạn sản phẩm.",
+    "amount_ceiling_configured": "Chưa có trần số tiền trên cấu hình sản phẩm.",
+    "amount_within_ceiling": "Số tiền xin vay vượt trần sản phẩm.",
+    "amount_within_proposed_limit": "Số tiền xin vay vượt hạn mức định giá.",
+    "rate_within_product_band": "Lãi suất khai báo ngoài khung sản phẩm.",
+    "proposed_rate_available": "Chưa có lãi suất đề xuất.",
+    "proposed_rate_within_band": "Lãi suất đề xuất ngoài khung sản phẩm.",
+    "max_dti_configured": "Chưa cấu hình trần khả năng trả nợ.",
+    "dti_within_max": "Khả năng trả nợ (DTI) vượt hạn mức cho phép.",
+    "cic_consent_ok": "Chưa có đồng ý tra cứu lịch sử tín dụng.",
+    "cic_clean": "Lịch sử tín dụng chưa đạt (có quá hạn, nhóm nợ cần chú ý hoặc nợ xấu).",
+    "pricing_full_support": "Chưa định giá đủ để hỗ trợ phương án.",
+    "monthly_payment_computed": "Chưa tính được khoản trả hàng tháng.",
 }
 
 _REC_LABEL_VI: dict[str, str] = {
-    "support": "ủng hộ phương án",
-    "manual_review": "cần thẩm định tay / HITL",
-    "review": "cần xem xét thêm",
-    "reject": "không hỗ trợ phương án",
+    "support": "Đủ điều kiện đề xuất",
+    "manual_review": "Cần thẩm định tay",
+    "review": "Cần xem xét thêm",
+    "reject": "Không hỗ trợ phương án",
 }
 
 
@@ -346,36 +362,59 @@ def _rationale(
     recommendation: str,
     reasonableness: dict[str, Any],
 ) -> str:
-    """Qualitative prose only — figures stay in tool_results so LLM polish cannot rewrite them."""
+    """Business-facing report prose — no tool/code jargon; figures live in structured fields."""
     checks = reasonableness.get("checks") or {}
     failed = [name for name, ok in checks.items() if not ok]
-    decision = str(reasonableness.get("pricing_decision") or "unknown")
-    rec_vi = _REC_LABEL_VI.get(recommendation, recommendation)
+    passed = [name for name, ok in checks.items() if ok]
+    decision = str(reasonableness.get("pricing_decision") or "")
+    rec_vi = _REC_LABEL_VI.get(recommendation, "Cần xem xét thêm")
     price_vi = {
-        "priceable": "có thể định giá",
-        "decline_or_manual_review": "không định giá được / cần xem xét thủ công",
-    }.get(decision, decision)
+        "priceable": "Có thể định giá phương án",
+        "limit_reduced": "Hạn mức bị điều chỉnh giảm so với số tiền xin vay",
+        "decline_or_manual_review": "Chưa định giá được — cần xem xét thủ công",
+    }.get(decision)
 
-    lines = [
-        "Credit đã kiểm tính hợp lý của phương án vay chỉ bằng các công cụ được phép "
-        "(CIC, thu nhập, DTI, định giá).",
-        f"Khuyến nghị: {rec_vi}. Kết quả định giá: {price_vi}.",
-        "Các số liệu DTI, khoản trả, hạn mức và lãi suất nằm trong kết quả tool — "
-        "không nêu lại con số trong nhận định này.",
-        "Credit không phê duyệt khoản vay, không veto pháp lý và không tự bịa số liệu.",
+    lines: list[str] = [
+        "BÁO CÁO NHẬN ĐỊNH CREDIT",
+        "",
+        "1. Kết luận",
+        f"- Khuyến nghị: {rec_vi}.",
     ]
+    if price_vi:
+        lines.append(f"- Định giá: {price_vi}.")
+    lines.append("- Credit chỉ đề xuất phương án; không phê duyệt và không từ chối pháp lý.")
+
+    lines.extend(["", "2. Các điểm cần lưu ý"])
     if failed:
-        labels = [_CHECK_LABEL_VI.get(name, name) for name in failed]
-        lines.append("Các điểm chưa đạt cần lưu ý: " + "; ".join(labels) + ".")
+        for name in failed:
+            detail = _CHECK_FAIL_DETAIL_VI.get(name) or f"{_CHECK_LABEL_VI.get(name, name)}: chưa đạt."
+            lines.append(f"- {detail}")
         if "cic_clean" in failed:
             lines.append(
-                "Đặc biệt về CIC: lịch sử tín dụng chưa đạt điều kiện sạch "
-                "(có dấu hiệu quá hạn, nhóm nợ cần chú ý, hoặc nợ xấu). "
-                "Cần đối chiếu báo cáo CIC đầy đủ trước khi đề xuất phương án cuối."
+                "- Đề nghị đọc đầy đủ báo cáo lịch sử tín dụng trước khi xuất phương án cuối."
             )
     else:
-        lines.append("Mọi kiểm tra hợp lý của phương án đều đạt.")
-    return " ".join(lines)
+        lines.append("- Không có điểm chặn; các điều kiện hợp lý của phương án đều đạt.")
+
+    # Keep report short: only highlight a few solid passes when there are failures
+    if passed and failed:
+        highlights = [
+            _CHECK_LABEL_VI[n]
+            for n in (
+                "cic_consent_ok",
+                "dti_within_max",
+                "cic_clean",
+                "pricing_full_support",
+                "amount_within_ceiling",
+            )
+            if n in passed and n in _CHECK_LABEL_VI
+        ][:3]
+        if highlights:
+            lines.extend(["", "3. Điểm đã đạt"])
+            for label in highlights:
+                lines.append(f"- {label}: đạt.")
+
+    return "\n".join(lines)
 
 def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessment, list[str]]:
     app = state["application"]
@@ -537,11 +576,13 @@ CreditSpec = AgentSpec(
     model_tier="mini",
     max_tool_calls=7,
     prompt=(
-        "Kiểm phương án vay có hợp lý về tài chính. Chỉ dùng số từ tool (CIC, thu nhập, DTI, "
-        "khoản trả, hạn mức, lãi). Không phê duyệt, không veto, không bịa số. "
-        "Nếu chỉnh rationale: viết tiếng Việt rõ ràng, định tính; không nhắc lại con số cụ thể."
+        "Kiểm phương án vay có hợp lý về tài chính. "
+        "Nhận định phải là báo cáo ngắn cho cán bộ tín dụng: kết luận, điểm cần lưu ý, điểm đạt. "
+        "Cấm dùng: tool, HITL, veto, limit_reduced, price_loan, mã code. "
+        "Không nhắc lại con số DTI/hạn mức/lãi (đã hiện trên thẻ)."
     ),
     fallback=credit_fallback,
-    llm_prose=True,
+    # Deterministic report only — LLM polish previously rewrote jargon officers cannot use.
+    llm_prose=False,
     prose_fields=["rationale"],
 )

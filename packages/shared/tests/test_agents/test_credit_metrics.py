@@ -390,7 +390,7 @@ def test_credit_uses_salary_verify_for_salary_statement(monkeypatch) -> None:
 def test_credit_spec_stays_inside_role() -> None:
     assert CreditSpec.tools == ["core_banking_read", "loan_calculator"]
     assert "metadata" in CreditSpec.reads
-    assert CreditSpec.llm_prose is True
+    assert CreditSpec.llm_prose is False
     assert CreditSpec.prose_fields == ["rationale"]
     assert CreditSpec.max_tool_calls == 7
 
@@ -398,7 +398,10 @@ def test_credit_spec_stays_inside_role() -> None:
 def test_credit_rationale_stays_qualitative(monkeypatch) -> None:
     _clean_tools(monkeypatch)
     result, _ = credit_fallback(_state(), CreditSpec)
-    assert "kết quả tool" in result.rationale
+    assert "BÁO CÁO NHẬN ĐỊNH CREDIT" in result.rationale
+    assert "tool" not in result.rationale.lower()
+    assert "HITL" not in result.rationale
     assert "DTI=" not in result.rationale
     assert "monthly_payment=" not in result.rationale
     assert "cic_clean" not in result.rationale  # human label, not raw flag
+    assert "Khuyến nghị:" in result.rationale
