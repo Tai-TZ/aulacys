@@ -37,7 +37,7 @@ const nav = [
   { href: "/admin/bo-ho-so", label: "Yêu cầu vay", icon: FolderOpen },
   { href: "/admin/san-pham/ca-nhan", label: "Sản phẩm vay", icon: Package },
   { href: "/admin/tieu-chi", label: "Tiêu chí thẩm định", icon: ClipboardCheck },
-  { href: "/admin/agent-builder", label: "Agent builder", icon: Workflow },
+  { href: "/admin/agent-builder", label: "Luồng agent", icon: Workflow },
   { href: "/admin/approvals", label: "Người dùng & phân quyền", icon: Users },
 ] as const;
 

@@ -99,6 +99,82 @@ const EMPTY_FORM: AssessFormState = {
   documents: [],
 };
 
+const FALLBACK_APPLICATIONS: ApplicationSectionA[] = [
+  {
+    id: "happy",
+    source: "seeded-fallback",
+    product: "retail_unsecured_salary",
+    total_amount: 150_000_000,
+    term_months: 36,
+    status: "submitted",
+    applicant: {
+      full_name: "NGUYỄN THỊ BÉ HOA",
+      dob: "1992-04-12",
+      gender: "nu",
+      id_number: "001092012345",
+      email: "behoa@example.com",
+    },
+    phone: { mobile_1: "0901234567" },
+    employment: {
+      occupation: "Cán bộ doanh nghiệp tư",
+      employer_name: "Công ty Minh An",
+      position: "Nhân viên",
+      salary_day: "25",
+    },
+    financial: { total_income: 28_000_000, personal_expense: 8_000_000 },
+    consent: { data_processing_consent: true, marketing_consent: false },
+    purposes: [{ category: "consumer", purpose_detail: "Mua sắm tiêu dùng" }],
+  },
+  {
+    id: "veto",
+    source: "seeded-fallback",
+    product: "retail_unsecured_salary",
+    total_amount: 150_000_000,
+    term_months: 36,
+    status: "submitted",
+    applicant: {
+      full_name: "TRẦN THỊ VUI",
+      dob: "1988-09-20",
+      gender: "nu",
+      id_number: "001088067890",
+      email: "tranvui@example.com",
+    },
+    phone: { mobile_1: "0912345678" },
+    employment: {
+      occupation: "Kinh doanh tự do",
+      employer_name: "Hộ kinh doanh gia đình",
+      position: "Chủ hộ",
+    },
+    financial: { total_income: 18_000_000, personal_expense: 7_500_000 },
+    consent: { data_processing_consent: true, marketing_consent: false },
+    purposes: [{ category: "refinance", purpose_detail: "Tất toán khoản vay ở TCTD khác" }],
+  },
+  {
+    id: "hitl",
+    source: "seeded-fallback",
+    product: "retail_mortgage",
+    total_amount: 2_500_000_000,
+    term_months: 240,
+    status: "submitted",
+    applicant: {
+      full_name: "NGUYỄN THỊ HUYỀN TRẦN",
+      dob: "1985-01-08",
+      gender: "nu",
+      id_number: "001085011111",
+      email: "huyentran@example.com",
+    },
+    phone: { mobile_1: "0987654321" },
+    employment: {
+      occupation: "Công chức nhà nước",
+      employer_name: "Sở Giáo dục",
+      position: "Quản lý",
+    },
+    financial: { total_income: 65_000_000, personal_expense: 18_000_000 },
+    consent: { data_processing_consent: true, marketing_consent: false },
+    purposes: [{ category: "mortgage", purpose_detail: "Mua nhà để ở" }],
+  },
+];
+
 function StatusBadge({ tone, children }: { tone: string; children: React.ReactNode }) {
   const styles: Record<string, string> = {
     warning: "bg-warning-soft text-warning-foreground",
@@ -908,6 +984,13 @@ type DossierListItem = ReturnType<typeof applicationToListRow> & {
   fromDb?: boolean;
 };
 
+function fallbackDossiers(): DossierListItem[] {
+  return FALLBACK_APPLICATIONS.map((raw) => ({
+    ...applicationToListRow(raw),
+    fromDb: false,
+  }));
+}
+
 export function AssessDashboard() {
   const [viewMode, setViewMode] = useState<"list" | "detail">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -922,8 +1005,8 @@ export function AssessDashboard() {
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
   const [result, setResult] = useState<AssessResponse | null>(null);
   const [creditProposal, setCreditProposal] = useState<CreditProposalResponse | null>(null);
-  const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
-  const [listLoading, setListLoading] = useState(true);
+  const [dossiers, setDossiers] = useState<DossierListItem[]>(() => fallbackDossiers());
+  const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [proposing, setProposing] = useState(false);
@@ -976,8 +1059,8 @@ export function AssessDashboard() {
     setReportOpen(false);
   }
 
-  const refreshDossiers = useCallback(async () => {
-    setListLoading(true);
+  const refreshDossiers = useCallback(async (opts?: { quiet?: boolean }) => {
+    if (!opts?.quiet) setListLoading(true);
     setListError(null);
     try {
       const rows = await listApplications(100);
@@ -994,12 +1077,12 @@ export function AssessDashboard() {
       // Keep last good list on transient 503 / cold DB — don't wipe the table.
       setListError(err instanceof Error ? err.message : "Không tải được hồ sơ từ API");
     } finally {
-      setListLoading(false);
+      if (!opts?.quiet) setListLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    void refreshDossiers();
+    void refreshDossiers({ quiet: true });
   }, [refreshDossiers]);
 
   function updateDeclared<K extends keyof DeclaredForm>(
@@ -1344,6 +1427,9 @@ export function AssessDashboard() {
 
     const fmt = (n?: number | null) =>
       n == null ? "—" : new Intl.NumberFormat("vi-VN").format(n) + " ₫";
+    const sourceLabel = dossiers.some((item) => item.fromDb)
+      ? `Nguồn: database (${dossiers.length} hồ sơ)`
+      : `Nguồn: demo offline (${dossiers.length} hồ sơ)`;
 
     return (
       <div className="space-y-6">
@@ -1353,7 +1439,7 @@ export function AssessDashboard() {
             <h1 className="text-xl font-bold tracking-tight text-navy uppercase">Yêu cầu vay từ khách hàng</h1>
             <p className="text-xs text-muted-foreground">
               Xem chi tiết hồ sơ, đối chiếu chứng từ gốc và thực thi quy trình phê duyệt tự động.
-              {listLoading ? " · Đang tải…" : ` · Nguồn: database (${dossiers.length} hồ sơ)`}
+              {listLoading ? " · Đang tải…" : ` · ${sourceLabel}`}
             </p>
           </div>
           <Button

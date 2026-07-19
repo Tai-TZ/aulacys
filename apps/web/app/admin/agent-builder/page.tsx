@@ -23,8 +23,8 @@ const AgentGraphBuilder = dynamic(
 export default function AgentBuilderPage() {
   return (
     <AdminShell
-      title="Agent builder"
-      eyebrow="Cấu hình graph theo sản phẩm"
+      title="Luồng agent theo sản phẩm"
+      eyebrow="Cấu hình quy trình thẩm định"
       activeHref="/admin/agent-builder"
     >
       <AgentGraphBuilder />

@@ -248,18 +248,20 @@ function flowToDepends(edges: Edge[]): GraphConfig["depends"] {
 }
 
 export function AgentGraphBuilder() {
+  const fallbackConfig = useMemo(() => cloneConfig(GRAPH_PRESETS[0]), []);
+  const fallbackFlow = useMemo(() => configToFlow(fallbackConfig), [fallbackConfig]);
   const [products, setProducts] = useState<LoanProductDto[]>([]);
-  const [productId, setProductId] = useState<string>("");
+  const [productId, setProductId] = useState<string>(fallbackConfig.id);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [config, setConfig] = useState<GraphConfig>(() => cloneConfig(GRAPH_PRESETS[0]));
-  const [hydrated, setHydrated] = useState(false);
+  const [config, setConfig] = useState<GraphConfig>(() => fallbackConfig);
+  const [hydrated, setHydrated] = useState(true);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [sideTab, setSideTab] = useState("metrics");
   const [selectedAgent, setSelectedAgent] = useState<string>("credit");
   /** Inspector drawer — closed by default so canvas owns the viewport. */
   const [panelOpen, setPanelOpen] = useState(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState<AgentFlowNode>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<AgentFlowNode>(fallbackFlow.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(fallbackFlow.edges);
 
   function openAgentPanel(agentId: string, tab: string = "metrics") {
     setSelectedAgent(agentId);

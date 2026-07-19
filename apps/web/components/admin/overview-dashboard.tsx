@@ -69,14 +69,14 @@ export function OverviewDashboard() {
     {
       label: "Tỷ lệ phê duyệt tự động",
       value: "33.3%",
-      desc: "Phê duyệt thông suốt (STP Lane 1)",
+      desc: "Hồ sơ đủ điều kiện đi thẳng theo quy tắc",
       icon: FileCheck,
       color: "text-green-600 bg-green-50",
     },
     {
       label: "Tỷ lệ Veto / Cảnh báo",
       value: "33.3%",
-      desc: "1 hồ sơ vi phạm hard legal limits",
+      desc: "1 hồ sơ vi phạm giới hạn pháp lý cứng",
       icon: AlertCircle,
       color: "text-orange-600 bg-orange-50",
     },
@@ -138,7 +138,7 @@ export function OverviewDashboard() {
                 <tr className="bg-secondary/20 border-b border-border text-[10px] uppercase font-bold text-navy tracking-wider">
                   <th className="px-4 py-2.5">Khách hàng</th>
                   <th className="px-4 py-2.5">Số tiền</th>
-                  <th className="px-4 py-2.5">Quy trình</th>
+                  <th className="px-4 py-2.5">Luồng xử lý</th>
                   <th className="px-4 py-2.5 text-right">Trạng thái</th>
                 </tr>
               </thead>
@@ -157,7 +157,11 @@ export function OverviewDashboard() {
                       </td>
                       <td className="px-4 py-3 font-semibold text-gray-800">{fmt(item.amount)}</td>
                       <td className="px-4 py-3 text-muted-foreground font-mono text-[10px]">
-                        {item.scenario === "happy" ? "STP Lane 1" : item.scenario === "veto" ? "Rule Engine" : "HITL Lane 3"}
+                        {item.scenario === "happy"
+                          ? "Tự động theo quy tắc"
+                          : item.scenario === "veto"
+                            ? "Chặn bởi chính sách"
+                            : "Người phê duyệt"}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <StatusBadge tone={statusInfo.tone}>
@@ -203,10 +207,10 @@ export function OverviewDashboard() {
 
             <div className="border-t border-border pt-4 space-y-4">
               <div>
-                <h3 className="text-xs font-semibold text-navy uppercase tracking-wider mb-2">Đường truyền Agent</h3>
+                <h3 className="text-xs font-semibold text-navy uppercase tracking-wider mb-2">Luồng xử lý</h3>
                 <div className="flex justify-between items-center text-[11px] font-medium text-gray-700">
                   <span className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-green-500" /> Lane 1 (Quy tắc tự động)
+                    <span className="h-2.5 w-2.5 rounded-full bg-green-500" /> Quy tắc tự động
                   </span>
                   <span className="text-navy font-bold">33%</span>
                 </div>
@@ -215,7 +219,7 @@ export function OverviewDashboard() {
               <div>
                 <div className="flex justify-between items-center text-[11px] font-medium text-gray-700">
                   <span className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-yellow-500" /> Lane 3 (HITL + Valuator)
+                    <span className="h-2.5 w-2.5 rounded-full bg-yellow-500" /> Có người phê duyệt + định giá
                   </span>
                   <span className="text-navy font-bold">67%</span>
                 </div>
