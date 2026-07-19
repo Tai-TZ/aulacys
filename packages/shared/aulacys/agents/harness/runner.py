@@ -108,6 +108,10 @@ def run(spec: AgentSpec, state: AgentState) -> BaseModel:
             base_for_llm.pop("citations", None)
             base_for_llm.pop("rule_evidence", None)
             base_for_llm.pop("violations", None)
+            # Don't show the model the deterministic prose it is meant to (re)write — weak
+            # models echo it verbatim instead of generating fresh analysis.
+            for prose_field in spec.prose_fields:
+                base_for_llm.pop(prose_field, None)
             llm_obj, schema_retries = _try_llm_prose(
                 spec,
                 [

@@ -27,11 +27,11 @@ services:
       - key: OPENAI_BASE_URL
         value: https://mkp-api.fptcloud.com/v1
       - key: MODEL_NAME
-        value: Llama-3.3-70B-Instruct
+        value: SaoLa3.1-medium
       - key: STRONG_MODEL
-        value: Llama-3.3-70B-Instruct
+        value: SaoLa3.1-medium
       - key: MINI_MODEL
-        value: Llama-3.3-70B-Instruct
+        value: SaoLa3.1-medium
       # Secrets — set these in the Render dashboard (sync:false = not in git):
       - key: OPENAI_API_KEY
         sync: false
