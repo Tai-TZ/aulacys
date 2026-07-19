@@ -61,7 +61,11 @@ def get_engine() -> AsyncEngine:
         _engine = create_async_engine(
             _to_asyncpg_url(settings.database_url),
             poolclass=NullPool,  # PgBouncer pools for us
-            connect_args={"statement_cache_size": 0},  # required for transaction-mode pooler
+            connect_args={
+                "statement_cache_size": 0,  # required for transaction-mode pooler
+                "timeout": 2,  # fail fast → memory catalog (demo-proof)
+                "command_timeout": 3,
+            },
             pool_pre_ping=True,
             echo=False,
         )

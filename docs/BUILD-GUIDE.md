@@ -4,7 +4,7 @@
 > Nền: [`SHB-Digital-Expert-Agents-Solution-Design-v2.md`](./SHB-Digital-Expert-Agents-Solution-Design-v2.md) (**vì sao**) · [`AGENTS.md`](../AGENTS.md) (luật repo) · file này (**làm thế nào**).
 > Mâu thuẫn thì: `AGENTS.md` > v2 > file này.
 
-⚠️ **`AGENTS.md` §0 vẫn khoá kịch bản DN 20 tỷ và tự tuyên bố "§0 wins".** Chưa sửa thì mọi agent đọc §0 sẽ build sai kịch bản. **Sửa §0 trước giờ 0.**
+✅ `AGENTS.md` §0 hiện đã khóa scope retail / individual. Nếu file này hoặc tài liệu cũ mâu thuẫn, `AGENTS.md` thắng.
 
 ---
 
@@ -529,7 +529,7 @@ Cùng phát từ harness, **lưu hai chỗ**. Gộp làm một là hỏng cả h
 | **Điều khoản cấm cho vay** (nhu cầu vốn không được cho vay). Nghi TT39/2016 Đ.8, **TT06/2023 đã sửa** | Chủ compliance                      | **Đây là nhánh veto**, phút 2:00. Số này do LLM viết từ trí nhớ → **không dùng được** |
 | **Số hiệu văn bản ba tuyến** — nghi TT13/2018, không chắc                                                         | Chủ compliance                      | Lập luận mạnh nhất của bài                                                                                   |
 | **Vay cá nhân thật có mấy vai?**                                                                                     | Ai hỏi được người trong ngành | Chỉ 2 vai → Compliance-veto-Credit yếu → viết lại v2 §4.2 + §12                                            |
-| **Model** — `AGENTS.md` §3 khoá `gpt-4o-mini`                                                                      | Cả team,**giờ 0**            | `gpt-4o-mini` làm Planner là yếu: phải phân rã DAG **và** nuốt veto rồi lập lại kế hoạch      |
+| **Model** — `AGENTS.md` §3 khóa Gemini primary + OpenAI fallback                                                     | Cả team                      | Giữ tier strong/mini theo `AGENT-SPEC.md`; số liệu vẫn từ tool, không từ model                |
 | `stp_ceiling` · NIM · giá token                                                                                            | Chủ compliance + đội              | Để trống còn hơn bịa. Giám khảo là dân ngân hàng                                                       |
 
 **Luật 2 áp lên chính tài liệu này.** Mọi số hiệu điều khoản ở trên là **do LLM viết ra**. Hoặc một người mở luật xác nhận, hoặc gỡ khỏi slide. Không có lối thứ ba.

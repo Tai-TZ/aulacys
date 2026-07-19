@@ -1,68 +1,3259 @@
 {
+  "_meta": {
+    "dataset_id": "aulacys-synthetic-cic",
+    "version": "2026.3",
+    "classification": "SYNTHETIC_TEST_DATA",
+    "contains_real_personal_data": false,
+    "schema_version": "2.1",
+    "record_count": 100,
+    "description": "CIC seed aligned to application-svc DB applicants (demo happy/veto/hitl)",
+    "fields": [
+      "customer_id",
+      "debt_group",
+      "outstanding_debt",
+      "overdue_history",
+      "number_of_institutions"
+    ],
+    "updated_at": "2026-07-19"
+  },
   "_default": {
-    "full_name": "Khách hàng mặc định",
+    "customer_id": null,
+    "full_name": "Khách hàng mặc định (dữ liệu tổng hợp)",
+    "debt_group": 1,
+    "outstanding_debt": 0,
     "total_outstanding_vnd": 0,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 0,
+    "institutions": [],
     "credit_limit_total_vnd": 50000000,
     "num_active_loans": 0,
+    "monthly_debt_obligation_vnd": 0,
     "max_overdue_days": 0,
     "overdue_amount_vnd": 0,
     "credit_history_months": 36,
-    "credit_types": ["unsecured"],
+    "credit_types": [
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay tín chấp"
+    ],
     "inquiries_last_6m": 1
   },
   "001099000001": {
-    "full_name": "Nguyen Van An",
-    "total_outstanding_vnd": 150000000,
-    "credit_limit_total_vnd": 500000000,
+    "customer_id": "CUST-000001",
+    "full_name": "NGUYỄN VĂN AN",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
     "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
     "max_overdue_days": 0,
     "overdue_amount_vnd": 0,
-    "credit_history_months": 84,
-    "credit_types": ["secured", "unsecured", "card"],
-    "inquiries_last_6m": 1
+    "credit_history_months": 95,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 2
   },
   "001099000002": {
-    "full_name": "Tran Thi Binh",
-    "total_outstanding_vnd": 320000000,
-    "credit_limit_total_vnd": 600000000,
+    "customer_id": "CUST-000002",
+    "full_name": "NGUYỄN THỊ BÍCH",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
     "num_active_loans": 2,
-    "max_overdue_days": 25,
-    "overdue_amount_vnd": 5000000,
-    "credit_history_months": 48,
-    "credit_types": ["unsecured", "card"],
-    "inquiries_last_6m": 3
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 94,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 4
   },
   "001099000003": {
-    "full_name": "Le Van Cuong",
-    "total_outstanding_vnd": 450000000,
-    "credit_limit_total_vnd": 550000000,
-    "num_active_loans": 3,
-    "max_overdue_days": 120,
-    "overdue_amount_vnd": 40000000,
-    "credit_history_months": 24,
-    "credit_types": ["unsecured"],
-    "inquiries_last_6m": 5
+    "customer_id": "CUST-000003",
+    "full_name": "TRẦN THỊ BÌNH",
+    "debt_group": 1,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 8000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 93,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 2
   },
   "001099000004": {
-    "full_name": "Pham Thi Dung",
-    "total_outstanding_vnd": 780000000,
-    "credit_limit_total_vnd": 800000000,
+    "customer_id": "CUST-000004",
+    "full_name": "NGUYỄN THỊ DIỆU",
+    "debt_group": 4,
+    "outstanding_debt": 475000000,
+    "total_outstanding_vnd": 475000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 500000000,
     "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
     "max_overdue_days": 240,
-    "overdue_amount_vnd": 120000000,
-    "credit_history_months": 10,
-    "credit_types": ["card"],
-    "inquiries_last_6m": 7
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 92,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
   },
   "001099000005": {
-    "full_name": "Hoang Van Em",
-    "total_outstanding_vnd": 1200000000,
-    "credit_limit_total_vnd": 900000000,
+    "customer_id": "CUST-000005",
+    "full_name": "NGUYỄN QUANG ĐỨC",
+    "debt_group": 5,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 600000000,
     "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
     "max_overdue_days": 400,
-    "overdue_amount_vnd": 400000000,
-    "credit_history_months": 4,
-    "credit_types": [],
-    "inquiries_last_6m": 10
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 91,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000006": {
+    "customer_id": "CUST-000006",
+    "full_name": "NGUYỄN NGỌC GIANG",
+    "debt_group": 1,
+    "outstanding_debt": 140000000,
+    "total_outstanding_vnd": 140000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 700000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 90,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000007": {
+    "customer_id": "CUST-000007",
+    "full_name": "NGUYỄN TUẤN HẢI",
+    "debt_group": 2,
+    "outstanding_debt": 360000000,
+    "total_outstanding_vnd": 360000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 89,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000008": {
+    "customer_id": "CUST-000008",
+    "full_name": "NGUYỄN THU HƯƠNG",
+    "debt_group": 3,
+    "outstanding_debt": 630000000,
+    "total_outstanding_vnd": 630000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 88,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000009": {
+    "customer_id": "CUST-000009",
+    "full_name": "NGUYỄN ĐỨC KHÁNH",
+    "debt_group": 4,
+    "outstanding_debt": 950000000,
+    "total_outstanding_vnd": 950000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 1000000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 87,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000010": {
+    "customer_id": "CUST-000010",
+    "full_name": "NGUYỄN THẢO LINH",
+    "debt_group": 5,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 100000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 86,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 7
+  },
+  "001099000011": {
+    "customer_id": "CUST-000011",
+    "full_name": "NGUYỄN GIA MINH",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 85,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000012": {
+    "customer_id": "CUST-000012",
+    "full_name": "TRẦN VĂN AN",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 84,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "001099000013": {
+    "customer_id": "CUST-000013",
+    "full_name": "TRẦN THỊ BÍCH",
+    "debt_group": 3,
+    "outstanding_debt": 280000000,
+    "total_outstanding_vnd": 280000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 83,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000014": {
+    "customer_id": "CUST-000014",
+    "full_name": "TRẦN MINH CƯỜNG",
+    "debt_group": 4,
+    "outstanding_debt": 475000000,
+    "total_outstanding_vnd": 475000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 500000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 82,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000015": {
+    "customer_id": "CUST-000015",
+    "full_name": "TRẦN THỊ DIỆU",
+    "debt_group": 5,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 600000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 81,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 8
+  },
+  "001099000016": {
+    "customer_id": "CUST-000016",
+    "full_name": "TRẦN QUANG ĐỨC",
+    "debt_group": 1,
+    "outstanding_debt": 140000000,
+    "total_outstanding_vnd": 140000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 700000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 80,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 1
+  },
+  "001099000017": {
+    "customer_id": "CUST-000017",
+    "full_name": "TRẦN NGỌC GIANG",
+    "debt_group": 2,
+    "outstanding_debt": 360000000,
+    "total_outstanding_vnd": 360000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 79,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000018": {
+    "customer_id": "CUST-000018",
+    "full_name": "TRẦN TUẤN HẢI",
+    "debt_group": 3,
+    "outstanding_debt": 630000000,
+    "total_outstanding_vnd": 630000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 78,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000019": {
+    "customer_id": "CUST-000019",
+    "full_name": "TRẦN THU HƯƠNG",
+    "debt_group": 4,
+    "outstanding_debt": 950000000,
+    "total_outstanding_vnd": 950000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 1000000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 77,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 7
+  },
+  "001099000020": {
+    "customer_id": "CUST-000020",
+    "full_name": "TRẦN ĐỨC KHÁNH",
+    "debt_group": 5,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 100000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 76,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000021": {
+    "customer_id": "CUST-000021",
+    "full_name": "TRẦN THẢO LINH",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 75,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "001099000022": {
+    "customer_id": "CUST-000022",
+    "full_name": "TRẦN GIA MINH",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 74,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000023": {
+    "customer_id": "CUST-000023",
+    "full_name": "LÊ VĂN AN",
+    "debt_group": 3,
+    "outstanding_debt": 280000000,
+    "total_outstanding_vnd": 280000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 73,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000024": {
+    "customer_id": "CUST-000024",
+    "full_name": "LÊ THỊ BÍCH",
+    "debt_group": 4,
+    "outstanding_debt": 475000000,
+    "total_outstanding_vnd": 475000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 500000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 72,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000025": {
+    "customer_id": "CUST-000025",
+    "full_name": "LÊ MINH CƯỜNG",
+    "debt_group": 5,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 600000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 71,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000026": {
+    "customer_id": "CUST-000026",
+    "full_name": "LÊ THỊ DIỆU",
+    "debt_group": 1,
+    "outstanding_debt": 140000000,
+    "total_outstanding_vnd": 140000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 700000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 70,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000027": {
+    "customer_id": "CUST-000027",
+    "full_name": "LÊ QUANG ĐỨC",
+    "debt_group": 2,
+    "outstanding_debt": 360000000,
+    "total_outstanding_vnd": 360000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 69,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000028": {
+    "customer_id": "CUST-000028",
+    "full_name": "LÊ NGỌC GIANG",
+    "debt_group": 3,
+    "outstanding_debt": 630000000,
+    "total_outstanding_vnd": 630000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 68,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000029": {
+    "customer_id": "CUST-000029",
+    "full_name": "LÊ TUẤN HẢI",
+    "debt_group": 4,
+    "outstanding_debt": 950000000,
+    "total_outstanding_vnd": 950000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 1000000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 67,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000030": {
+    "customer_id": "CUST-000030",
+    "full_name": "LÊ THU HƯƠNG",
+    "debt_group": 5,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 100000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 66,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 7
+  },
+  "001099000031": {
+    "customer_id": "CUST-000031",
+    "full_name": "LÊ ĐỨC KHÁNH",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 65,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000032": {
+    "customer_id": "CUST-000032",
+    "full_name": "LÊ THẢO LINH",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 64,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "001099000033": {
+    "customer_id": "CUST-000033",
+    "full_name": "LÊ GIA MINH",
+    "debt_group": 3,
+    "outstanding_debt": 280000000,
+    "total_outstanding_vnd": 280000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 63,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000034": {
+    "customer_id": "CUST-000034",
+    "full_name": "PHẠM VĂN AN",
+    "debt_group": 4,
+    "outstanding_debt": 475000000,
+    "total_outstanding_vnd": 475000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 500000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 62,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000035": {
+    "customer_id": "CUST-000035",
+    "full_name": "PHẠM THỊ BÍCH",
+    "debt_group": 5,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 600000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 61,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 8
+  },
+  "001099000036": {
+    "customer_id": "CUST-000036",
+    "full_name": "PHẠM MINH CƯỜNG",
+    "debt_group": 1,
+    "outstanding_debt": 140000000,
+    "total_outstanding_vnd": 140000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 700000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 60,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 1
+  },
+  "001099000037": {
+    "customer_id": "CUST-000037",
+    "full_name": "PHẠM THỊ DIỆU",
+    "debt_group": 2,
+    "outstanding_debt": 360000000,
+    "total_outstanding_vnd": 360000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 59,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000038": {
+    "customer_id": "CUST-000038",
+    "full_name": "PHẠM QUANG ĐỨC",
+    "debt_group": 3,
+    "outstanding_debt": 630000000,
+    "total_outstanding_vnd": 630000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 58,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000039": {
+    "customer_id": "CUST-000039",
+    "full_name": "PHẠM NGỌC GIANG",
+    "debt_group": 4,
+    "outstanding_debt": 950000000,
+    "total_outstanding_vnd": 950000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 1000000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 57,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 7
+  },
+  "001099000040": {
+    "customer_id": "CUST-000040",
+    "full_name": "PHẠM TUẤN HẢI",
+    "debt_group": 5,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 100000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 56,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000041": {
+    "customer_id": "CUST-000041",
+    "full_name": "PHẠM THU HƯƠNG",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 55,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "001099000042": {
+    "customer_id": "CUST-000042",
+    "full_name": "PHẠM ĐỨC KHÁNH",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 54,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000043": {
+    "customer_id": "CUST-000043",
+    "full_name": "PHẠM THẢO LINH",
+    "debt_group": 3,
+    "outstanding_debt": 280000000,
+    "total_outstanding_vnd": 280000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 53,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000044": {
+    "customer_id": "CUST-000044",
+    "full_name": "PHẠM GIA MINH",
+    "debt_group": 4,
+    "outstanding_debt": 475000000,
+    "total_outstanding_vnd": 475000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 500000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 52,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000045": {
+    "customer_id": "CUST-000045",
+    "full_name": "HOÀNG VĂN AN",
+    "debt_group": 5,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 600000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 51,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000046": {
+    "customer_id": "CUST-000046",
+    "full_name": "HOÀNG THỊ BÍCH",
+    "debt_group": 1,
+    "outstanding_debt": 140000000,
+    "total_outstanding_vnd": 140000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 700000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 50,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000047": {
+    "customer_id": "CUST-000047",
+    "full_name": "HOÀNG MINH CƯỜNG",
+    "debt_group": 2,
+    "outstanding_debt": 360000000,
+    "total_outstanding_vnd": 360000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 49,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000048": {
+    "customer_id": "CUST-000048",
+    "full_name": "HOÀNG THỊ DIỆU",
+    "debt_group": 3,
+    "outstanding_debt": 630000000,
+    "total_outstanding_vnd": 630000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 48,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000049": {
+    "customer_id": "CUST-000049",
+    "full_name": "HOÀNG QUANG ĐỨC",
+    "debt_group": 4,
+    "outstanding_debt": 950000000,
+    "total_outstanding_vnd": 950000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 1000000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 47,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000050": {
+    "customer_id": "CUST-000050",
+    "full_name": "HOÀNG NGỌC GIANG",
+    "debt_group": 5,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 100000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 46,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 7
+  },
+  "001099000051": {
+    "customer_id": "CUST-000051",
+    "full_name": "HOÀNG TUẤN HẢI",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 45,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000052": {
+    "customer_id": "CUST-000052",
+    "full_name": "HOÀNG THU HƯƠNG",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 44,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "001099000053": {
+    "customer_id": "CUST-000053",
+    "full_name": "HOÀNG ĐỨC KHÁNH",
+    "debt_group": 3,
+    "outstanding_debt": 280000000,
+    "total_outstanding_vnd": 280000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 43,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000054": {
+    "customer_id": "CUST-000054",
+    "full_name": "HOÀNG THẢO LINH",
+    "debt_group": 4,
+    "outstanding_debt": 475000000,
+    "total_outstanding_vnd": 475000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 500000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 42,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000055": {
+    "customer_id": "CUST-000055",
+    "full_name": "HOÀNG GIA MINH",
+    "debt_group": 5,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 600000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 41,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 8
+  },
+  "001099000056": {
+    "customer_id": "CUST-000056",
+    "full_name": "HUỲNH VĂN AN",
+    "debt_group": 1,
+    "outstanding_debt": 140000000,
+    "total_outstanding_vnd": 140000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 700000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 40,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 1
+  },
+  "001099000057": {
+    "customer_id": "CUST-000057",
+    "full_name": "HUỲNH THỊ BÍCH",
+    "debt_group": 2,
+    "outstanding_debt": 360000000,
+    "total_outstanding_vnd": 360000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 39,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000058": {
+    "customer_id": "CUST-000058",
+    "full_name": "HUỲNH MINH CƯỜNG",
+    "debt_group": 3,
+    "outstanding_debt": 630000000,
+    "total_outstanding_vnd": 630000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 38,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000059": {
+    "customer_id": "CUST-000059",
+    "full_name": "HUỲNH THỊ DIỆU",
+    "debt_group": 4,
+    "outstanding_debt": 950000000,
+    "total_outstanding_vnd": 950000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 1000000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 37,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 7
+  },
+  "001099000060": {
+    "customer_id": "CUST-000060",
+    "full_name": "HUỲNH QUANG ĐỨC",
+    "debt_group": 5,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 100000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 36,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000061": {
+    "customer_id": "CUST-000061",
+    "full_name": "HUỲNH NGỌC GIANG",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 35,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "001099000062": {
+    "customer_id": "CUST-000062",
+    "full_name": "HUỲNH TUẤN HẢI",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 34,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000063": {
+    "customer_id": "CUST-000063",
+    "full_name": "HUỲNH THU HƯƠNG",
+    "debt_group": 3,
+    "outstanding_debt": 280000000,
+    "total_outstanding_vnd": 280000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 33,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000064": {
+    "customer_id": "CUST-000064",
+    "full_name": "HUỲNH ĐỨC KHÁNH",
+    "debt_group": 4,
+    "outstanding_debt": 475000000,
+    "total_outstanding_vnd": 475000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 500000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 32,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000065": {
+    "customer_id": "CUST-000065",
+    "full_name": "HUỲNH THẢO LINH",
+    "debt_group": 5,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 600000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 31,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000066": {
+    "customer_id": "CUST-000066",
+    "full_name": "HUỲNH GIA MINH",
+    "debt_group": 1,
+    "outstanding_debt": 140000000,
+    "total_outstanding_vnd": 140000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 700000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 30,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000067": {
+    "customer_id": "CUST-000067",
+    "full_name": "PHAN VĂN AN",
+    "debt_group": 2,
+    "outstanding_debt": 360000000,
+    "total_outstanding_vnd": 360000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 29,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000068": {
+    "customer_id": "CUST-000068",
+    "full_name": "PHAN THỊ BÍCH",
+    "debt_group": 3,
+    "outstanding_debt": 630000000,
+    "total_outstanding_vnd": 630000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 28,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000069": {
+    "customer_id": "CUST-000069",
+    "full_name": "PHAN MINH CƯỜNG",
+    "debt_group": 4,
+    "outstanding_debt": 950000000,
+    "total_outstanding_vnd": 950000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 1000000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 27,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000070": {
+    "customer_id": "CUST-000070",
+    "full_name": "PHAN THỊ DIỆU",
+    "debt_group": 5,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 100000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 26,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 7
+  },
+  "001099000071": {
+    "customer_id": "CUST-000071",
+    "full_name": "PHAN QUANG ĐỨC",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 25,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000072": {
+    "customer_id": "CUST-000072",
+    "full_name": "PHAN NGỌC GIANG",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 24,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "001099000073": {
+    "customer_id": "CUST-000073",
+    "full_name": "PHAN TUẤN HẢI",
+    "debt_group": 3,
+    "outstanding_debt": 280000000,
+    "total_outstanding_vnd": 280000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 23,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000074": {
+    "customer_id": "CUST-000074",
+    "full_name": "PHAN THU HƯƠNG",
+    "debt_group": 4,
+    "outstanding_debt": 475000000,
+    "total_outstanding_vnd": 475000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 500000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 22,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000075": {
+    "customer_id": "CUST-000075",
+    "full_name": "PHAN ĐỨC KHÁNH",
+    "debt_group": 5,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 600000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 21,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 8
+  },
+  "001099000076": {
+    "customer_id": "CUST-000076",
+    "full_name": "PHAN THẢO LINH",
+    "debt_group": 1,
+    "outstanding_debt": 140000000,
+    "total_outstanding_vnd": 140000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 700000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 20,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 1
+  },
+  "001099000077": {
+    "customer_id": "CUST-000077",
+    "full_name": "PHAN GIA MINH",
+    "debt_group": 2,
+    "outstanding_debt": 360000000,
+    "total_outstanding_vnd": 360000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 19,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000078": {
+    "customer_id": "CUST-000078",
+    "full_name": "VŨ VĂN AN",
+    "debt_group": 3,
+    "outstanding_debt": 630000000,
+    "total_outstanding_vnd": 630000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 18,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000079": {
+    "customer_id": "CUST-000079",
+    "full_name": "VŨ THỊ BÍCH",
+    "debt_group": 4,
+    "outstanding_debt": 950000000,
+    "total_outstanding_vnd": 950000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 1000000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 17,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 7
+  },
+  "001099000080": {
+    "customer_id": "CUST-000080",
+    "full_name": "VŨ MINH CƯỜNG",
+    "debt_group": 5,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 100000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 16,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000081": {
+    "customer_id": "CUST-000081",
+    "full_name": "VŨ THỊ DIỆU",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 15,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "001099000082": {
+    "customer_id": "CUST-000082",
+    "full_name": "VŨ QUANG ĐỨC",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 14,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000083": {
+    "customer_id": "CUST-000083",
+    "full_name": "VŨ NGỌC GIANG",
+    "debt_group": 3,
+    "outstanding_debt": 280000000,
+    "total_outstanding_vnd": 280000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 13,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000084": {
+    "customer_id": "CUST-000084",
+    "full_name": "VŨ TUẤN HẢI",
+    "debt_group": 4,
+    "outstanding_debt": 475000000,
+    "total_outstanding_vnd": 475000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 500000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 12,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000085": {
+    "customer_id": "CUST-000085",
+    "full_name": "VŨ THU HƯƠNG",
+    "debt_group": 5,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 600000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 11,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 6
+  },
+  "001099000086": {
+    "customer_id": "CUST-000086",
+    "full_name": "VŨ ĐỨC KHÁNH",
+    "debt_group": 1,
+    "outstanding_debt": 140000000,
+    "total_outstanding_vnd": 140000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 700000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 10,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000087": {
+    "customer_id": "CUST-000087",
+    "full_name": "VŨ THẢO LINH",
+    "debt_group": 2,
+    "outstanding_debt": 360000000,
+    "total_outstanding_vnd": 360000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 800000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 9,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000088": {
+    "customer_id": "CUST-000088",
+    "full_name": "VŨ GIA MINH",
+    "debt_group": 3,
+    "outstanding_debt": 630000000,
+    "total_outstanding_vnd": 630000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 900000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 8,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 3
+  },
+  "001099000089": {
+    "customer_id": "CUST-000089",
+    "full_name": "ĐẶNG VĂN AN",
+    "debt_group": 4,
+    "outstanding_debt": 950000000,
+    "total_outstanding_vnd": 950000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 4,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV"
+    ],
+    "credit_limit_total_vnd": 1000000000,
+    "num_active_loans": 4,
+    "monthly_debt_obligation_vnd": 12000000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 7,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 5
+  },
+  "001099000090": {
+    "customer_id": "CUST-000090",
+    "full_name": "ĐẶNG THỊ BÍCH",
+    "debt_group": 5,
+    "outstanding_debt": 120000000,
+    "total_outstanding_vnd": 120000000,
+    "overdue_history": {
+      "count": 6,
+      "max_days": 400,
+      "amount_vnd": 25000000
+    },
+    "number_of_institutions": 5,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank",
+      "BIDV",
+      "Agribank"
+    ],
+    "credit_limit_total_vnd": 100000000,
+    "num_active_loans": 5,
+    "monthly_debt_obligation_vnd": 15000000,
+    "max_overdue_days": 400,
+    "overdue_amount_vnd": 25000000,
+    "credit_history_months": 96,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 7
+  },
+  "001099000091": {
+    "customer_id": "CUST-000091",
+    "full_name": "ĐẶNG MINH CƯỜNG",
+    "debt_group": 1,
+    "outstanding_debt": 40000000,
+    "total_outstanding_vnd": 40000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 200000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 3000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 95,
+    "credit_types": [
+      "secured",
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "001099000092": {
+    "customer_id": "CUST-000092",
+    "full_name": "ĐẶNG THỊ DIỆU",
+    "debt_group": 2,
+    "outstanding_debt": 135000000,
+    "total_outstanding_vnd": 135000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 6000000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 94,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "001099000093": {
+    "customer_id": "CUST-000093",
+    "full_name": "ĐẶNG QUANG ĐỨC",
+    "debt_group": 3,
+    "outstanding_debt": 280000000,
+    "total_outstanding_vnd": 280000000,
+    "overdue_history": {
+      "count": 3,
+      "max_days": 120,
+      "amount_vnd": 15000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 9000000,
+    "max_overdue_days": 120,
+    "overdue_amount_vnd": 15000000,
+    "credit_history_months": 93,
+    "credit_types": [
+      "secured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "054301008970": {
+    "customer_id": "CUST-000100",
+    "full_name": "NGUYỄN THỊ HUYỀN TRẦN",
+    "debt_group": 2,
+    "outstanding_debt": 75000000,
+    "total_outstanding_vnd": 75000000,
+    "overdue_history": {
+      "count": 1,
+      "max_days": 30,
+      "amount_vnd": 2000000
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 300000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 1500000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 2000000,
+    "credit_history_months": 48,
+    "credit_types": [
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "066192009555": {
+    "customer_id": "CUST-000094",
+    "full_name": "TRẦN THỊ HỒNG PHÚC",
+    "debt_group": 2,
+    "outstanding_debt": 84000000,
+    "total_outstanding_vnd": 84000000,
+    "overdue_history": {
+      "count": 2,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 280000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 2520000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 48,
+    "credit_types": [
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "074300004128": {
+    "customer_id": "CUST-000099",
+    "full_name": "NGUYỄN THỊ BÉ HOA",
+    "debt_group": 1,
+    "outstanding_debt": 66000000,
+    "total_outstanding_vnd": 66000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 440000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 1500000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 48,
+    "credit_types": [
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "089085006905": {
+    "customer_id": "CUST-000095",
+    "full_name": "NGUYỄN MINH QUEN",
+    "debt_group": 4,
+    "outstanding_debt": 720000000,
+    "total_outstanding_vnd": 720000000,
+    "overdue_history": {
+      "count": 4,
+      "max_days": 240,
+      "amount_vnd": 20000000
+    },
+    "number_of_institutions": 3,
+    "institutions": [
+      "SHB",
+      "Vietcombank",
+      "VietinBank"
+    ],
+    "credit_limit_total_vnd": 1200000000,
+    "num_active_loans": 3,
+    "monthly_debt_obligation_vnd": 21600000,
+    "max_overdue_days": 240,
+    "overdue_amount_vnd": 20000000,
+    "credit_history_months": 48,
+    "credit_types": [
+      "secured",
+      "unsecured"
+    ],
+    "credit_types_vi": [
+      "Vay có tài sản bảo đảm",
+      "Vay tín chấp"
+    ],
+    "inquiries_last_6m": 4
+  },
+  "091185013867": {
+    "customer_id": "CUST-000098",
+    "full_name": "TRẦN THỊ VUI",
+    "debt_group": 1,
+    "outstanding_debt": 36000000,
+    "total_outstanding_vnd": 36000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 360000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 0,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 48,
+    "credit_types": [
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "095081010451": {
+    "customer_id": "CUST-000096",
+    "full_name": "NGUYỄN QUỐC VIỆT",
+    "debt_group": 1,
+    "outstanding_debt": 60000000,
+    "total_outstanding_vnd": 60000000,
+    "overdue_history": {
+      "count": 0,
+      "max_days": 0,
+      "amount_vnd": 0
+    },
+    "number_of_institutions": 1,
+    "institutions": [
+      "SHB"
+    ],
+    "credit_limit_total_vnd": 400000000,
+    "num_active_loans": 1,
+    "monthly_debt_obligation_vnd": 2000000,
+    "max_overdue_days": 0,
+    "overdue_amount_vnd": 0,
+    "credit_history_months": 48,
+    "credit_types": [
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 2
+  },
+  "096193000296": {
+    "customer_id": "CUST-000097",
+    "full_name": "ĐẶNG THỊ TRẮNG",
+    "debt_group": 2,
+    "outstanding_debt": 96000000,
+    "total_outstanding_vnd": 96000000,
+    "overdue_history": {
+      "count": 2,
+      "max_days": 30,
+      "amount_vnd": 10000000
+    },
+    "number_of_institutions": 2,
+    "institutions": [
+      "SHB",
+      "Vietcombank"
+    ],
+    "credit_limit_total_vnd": 320000000,
+    "num_active_loans": 2,
+    "monthly_debt_obligation_vnd": 2880000,
+    "max_overdue_days": 30,
+    "overdue_amount_vnd": 10000000,
+    "credit_history_months": 48,
+    "credit_types": [
+      "unsecured",
+      "card"
+    ],
+    "credit_types_vi": [
+      "Vay tín chấp",
+      "Thẻ tín dụng"
+    ],
+    "inquiries_last_6m": 4
   }
 }

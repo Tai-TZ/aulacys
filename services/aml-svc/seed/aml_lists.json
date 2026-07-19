@@ -1,4 +1,2193 @@
 {
-  "sanctions_list": ["Le Van Risky"],
-  "pep_list": ["Tran Thi B"]
+  "_meta": {
+    "dataset_id": "aulacys-aml-test-snapshot",
+    "version": "2026.1",
+    "classification": "SYNTHETIC_TEST_DATA",
+    "contains_real_personal_data": false,
+    "schema_version": "1.0",
+    "record_count": 100,
+    "sanctions_count": 50,
+    "pep_count": 50
+  },
+  "sanctions_list": [
+    {
+      "entity_id": "SAN-UN-001",
+      "entity_type": "person",
+      "primary_name": "LE VAN RISKY",
+      "aliases": [
+        "LE V RISKY",
+        "RISKY LE"
+      ],
+      "dob": "1956-02-02",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-001"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-02-02",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-001"
+    },
+    {
+      "entity_id": "SAN-TEST-002",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 002",
+      "aliases": [
+        "SANCTIONS ALIAS 002"
+      ],
+      "dob": "1957-03-03",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-002"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-03-03",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-002"
+    },
+    {
+      "entity_id": "SAN-TEST-003",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 003",
+      "aliases": [
+        "SANCTIONS ALIAS 003"
+      ],
+      "dob": "1958-04-04",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-003"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-04-04",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-003"
+    },
+    {
+      "entity_id": "SAN-TEST-004",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 004",
+      "aliases": [
+        "SANCTIONS ALIAS 004"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-004"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-05-05",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-004"
+    },
+    {
+      "entity_id": "SAN-TEST-005",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 005",
+      "aliases": [
+        "SANCTIONS ALIAS 005"
+      ],
+      "dob": "1960-06-06",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-005"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-06-06",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-005"
+    },
+    {
+      "entity_id": "SAN-TEST-006",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 006",
+      "aliases": [
+        "SANCTIONS ALIAS 006"
+      ],
+      "dob": "1961-07-07",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-006"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-01-07",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-006"
+    },
+    {
+      "entity_id": "SAN-TEST-007",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 007",
+      "aliases": [
+        "SANCTIONS ALIAS 007"
+      ],
+      "dob": "1962-08-08",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-007"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-02-08",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-007"
+    },
+    {
+      "entity_id": "SAN-TEST-008",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 008",
+      "aliases": [
+        "SANCTIONS ALIAS 008"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-008"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-03-09",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-008"
+    },
+    {
+      "entity_id": "SAN-TEST-009",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 009",
+      "aliases": [
+        "SANCTIONS ALIAS 009"
+      ],
+      "dob": "1964-10-10",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-009"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-04-10",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-009"
+    },
+    {
+      "entity_id": "SAN-TEST-010",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 010",
+      "aliases": [
+        "SANCTIONS ALIAS 010"
+      ],
+      "dob": "1965-11-11",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-010"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-05-11",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-010"
+    },
+    {
+      "entity_id": "SAN-TEST-011",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 011",
+      "aliases": [
+        "SANCTIONS ALIAS 011"
+      ],
+      "dob": "1966-12-12",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-011"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-06-12",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-011"
+    },
+    {
+      "entity_id": "SAN-TEST-012",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 012",
+      "aliases": [
+        "SANCTIONS ALIAS 012"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-012"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-01-13",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-012"
+    },
+    {
+      "entity_id": "SAN-TEST-013",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 013",
+      "aliases": [
+        "SANCTIONS ALIAS 013"
+      ],
+      "dob": "1968-02-14",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-013"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-02-14",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-013"
+    },
+    {
+      "entity_id": "SAN-TEST-014",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 014",
+      "aliases": [
+        "SANCTIONS ALIAS 014"
+      ],
+      "dob": "1969-03-15",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-014"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-03-15",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-014"
+    },
+    {
+      "entity_id": "SAN-TEST-015",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 015",
+      "aliases": [
+        "SANCTIONS ALIAS 015"
+      ],
+      "dob": "1970-04-16",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-015"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-04-16",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-015"
+    },
+    {
+      "entity_id": "SAN-TEST-016",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 016",
+      "aliases": [
+        "SANCTIONS ALIAS 016"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-016"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-05-17",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-016"
+    },
+    {
+      "entity_id": "SAN-TEST-017",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 017",
+      "aliases": [
+        "SANCTIONS ALIAS 017"
+      ],
+      "dob": "1972-06-18",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-017"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-06-18",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-017"
+    },
+    {
+      "entity_id": "SAN-TEST-018",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 018",
+      "aliases": [
+        "SANCTIONS ALIAS 018"
+      ],
+      "dob": "1973-07-19",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-018"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-01-19",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-018"
+    },
+    {
+      "entity_id": "SAN-TEST-019",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 019",
+      "aliases": [
+        "SANCTIONS ALIAS 019"
+      ],
+      "dob": "1974-08-20",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-019"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-02-20",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-019"
+    },
+    {
+      "entity_id": "SAN-TEST-020",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 020",
+      "aliases": [
+        "SANCTIONS ALIAS 020"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-020"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-03-21",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-020"
+    },
+    {
+      "entity_id": "SAN-TEST-021",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 021",
+      "aliases": [
+        "SANCTIONS ALIAS 021"
+      ],
+      "dob": "1976-10-22",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-021"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-04-22",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-021"
+    },
+    {
+      "entity_id": "SAN-TEST-022",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 022",
+      "aliases": [
+        "SANCTIONS ALIAS 022"
+      ],
+      "dob": "1977-11-23",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-022"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-05-23",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-022"
+    },
+    {
+      "entity_id": "SAN-TEST-023",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 023",
+      "aliases": [
+        "SANCTIONS ALIAS 023"
+      ],
+      "dob": "1978-12-24",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-023"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-06-24",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-023"
+    },
+    {
+      "entity_id": "SAN-TEST-024",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 024",
+      "aliases": [
+        "SANCTIONS ALIAS 024"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-024"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-01-25",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-024"
+    },
+    {
+      "entity_id": "SAN-TEST-025",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 025",
+      "aliases": [
+        "SANCTIONS ALIAS 025"
+      ],
+      "dob": "1980-02-26",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-025"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-02-26",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-025"
+    },
+    {
+      "entity_id": "SAN-TEST-026",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 026",
+      "aliases": [
+        "SANCTIONS ALIAS 026"
+      ],
+      "dob": "1981-03-27",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-026"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-03-27",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-026"
+    },
+    {
+      "entity_id": "SAN-TEST-027",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 027",
+      "aliases": [
+        "SANCTIONS ALIAS 027"
+      ],
+      "dob": "1982-04-01",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-027"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-04-01",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-027"
+    },
+    {
+      "entity_id": "SAN-TEST-028",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 028",
+      "aliases": [
+        "SANCTIONS ALIAS 028"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-028"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-05-02",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-028"
+    },
+    {
+      "entity_id": "SAN-TEST-029",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 029",
+      "aliases": [
+        "SANCTIONS ALIAS 029"
+      ],
+      "dob": "1984-06-03",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-029"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-06-03",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-029"
+    },
+    {
+      "entity_id": "SAN-TEST-030",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 030",
+      "aliases": [
+        "SANCTIONS ALIAS 030"
+      ],
+      "dob": "1985-07-04",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-030"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-01-04",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-030"
+    },
+    {
+      "entity_id": "SAN-TEST-031",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 031",
+      "aliases": [
+        "SANCTIONS ALIAS 031"
+      ],
+      "dob": "1986-08-05",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-031"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-02-05",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-031"
+    },
+    {
+      "entity_id": "SAN-TEST-032",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 032",
+      "aliases": [
+        "SANCTIONS ALIAS 032"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-032"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-03-06",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-032"
+    },
+    {
+      "entity_id": "SAN-TEST-033",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 033",
+      "aliases": [
+        "SANCTIONS ALIAS 033"
+      ],
+      "dob": "1988-10-07",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-033"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-04-07",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-033"
+    },
+    {
+      "entity_id": "SAN-TEST-034",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 034",
+      "aliases": [
+        "SANCTIONS ALIAS 034"
+      ],
+      "dob": "1989-11-08",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-034"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-05-08",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-034"
+    },
+    {
+      "entity_id": "SAN-TEST-035",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 035",
+      "aliases": [
+        "SANCTIONS ALIAS 035"
+      ],
+      "dob": "1990-12-09",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-035"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-06-09",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-035"
+    },
+    {
+      "entity_id": "SAN-TEST-036",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 036",
+      "aliases": [
+        "SANCTIONS ALIAS 036"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-036"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-01-10",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-036"
+    },
+    {
+      "entity_id": "SAN-TEST-037",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 037",
+      "aliases": [
+        "SANCTIONS ALIAS 037"
+      ],
+      "dob": "1992-02-11",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-037"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-02-11",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-037"
+    },
+    {
+      "entity_id": "SAN-TEST-038",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 038",
+      "aliases": [
+        "SANCTIONS ALIAS 038"
+      ],
+      "dob": "1993-03-12",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-038"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-03-12",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-038"
+    },
+    {
+      "entity_id": "SAN-TEST-039",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 039",
+      "aliases": [
+        "SANCTIONS ALIAS 039"
+      ],
+      "dob": "1994-04-13",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-039"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-04-13",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-039"
+    },
+    {
+      "entity_id": "SAN-TEST-040",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 040",
+      "aliases": [
+        "SANCTIONS ALIAS 040"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-040"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-05-14",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-040"
+    },
+    {
+      "entity_id": "SAN-TEST-041",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 041",
+      "aliases": [
+        "SANCTIONS ALIAS 041"
+      ],
+      "dob": "1956-06-15",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-041"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-06-15",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-041"
+    },
+    {
+      "entity_id": "SAN-TEST-042",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 042",
+      "aliases": [
+        "SANCTIONS ALIAS 042"
+      ],
+      "dob": "1957-07-16",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-042"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-01-16",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-042"
+    },
+    {
+      "entity_id": "SAN-TEST-043",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 043",
+      "aliases": [
+        "SANCTIONS ALIAS 043"
+      ],
+      "dob": "1958-08-17",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-043"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-02-17",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-043"
+    },
+    {
+      "entity_id": "SAN-TEST-044",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 044",
+      "aliases": [
+        "SANCTIONS ALIAS 044"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-044"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-03-18",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-044"
+    },
+    {
+      "entity_id": "SAN-TEST-045",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 045",
+      "aliases": [
+        "SANCTIONS ALIAS 045"
+      ],
+      "dob": "1960-10-19",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-045"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-04-19",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-045"
+    },
+    {
+      "entity_id": "SAN-TEST-046",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 046",
+      "aliases": [
+        "SANCTIONS ALIAS 046"
+      ],
+      "dob": "1961-11-20",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-046"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-05-20",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-046"
+    },
+    {
+      "entity_id": "SAN-TEST-047",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 047",
+      "aliases": [
+        "SANCTIONS ALIAS 047"
+      ],
+      "dob": "1962-12-21",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-047"
+        }
+      ],
+      "programs": [
+        "UK_TEST"
+      ],
+      "listed_on": "2026-06-21",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-047"
+    },
+    {
+      "entity_id": "SAN-TEST-048",
+      "entity_type": "entity",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 048",
+      "aliases": [
+        "SANCTIONS ALIAS 048"
+      ],
+      "dob": null,
+      "nationalities": [],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-048"
+        }
+      ],
+      "programs": [
+        "UN_TEST"
+      ],
+      "listed_on": "2026-01-22",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-048"
+    },
+    {
+      "entity_id": "SAN-TEST-049",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 049",
+      "aliases": [
+        "SANCTIONS ALIAS 049"
+      ],
+      "dob": "1964-02-23",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-049"
+        }
+      ],
+      "programs": [
+        "OFAC_TEST"
+      ],
+      "listed_on": "2026-02-23",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-049"
+    },
+    {
+      "entity_id": "SAN-TEST-050",
+      "entity_type": "person",
+      "primary_name": "SYNTHETIC SANCTIONS SUBJECT 050",
+      "aliases": [
+        "SANCTIONS ALIAS 050"
+      ],
+      "dob": "1965-03-24",
+      "nationalities": [
+        "ZZ"
+      ],
+      "identifiers": [
+        {
+          "type": "synthetic_id",
+          "value": "SAN-ID-050"
+        }
+      ],
+      "programs": [
+        "EU_TEST"
+      ],
+      "listed_on": "2026-03-24",
+      "source_name": "Synthetic official-list-shaped fixture",
+      "source_url": "https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list",
+      "source_record_id": "TEST-SAN-050"
+    }
+  ],
+  "pep_list": [
+    {
+      "entity_id": "PEP-VN-001",
+      "primary_name": "TRAN THI B",
+      "aliases": [
+        "TRAN B"
+      ],
+      "dob": "1956-02-02",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2011-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-001"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-001"
+    },
+    {
+      "entity_id": "PEP-TEST-002",
+      "primary_name": "SYNTHETIC PEP PERSON 002",
+      "aliases": [
+        "PEP ALIAS 002"
+      ],
+      "dob": "1957-03-03",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2012-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-002"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-002"
+    },
+    {
+      "entity_id": "PEP-TEST-003",
+      "primary_name": "SYNTHETIC PEP PERSON 003",
+      "aliases": [
+        "PEP ALIAS 003"
+      ],
+      "dob": "1958-04-04",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2013-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-003"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-003"
+    },
+    {
+      "entity_id": "PEP-TEST-004",
+      "primary_name": "SYNTHETIC PEP PERSON 004",
+      "aliases": [
+        "PEP ALIAS 004"
+      ],
+      "dob": "1959-05-05",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2014-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-004"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-004"
+    },
+    {
+      "entity_id": "PEP-TEST-005",
+      "primary_name": "SYNTHETIC PEP PERSON 005",
+      "aliases": [
+        "PEP ALIAS 005"
+      ],
+      "dob": "1960-06-06",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2015-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-005"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-005"
+    },
+    {
+      "entity_id": "PEP-TEST-006",
+      "primary_name": "SYNTHETIC PEP PERSON 006",
+      "aliases": [
+        "PEP ALIAS 006"
+      ],
+      "dob": "1961-07-07",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2016-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-006"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-006"
+    },
+    {
+      "entity_id": "PEP-TEST-007",
+      "primary_name": "SYNTHETIC PEP PERSON 007",
+      "aliases": [
+        "PEP ALIAS 007"
+      ],
+      "dob": "1962-08-08",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2017-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-007"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-007"
+    },
+    {
+      "entity_id": "PEP-TEST-008",
+      "primary_name": "SYNTHETIC PEP PERSON 008",
+      "aliases": [
+        "PEP ALIAS 008"
+      ],
+      "dob": "1963-09-09",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2018-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-008"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-008"
+    },
+    {
+      "entity_id": "PEP-TEST-009",
+      "primary_name": "SYNTHETIC PEP PERSON 009",
+      "aliases": [
+        "PEP ALIAS 009"
+      ],
+      "dob": "1964-10-10",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2019-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-009"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-009"
+    },
+    {
+      "entity_id": "PEP-TEST-010",
+      "primary_name": "SYNTHETIC PEP PERSON 010",
+      "aliases": [
+        "PEP ALIAS 010"
+      ],
+      "dob": "1965-11-11",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2020-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-010"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-010"
+    },
+    {
+      "entity_id": "PEP-TEST-011",
+      "primary_name": "SYNTHETIC PEP PERSON 011",
+      "aliases": [
+        "PEP ALIAS 011"
+      ],
+      "dob": "1966-12-12",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2021-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-011"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-011"
+    },
+    {
+      "entity_id": "PEP-TEST-012",
+      "primary_name": "SYNTHETIC PEP PERSON 012",
+      "aliases": [
+        "PEP ALIAS 012"
+      ],
+      "dob": "1967-01-13",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2010-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-012"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-012"
+    },
+    {
+      "entity_id": "PEP-TEST-013",
+      "primary_name": "SYNTHETIC PEP PERSON 013",
+      "aliases": [
+        "PEP ALIAS 013"
+      ],
+      "dob": "1968-02-14",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2011-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-013"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-013"
+    },
+    {
+      "entity_id": "PEP-TEST-014",
+      "primary_name": "SYNTHETIC PEP PERSON 014",
+      "aliases": [
+        "PEP ALIAS 014"
+      ],
+      "dob": "1969-03-15",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2012-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-014"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-014"
+    },
+    {
+      "entity_id": "PEP-TEST-015",
+      "primary_name": "SYNTHETIC PEP PERSON 015",
+      "aliases": [
+        "PEP ALIAS 015"
+      ],
+      "dob": "1970-04-16",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2013-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-015"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-015"
+    },
+    {
+      "entity_id": "PEP-TEST-016",
+      "primary_name": "SYNTHETIC PEP PERSON 016",
+      "aliases": [
+        "PEP ALIAS 016"
+      ],
+      "dob": "1971-05-17",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2014-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-016"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-016"
+    },
+    {
+      "entity_id": "PEP-TEST-017",
+      "primary_name": "SYNTHETIC PEP PERSON 017",
+      "aliases": [
+        "PEP ALIAS 017"
+      ],
+      "dob": "1972-06-18",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2015-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-017"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-017"
+    },
+    {
+      "entity_id": "PEP-TEST-018",
+      "primary_name": "SYNTHETIC PEP PERSON 018",
+      "aliases": [
+        "PEP ALIAS 018"
+      ],
+      "dob": "1973-07-19",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2016-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-018"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-018"
+    },
+    {
+      "entity_id": "PEP-TEST-019",
+      "primary_name": "SYNTHETIC PEP PERSON 019",
+      "aliases": [
+        "PEP ALIAS 019"
+      ],
+      "dob": "1974-08-20",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2017-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-019"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-019"
+    },
+    {
+      "entity_id": "PEP-TEST-020",
+      "primary_name": "SYNTHETIC PEP PERSON 020",
+      "aliases": [
+        "PEP ALIAS 020"
+      ],
+      "dob": "1975-09-21",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2018-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-020"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-020"
+    },
+    {
+      "entity_id": "PEP-TEST-021",
+      "primary_name": "SYNTHETIC PEP PERSON 021",
+      "aliases": [
+        "PEP ALIAS 021"
+      ],
+      "dob": "1976-10-22",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2019-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-021"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-021"
+    },
+    {
+      "entity_id": "PEP-TEST-022",
+      "primary_name": "SYNTHETIC PEP PERSON 022",
+      "aliases": [
+        "PEP ALIAS 022"
+      ],
+      "dob": "1977-11-23",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2020-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-022"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-022"
+    },
+    {
+      "entity_id": "PEP-TEST-023",
+      "primary_name": "SYNTHETIC PEP PERSON 023",
+      "aliases": [
+        "PEP ALIAS 023"
+      ],
+      "dob": "1978-12-24",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2021-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-023"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-023"
+    },
+    {
+      "entity_id": "PEP-TEST-024",
+      "primary_name": "SYNTHETIC PEP PERSON 024",
+      "aliases": [
+        "PEP ALIAS 024"
+      ],
+      "dob": "1979-01-25",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2010-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-024"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-024"
+    },
+    {
+      "entity_id": "PEP-TEST-025",
+      "primary_name": "SYNTHETIC PEP PERSON 025",
+      "aliases": [
+        "PEP ALIAS 025"
+      ],
+      "dob": "1980-02-26",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2011-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-025"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-025"
+    },
+    {
+      "entity_id": "PEP-TEST-026",
+      "primary_name": "SYNTHETIC PEP PERSON 026",
+      "aliases": [
+        "PEP ALIAS 026"
+      ],
+      "dob": "1981-03-27",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2012-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-026"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-026"
+    },
+    {
+      "entity_id": "PEP-TEST-027",
+      "primary_name": "SYNTHETIC PEP PERSON 027",
+      "aliases": [
+        "PEP ALIAS 027"
+      ],
+      "dob": "1982-04-01",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2013-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-027"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-027"
+    },
+    {
+      "entity_id": "PEP-TEST-028",
+      "primary_name": "SYNTHETIC PEP PERSON 028",
+      "aliases": [
+        "PEP ALIAS 028"
+      ],
+      "dob": "1983-05-02",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2014-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-028"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-028"
+    },
+    {
+      "entity_id": "PEP-TEST-029",
+      "primary_name": "SYNTHETIC PEP PERSON 029",
+      "aliases": [
+        "PEP ALIAS 029"
+      ],
+      "dob": "1984-06-03",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2015-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-029"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-029"
+    },
+    {
+      "entity_id": "PEP-TEST-030",
+      "primary_name": "SYNTHETIC PEP PERSON 030",
+      "aliases": [
+        "PEP ALIAS 030"
+      ],
+      "dob": "1985-07-04",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2016-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-030"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-030"
+    },
+    {
+      "entity_id": "PEP-TEST-031",
+      "primary_name": "SYNTHETIC PEP PERSON 031",
+      "aliases": [
+        "PEP ALIAS 031"
+      ],
+      "dob": "1986-08-05",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2017-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-031"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-031"
+    },
+    {
+      "entity_id": "PEP-TEST-032",
+      "primary_name": "SYNTHETIC PEP PERSON 032",
+      "aliases": [
+        "PEP ALIAS 032"
+      ],
+      "dob": "1987-09-06",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2018-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-032"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-032"
+    },
+    {
+      "entity_id": "PEP-TEST-033",
+      "primary_name": "SYNTHETIC PEP PERSON 033",
+      "aliases": [
+        "PEP ALIAS 033"
+      ],
+      "dob": "1988-10-07",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2019-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-033"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-033"
+    },
+    {
+      "entity_id": "PEP-TEST-034",
+      "primary_name": "SYNTHETIC PEP PERSON 034",
+      "aliases": [
+        "PEP ALIAS 034"
+      ],
+      "dob": "1989-11-08",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2020-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-034"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-034"
+    },
+    {
+      "entity_id": "PEP-TEST-035",
+      "primary_name": "SYNTHETIC PEP PERSON 035",
+      "aliases": [
+        "PEP ALIAS 035"
+      ],
+      "dob": "1990-12-09",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2021-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-035"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-035"
+    },
+    {
+      "entity_id": "PEP-TEST-036",
+      "primary_name": "SYNTHETIC PEP PERSON 036",
+      "aliases": [
+        "PEP ALIAS 036"
+      ],
+      "dob": "1991-01-10",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2010-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-036"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-036"
+    },
+    {
+      "entity_id": "PEP-TEST-037",
+      "primary_name": "SYNTHETIC PEP PERSON 037",
+      "aliases": [
+        "PEP ALIAS 037"
+      ],
+      "dob": "1992-02-11",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2011-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-037"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-037"
+    },
+    {
+      "entity_id": "PEP-TEST-038",
+      "primary_name": "SYNTHETIC PEP PERSON 038",
+      "aliases": [
+        "PEP ALIAS 038"
+      ],
+      "dob": "1993-03-12",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2012-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-038"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-038"
+    },
+    {
+      "entity_id": "PEP-TEST-039",
+      "primary_name": "SYNTHETIC PEP PERSON 039",
+      "aliases": [
+        "PEP ALIAS 039"
+      ],
+      "dob": "1994-04-13",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2013-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-039"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-039"
+    },
+    {
+      "entity_id": "PEP-TEST-040",
+      "primary_name": "SYNTHETIC PEP PERSON 040",
+      "aliases": [
+        "PEP ALIAS 040"
+      ],
+      "dob": "1955-05-14",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2014-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-040"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-040"
+    },
+    {
+      "entity_id": "PEP-TEST-041",
+      "primary_name": "SYNTHETIC PEP PERSON 041",
+      "aliases": [
+        "PEP ALIAS 041"
+      ],
+      "dob": "1956-06-15",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2015-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-041"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-041"
+    },
+    {
+      "entity_id": "PEP-TEST-042",
+      "primary_name": "SYNTHETIC PEP PERSON 042",
+      "aliases": [
+        "PEP ALIAS 042"
+      ],
+      "dob": "1957-07-16",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2016-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-042"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-042"
+    },
+    {
+      "entity_id": "PEP-TEST-043",
+      "primary_name": "SYNTHETIC PEP PERSON 043",
+      "aliases": [
+        "PEP ALIAS 043"
+      ],
+      "dob": "1958-08-17",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2017-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-043"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-043"
+    },
+    {
+      "entity_id": "PEP-TEST-044",
+      "primary_name": "SYNTHETIC PEP PERSON 044",
+      "aliases": [
+        "PEP ALIAS 044"
+      ],
+      "dob": "1959-09-18",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2018-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-044"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-044"
+    },
+    {
+      "entity_id": "PEP-TEST-045",
+      "primary_name": "SYNTHETIC PEP PERSON 045",
+      "aliases": [
+        "PEP ALIAS 045"
+      ],
+      "dob": "1960-10-19",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2019-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-045"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-045"
+    },
+    {
+      "entity_id": "PEP-TEST-046",
+      "primary_name": "SYNTHETIC PEP PERSON 046",
+      "aliases": [
+        "PEP ALIAS 046"
+      ],
+      "dob": "1961-11-20",
+      "country": "ZZ",
+      "position": "Synthetic public function class 2",
+      "position_from": "2020-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-046"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-046"
+    },
+    {
+      "entity_id": "PEP-TEST-047",
+      "primary_name": "SYNTHETIC PEP PERSON 047",
+      "aliases": [
+        "PEP ALIAS 047"
+      ],
+      "dob": "1962-12-21",
+      "country": "ZZ",
+      "position": "Synthetic public function class 3",
+      "position_from": "2021-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-047"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-047"
+    },
+    {
+      "entity_id": "PEP-TEST-048",
+      "primary_name": "SYNTHETIC PEP PERSON 048",
+      "aliases": [
+        "PEP ALIAS 048"
+      ],
+      "dob": "1963-01-22",
+      "country": "ZZ",
+      "position": "Synthetic public function class 4",
+      "position_from": "2010-01-01",
+      "position_to": "2022-12-31",
+      "pep_class": "domestic",
+      "related_persons": [
+        "PEP-REL-048"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-048"
+    },
+    {
+      "entity_id": "PEP-TEST-049",
+      "primary_name": "SYNTHETIC PEP PERSON 049",
+      "aliases": [
+        "PEP ALIAS 049"
+      ],
+      "dob": "1964-02-23",
+      "country": "ZZ",
+      "position": "Synthetic public function class 5",
+      "position_from": "2011-01-01",
+      "position_to": null,
+      "pep_class": "foreign",
+      "related_persons": [
+        "PEP-REL-049"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-049"
+    },
+    {
+      "entity_id": "PEP-TEST-050",
+      "primary_name": "SYNTHETIC PEP PERSON 050",
+      "aliases": [
+        "PEP ALIAS 050"
+      ],
+      "dob": "1965-03-24",
+      "country": "ZZ",
+      "position": "Synthetic public function class 1",
+      "position_from": "2012-01-01",
+      "position_to": null,
+      "pep_class": "international_organisation",
+      "related_persons": [
+        "PEP-REL-050"
+      ],
+      "source_name": "Synthetic PEP fixture",
+      "source_url": "https://www.opensanctions.org/datasets/peps/",
+      "source_record_id": "TEST-PEP-050"
+    }
+  ]
 }

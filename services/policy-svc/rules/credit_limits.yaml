@@ -1,5 +1,12 @@
-# Hard legal limits — copy owned by policy-svc.
-# Keep in sync with apps/api/src/policy/rules/credit_limits.yaml.
+# Hard legal limits — policy-as-code.
+#
+# WHY THIS IS DATA AND NOT A PROMPT:
+# Ask an LLM for a statutory threshold and it recalls the number it saw most during
+# training — which is the number from the OLD law. These limits changed in 2024.
+# Rules live here so they are versioned, dated, reviewable, and cannot be argued with.
+#
+# A rule with `severity: blocking` cannot be reasoned around by any agent.
+# `veto_agent` is the only agent allowed to raise it.
 #
 # `version` is what the audit ledger records (not `ef:<effective_from>`).
 
@@ -17,7 +24,10 @@ rules:
     severity: blocking
     veto_agent: compliance
     version: "2026.1-dieu136"
+    # Verified 2026-07-18 against Công báo / Wikisource Điều 136 schedule:
+    # 01/01/2026–31/12/2026 → 13% một khách hàng (NHTM). Next row needed for 2027 (12%).
     verified: true
+    kind: legal
 
   - id: related_party_credit_limit
     description: >-
@@ -32,11 +42,13 @@ rules:
     severity: blocking
     veto_agent: compliance
     version: "2026.1-dieu136"
+    # Same schedule: 21% khách hàng + người liên quan trong năm 2026.
     verified: true
+    kind: legal
 
   - id: sanctions_hit
     description: >-
-      Customer, UBO, or a related party appears on a sanctions list.
+      Customer, its ultimate beneficial owner, or a related party appears on a sanctions list.
     legal_basis: "Luật Phòng, chống rửa tiền 2022, Điều 9 và Điều 10"
     metric: sanctions_match_count
     operator: "=="
@@ -47,11 +59,12 @@ rules:
     veto_agent: compliance
     version: "2023.1-aml"
     verified: true
+    kind: legal
 
   - id: pep_requires_enhanced_dd
     description: >-
-      A politically exposed person in the ownership chain requires enhanced due
-      diligence and senior approval — it does not by itself block the loan.
+      A politically exposed person in the ownership chain requires enhanced due diligence
+      and senior approval — it does not by itself block the loan.
     legal_basis: "Luật Phòng, chống rửa tiền 2022, Điều 17"
     metric: pep_match_count
     operator: "=="
@@ -62,6 +75,7 @@ rules:
     veto_agent: compliance
     version: "2023.1-aml"
     verified: true
+    kind: legal
 
   - id: min_dscr
     description: >-
@@ -76,6 +90,7 @@ rules:
     veto_agent: credit
     version: "mock-2026.1"
     verified: true
+    kind: appetite
 
   - id: max_ltv_real_estate
     description: >-
@@ -90,3 +105,4 @@ rules:
     veto_agent: credit
     version: "mock-2026.1"
     verified: true
+    kind: appetite

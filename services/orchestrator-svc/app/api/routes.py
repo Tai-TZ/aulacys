@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException
 
 from aulacys.agents.application_client import ConsentDeniedError, load_loan_application
-from aulacys.agents.graph import agent, load_product_config
+from aulacys.agents.graph import agent, load_product_config, run_credit_proposal
 from aulacys.agents.state import LoanApplication, RunTrace
 from aulacys.agents.tools.workflow import write_approval_ticket
 from aulacys.models.schemas import (
+    AppetiteThresholdPatch,
     ApprovalRequest,
     ApprovalResponse,
     AssessApplicationRequest,
@@ -12,12 +13,19 @@ from aulacys.models.schemas import (
     CatalogSeedResponse,
     ChatRequest,
     ChatResponse,
+    CreditProposalResponse,
     LoanProductIn,
     LoanProductOut,
+    PolicyRuleOut,
+    PolicyRulesResponse,
+    PolicyValidateRequest,
+    PolicyValidateResponse,
     ProductGroupIn,
     ProductGroupOut,
     ProductStatusPatch,
 )
+from aulacys.policy.loader import AppetitePatchError, evaluate, list_rules_for_profile, patch_appetite_threshold
+from aulacys.policy.profiles import profile_from_secured_type
 from aulacys.services import applications_proxy, products as products_svc
 
 router = APIRouter()
@@ -28,6 +36,7 @@ def _to_assess_response(state: dict) -> AssessResponse:
         response=state.get("response", ""),
         outcome=state.get("outcome", ""),
         run_trace=state.get("run_trace") or RunTrace(),
+        proposal=state.get("proposal"),
         credit=state.get("credit"),
         operations=state.get("operations"),
         compliance=state.get("compliance"),
@@ -39,7 +48,12 @@ def _to_assess_response(state: dict) -> AssessResponse:
 
 
 def _resolve_application(request: AssessApplicationRequest) -> LoanApplication:
-    """Body path or application-svc id (consent gate on load)."""
+    """Body path or application-svc id (consent gate on load).
+
+    Prefer application-svc when ``application_id`` is set. If the service times
+    out / is unreachable but the client also sent ``product`` + ``declared``,
+    fall back to the inline body so the demo path keeps working.
+    """
     if request.application_id:
         try:
             loaded = load_loan_application(
@@ -49,12 +63,21 @@ def _resolve_application(request: AssessApplicationRequest) -> LoanApplication:
             )
         except ConsentDeniedError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        if loaded is None:
-            raise HTTPException(
-                status_code=502,
-                detail=(f"application {request.application_id} not found or APPLICATION_SVC_URL unreachable"),
+        if loaded is not None:
+            return loaded
+        if request.product and request.declared is not None:
+            return LoanApplication(
+                product=request.product,
+                declared=request.declared,
+                documents=request.documents,
             )
-        return loaded
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                f"application {request.application_id} not found or APPLICATION_SVC_URL "
+                "unreachable/timed out (application-svc :8360). Retry, or submit product+declared."
+            ),
+        )
 
     assert request.product is not None and request.declared is not None
     return LoanApplication(
@@ -118,6 +141,40 @@ async def assess_application(request: AssessApplicationRequest) -> AssessRespons
     return _to_assess_response(state)
 
 
+@router.post("/assess/proposal", response_model=CreditProposalResponse)
+async def assess_credit_proposal(request: AssessApplicationRequest) -> CreditProposalResponse:
+    """Stage 2 — RM đề xuất: Credit only (CIC / DTI / price_loan / LoanProposal)."""
+    try:
+        application = _resolve_application(request)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    try:
+        load_product_config(application.product)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+
+    try:
+        state = run_credit_proposal(
+            application,
+            application_id=request.application_id or f"inline-{application.product}",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    credit = state.get("credit")
+    if credit is None:
+        raise HTTPException(status_code=500, detail="Credit produced no assessment")
+    return CreditProposalResponse(
+        response=state.get("response", ""),
+        proposal=state.get("proposal"),
+        credit=credit,
+        trace=state.get("trace", []),
+    )
+
+
 @router.post("/approvals", response_model=ApprovalResponse)
 async def create_approval(request: ApprovalRequest) -> ApprovalResponse:
     """HITL: human approves or rejects after the graph wrote a pending ticket."""
@@ -157,8 +214,11 @@ async def agent_status():
 
 @router.get("/applications")
 async def list_loan_applications(limit: int = 100) -> list[dict]:
-    """Proxy application-svc catalog of intake dossiers (empty if svc down)."""
-    return applications_proxy.list_applications(limit=limit)
+    """Proxy application-svc catalog of intake dossiers."""
+    rows = applications_proxy.list_applications(limit=limit)
+    if rows is None:
+        return applications_proxy.fallback_applications(limit=limit)
+    return rows
 
 
 @router.get("/applications/{application_id}")
@@ -254,3 +314,61 @@ async def delete_loan_product(product_id: str) -> None:
 async def seed_loan_products() -> CatalogSeedResponse:
     """Upsert default catalog (demo). Safe to re-run."""
     return await products_svc.seed_catalog()
+
+
+# --- Rule Engineer: policy rules attached to loan-package profile ---
+
+
+@router.get("/policy/rules", response_model=PolicyRulesResponse)
+async def list_policy_rules(
+    secured_type: str = "SECURED",
+    product_code: str | None = None,
+) -> PolicyRulesResponse:
+    """List underwriting rules for a package family (optionally scoped to product_code)."""
+    profile = profile_from_secured_type(secured_type)
+    code = (product_code or "").strip() or None
+    rows = list_rules_for_profile(profile, product_code=code)
+    return PolicyRulesResponse(
+        profile=profile,
+        secured_type=secured_type.upper(),
+        product_code=code,
+        rules=[PolicyRuleOut(**row) for row in rows],
+    )
+
+
+@router.patch("/policy/rules/{rule_id}", response_model=PolicyRuleOut)
+async def patch_policy_appetite(
+    rule_id: str,
+    body: AppetiteThresholdPatch,
+    secured_type: str = "SECURED",
+) -> PolicyRuleOut:
+    """Update an appetite threshold. Prefer body.product_code for per-package overrides."""
+    profile = profile_from_secured_type(secured_type)
+    code = (body.product_code or "").strip() or None
+    try:
+        patch_appetite_threshold(profile, rule_id, body.threshold, product_code=code)
+    except AppetitePatchError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    rows = {r["id"]: r for r in list_rules_for_profile(profile, product_code=code)}
+    row = rows.get(rule_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"rule not found: {rule_id}")
+    return PolicyRuleOut(**row)
+
+
+@router.post("/policy/rules/validate", response_model=PolicyValidateResponse)
+async def validate_policy_rules(
+    body: PolicyValidateRequest,
+    secured_type: str = "SECURED",
+) -> PolicyValidateResponse:
+    """Dry-run evaluate against the package profile (Rule Engineer 'Thử rule')."""
+    profile = profile_from_secured_type(secured_type)
+    code = (body.product_code or "").strip() or None
+    violations = evaluate(body.metrics, as_of=body.as_of, profile=profile, product_code=code)
+    return PolicyValidateResponse(
+        profile=profile,
+        product_code=code,
+        violations=[v.model_dump() for v in violations],
+        veto=any(v.is_blocking for v in violations),
+        rule_ids=[v.rule_id for v in violations],
+    )

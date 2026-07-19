@@ -19,6 +19,16 @@ from typing import Any
 from aulacys.agents.state import AgentState
 
 
+def _optional_float(value: Any) -> float | None:
+    """Policy missing-metric violations set actual=None — never call float(None)."""
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def post_audit(state: AgentState) -> dict[str, Any] | None:
     url = os.getenv("AUDIT_SVC_URL")
     if not url:
@@ -27,35 +37,41 @@ def post_audit(state: AgentState) -> dict[str, Any] | None:
     run_trace = state.get("run_trace")
     if app is None or run_trace is None:
         return None
-    compliance = state.get("compliance")
-    violations = []
-    if compliance is not None:
-        for v in compliance.violations:
-            violations.append(
-                {
-                    "rule_id": v.rule_id,
-                    "rule_version": v.version or f"ef:{v.effective_from}",
-                    "effective_from": v.effective_from,
-                    "legal_basis": v.legal_basis,
-                    "metric_name": v.metric,
-                    "metric_value": float(v.actual),
-                    "threshold": float(v.threshold),
-                    "is_blocking": v.is_blocking,
-                    "unverified": v.unverified,
-                }
-            )
-    payload = {
-        "application_id": state.get("metadata", {}).get("application_id", "retail-demo"),
-        "product": app.product,
-        "lane": run_trace.lane,
-        "outcome": state.get("outcome", ""),
-        "veto_fired": run_trace.veto_fired,
-        "replan_count": state.get("replan_count", 0),
-        "as_of": date.today().isoformat(),
-        "signed_by": "system",  # HITL approver not built yet
-        "violations": violations,
-    }
     try:
+        compliance = state.get("compliance")
+        violations = []
+        if compliance is not None:
+            for v in compliance.violations:
+                metric_value = _optional_float(v.actual)
+                threshold = _optional_float(v.threshold)
+                # audit-svc requires numeric metric_value; missing-metric vetoes
+                # keep actual=None in the assess response but skip the ledger row.
+                if metric_value is None or threshold is None:
+                    continue
+                violations.append(
+                    {
+                        "rule_id": v.rule_id,
+                        "rule_version": v.version or f"ef:{v.effective_from}",
+                        "effective_from": v.effective_from,
+                        "legal_basis": v.legal_basis,
+                        "metric_name": v.metric,
+                        "metric_value": metric_value,
+                        "threshold": threshold,
+                        "is_blocking": v.is_blocking,
+                        "unverified": v.unverified,
+                    }
+                )
+        payload = {
+            "application_id": state.get("metadata", {}).get("application_id", "retail-demo"),
+            "product": app.product,
+            "lane": run_trace.lane,
+            "outcome": state.get("outcome", ""),
+            "veto_fired": run_trace.veto_fired,
+            "replan_count": state.get("replan_count", 0),
+            "as_of": date.today().isoformat(),
+            "signed_by": "system",  # HITL approver not built yet
+            "violations": violations,
+        }
         req = urllib.request.Request(
             f"{url.rstrip('/')}/records",
             data=json.dumps(payload).encode("utf-8"),

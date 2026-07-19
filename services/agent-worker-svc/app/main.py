@@ -1,13 +1,12 @@
-"""Generic specialist-agent worker.
+"""Generic specialist-agent runtime.
 
-One image runs as credit-svc, operations-svc, compliance-svc, or critic-svc by
-setting AGENT_NAME. The orchestrator remains the source of truth for flow control;
-workers only execute one node and return its typed output.
+One container serves every agent node. The orchestrator remains the source of
+truth for flow control; this runtime only executes the requested node and returns
+its typed output.
 """
 
 from __future__ import annotations
 
-import os
 import sys
 import time
 from pathlib import Path
@@ -30,25 +29,24 @@ for candidate in _candidates:
     if candidate.exists() and str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
 
+from aulacys.agents.harness.runner import run as run_spec  # noqa: E402
 from aulacys.agents.nodes.compliance import ComplianceSpec  # noqa: E402
 from aulacys.agents.nodes.credit import CreditSpec  # noqa: E402
 from aulacys.agents.nodes.critic import CriticSpec  # noqa: E402
 from aulacys.agents.nodes.operations import OperationsSpec  # noqa: E402
+from aulacys.agents.nodes.planner import PlannerSpec  # noqa: E402
 from aulacys.agents.specs import AgentSpec  # noqa: E402
 from aulacys.agents.transport import hydrate_state, to_wire  # noqa: E402
 
 SPECS: dict[str, AgentSpec] = {
+    "planner": PlannerSpec,
     "credit": CreditSpec,
     "operations": OperationsSpec,
     "compliance": ComplianceSpec,
     "critic": CriticSpec,
 }
 
-AGENT_NAME = os.getenv("AGENT_NAME", "credit").strip()
-if AGENT_NAME not in SPECS:
-    AGENT_NAME = "credit"
-
-app = FastAPI(title=f"{AGENT_NAME}-svc", version="0.1.0")
+app = FastAPI(title="agent-worker-svc", version="0.1.0")
 
 
 class WorkerRequest(BaseModel):
@@ -59,28 +57,32 @@ class WorkerRequest(BaseModel):
 
 @app.get("/health")
 def health() -> dict[str, Any]:
-    return {"status": "ok", "agent": AGENT_NAME}
+    return {"status": "ok", "agents": list(SPECS)}
 
 
 @app.post("/run")
-def run_agent(req: WorkerRequest, x_request_id: str | None = Header(default=None)) -> dict[str, Any]:
-    if req.agent != AGENT_NAME:
-        raise HTTPException(status_code=400, detail=f"{AGENT_NAME}-svc cannot run {req.agent}")
-
-    spec = SPECS[AGENT_NAME]
-    if spec.fallback is None:
-        raise HTTPException(status_code=500, detail=f"{AGENT_NAME} has no executable fallback")
+def run_agent(
+    req: WorkerRequest, x_request_id: str | None = Header(default=None)
+) -> dict[str, Any]:
+    spec = SPECS.get(req.agent)
+    if spec is None:
+        raise HTTPException(status_code=400, detail=f"unknown agent '{req.agent}'")
 
     state = hydrate_state(req.state)
     state.setdefault("metadata", {})
     state["metadata"].setdefault("request_id", x_request_id or req.request_id)
 
     started = time.perf_counter()
-    output, tool_calls = spec.fallback(state, spec)
+    trace_start = len(state.get("trace", []))
+    output = run_spec(spec, state)
+    node_trace = state.get("trace", [])[trace_start:]
     latency_ms = round((time.perf_counter() - started) * 1000)
+    tool_calls = node_trace[-1].tool_calls if node_trace else []
+    if node_trace:
+        latency_ms = node_trace[-1].latency_ms
 
     return {
-        "agent": AGENT_NAME,
+        "agent": spec.name,
         "request_id": state["metadata"].get("request_id", ""),
         "output": to_wire(output),
         "tool_calls": tool_calls,

@@ -3,11 +3,17 @@
 // Types here MIRROR the contract in apps/api/src/models/schemas.py.
 // If the backend schema changes, update these to match (see AGENTS.md §1 "One contract").
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8001";
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:8080";
-/** Direct intake svc — used when API proxy returns empty / offline. */
-const APPLICATION_SVC_URL =
-  process.env.NEXT_PUBLIC_APPLICATION_SVC_URL ?? "http://127.0.0.1:8360";
+/** Healthy orchestrator — stale :8000 often returns 503 for application-svc. */
+const API_FALLBACK = process.env.NEXT_PUBLIC_API_FALLBACK ?? "http://127.0.0.1:8001";
+
+function apiBases(): string[] {
+  // Always keep a working orchestrator as last resort — stale :8000 returns 503 for dossiers.
+  return [API_URL, API_FALLBACK, "http://127.0.0.1:8001"].filter(
+    (b, i, arr) => Boolean(b) && arr.indexOf(b) === i,
+  );
+}
 
 export interface ChatRequest {
   message: string;
@@ -89,6 +95,10 @@ export interface DocumentInput {
   tier: 1 | 2 | 3;
   extracted?: Record<string, unknown> | null;
   confirmed_by?: string | null;
+  source?: string | null;
+  evidence_id?: string | null;
+  dataset_version?: string | null;
+  verified_at?: string | null;
 }
 
 export interface AssessApplicationRequest {
@@ -126,7 +136,7 @@ export interface PolicyViolation {
   description: string;
   legal_basis: string;
   metric: string;
-  actual: number;
+  actual: number | null;
   threshold: number;
   operator: string;
   unit: string;
@@ -136,6 +146,7 @@ export interface PolicyViolation {
   effective_to?: string | null;
   version?: string;
   unverified?: boolean;
+  missing_metric?: boolean;
 }
 
 export interface ComplianceVerdict {
@@ -144,14 +155,40 @@ export interface ComplianceVerdict {
   violations: PolicyViolation[];
   kyc_status: string;
   ubo_status: string;
+  rationale: string;
   citations: unknown[];
+  rule_evidence: PolicyDecisionEvidence[];
   tool_results: Record<string, unknown>;
+}
+
+export interface PolicyDecisionEvidence {
+  rule_id: string;
+  status: "passed" | "warning" | "blocking" | "missing";
+  metric: string;
+  actual: number | null;
+  threshold: number;
+  source: string;
+  evidence_id: string;
+  dataset_version: string;
+  standard_reference: string;
+  policy_version: string;
 }
 
 export interface Citation {
   source: string;
   reference: string;
   excerpt: string;
+}
+
+export interface LoanProposal {
+  requested_amount: number;
+  proposed_limit: number | null;
+  proposed_rate: number | null;
+  term_months: number;
+  monthly_payment: number | null;
+  dti: number | null;
+  status: "accepted" | "revised" | "rejected";
+  revisions: string[];
 }
 
 export interface CreditAssessment {
@@ -163,6 +200,7 @@ export interface CreditAssessment {
   rationale: string;
   evidence: Citation[];
   tool_results: Record<string, unknown>;
+  proposal?: LoanProposal | null;
 }
 
 export interface OperationsReport {
@@ -171,6 +209,7 @@ export interface OperationsReport {
   doc_status: string;
   missing: string[];
   legal_flags: string[];
+  rationale: string;
   evidence: Citation[];
   tool_results: Record<string, unknown>;
 }
@@ -179,6 +218,7 @@ export interface AssessResponse {
   response: string;
   outcome: string; // stp_approved | vetoed | ready_for_human_approval
   run_trace: RunTrace;
+  proposal: LoanProposal | null;
   credit: CreditAssessment | null;
   operations: OperationsReport | null;
   compliance: ComplianceVerdict | null;
@@ -186,11 +226,21 @@ export interface AssessResponse {
     passed: boolean;
     rejections: string[];
     memo: string;
+    review?: string; // independent LLM critique (does not gate outcome)
     remediation_plan: string[];
   } | null;
   trace: NodeTrace[];
   ticket: Record<string, unknown> | null;
   audit: Record<string, unknown> | null; // { record_id, seq, content_hash, prev_hash, decided_at } when AUDIT_SVC_URL set
+}
+
+/** Stage-2 RM đề xuất — Credit only (POST /assess/proposal). */
+export interface CreditProposalResponse {
+  response: string;
+  stage: "rm_proposal";
+  proposal: LoanProposal | null;
+  credit: CreditAssessment;
+  trace: NodeTrace[];
 }
 
 // --- Service monitor (GET api-gateway /status) ---
@@ -241,6 +291,22 @@ export async function assessApplication(
     throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
   }
   return (await res.json()) as AssessResponse;
+}
+
+/** Stage 2 — Credit lập LoanProposal (không chạy Compliance/Critic). */
+export async function assessCreditProposal(
+  body: AssessApplicationRequest,
+): Promise<CreditProposalResponse> {
+  const res = await fetch(`${API_URL}/api/v1/assess/proposal`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
+  }
+  return (await res.json()) as CreditProposalResponse;
 }
 
 export async function assess(message: string): Promise<AssessResponse> {
@@ -383,17 +449,45 @@ export interface LoanProductWriteBody {
   effective_end?: string | null;
 }
 
-async function catalogFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}/api/v1${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`);
+async function catalogFetch<T>(path: string, init?: RequestInit, timeoutMs = 20_000): Promise<T> {
+  const bases = apiBases();
+  let lastErr: Error | null = null;
+  for (const base of bases) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${base}/api/v1${path}`, {
+        ...init,
+        signal: ctrl.signal,
+        headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+      });
+      clearTimeout(timer);
+      if (!res.ok) {
+        const detail = await res.text().catch(() => "");
+        lastErr = new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`);
+        // Stale/broken primary (:8000 503/404) → try fallback base
+        if (
+          (res.status === 404 || res.status === 502 || res.status === 503) &&
+          base !== bases[bases.length - 1]
+        ) {
+          continue;
+        }
+        throw lastErr;
+      }
+      if (res.status === 204) return undefined as T;
+      return (await res.json()) as T;
+    } catch (e) {
+      clearTimeout(timer);
+      const err = e instanceof Error ? e : new Error(String(e));
+      if (err.name === "AbortError") {
+        lastErr = new Error(`API timeout after ${timeoutMs}ms (${base}/api/v1${path})`);
+      } else {
+        lastErr = err;
+      }
+      if (base === bases[bases.length - 1]) break;
+    }
   }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+  throw lastErr ?? new Error("API unavailable");
 }
 
 export function listProductGroups(): Promise<ProductGroupDto[]> {
@@ -469,6 +563,93 @@ export function seedLoanProducts(): Promise<{
   return catalogFetch("/products/seed", { method: "POST" });
 }
 
+// --- Rule Engineer (policy attached to loan package) ---
+
+export type PolicyProfileApi = "secured" | "unsecured";
+
+export interface PolicyRuleDto {
+  id: string;
+  label_vi: string;
+  description: string;
+  kind: "legal" | "appetite";
+  metric: string;
+  operator: string;
+  threshold: number;
+  unit: string;
+  severity: "blocking" | "warning";
+  editable: boolean;
+  verified: boolean;
+  version: string;
+  legal_basis: string;
+  effective_from: string;
+  effective_to?: string | null;
+}
+
+export interface PolicyRulesResponseDto {
+  profile: PolicyProfileApi;
+  secured_type: string;
+  product_code?: string | null;
+  rules: PolicyRuleDto[];
+}
+
+export interface PolicyValidateResponseDto {
+  profile: PolicyProfileApi;
+  product_code?: string | null;
+  violations: Record<string, unknown>[];
+  veto: boolean;
+  rule_ids: string[];
+}
+
+export function listPolicyRules(
+  securedType: "SECURED" | "UNSECURED",
+  productCode?: string,
+): Promise<PolicyRulesResponseDto> {
+  const q = new URLSearchParams({ secured_type: securedType });
+  if (productCode?.trim()) q.set("product_code", productCode.trim());
+  return policyFetch(`/policy/rules?${q.toString()}`);
+}
+
+export function patchPolicyAppetite(
+  ruleId: string,
+  threshold: number,
+  securedType: "SECURED" | "UNSECURED",
+  productCode?: string,
+): Promise<PolicyRuleDto> {
+  return policyFetch(
+    `/policy/rules/${encodeURIComponent(ruleId)}?secured_type=${encodeURIComponent(securedType)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        threshold,
+        product_code: productCode?.trim() || null,
+      }),
+    },
+  );
+}
+
+export function validatePolicyRules(
+  securedType: "SECURED" | "UNSECURED",
+  metrics: Record<string, number>,
+  opts?: { asOf?: string; productCode?: string },
+): Promise<PolicyValidateResponseDto> {
+  return policyFetch(
+    `/policy/rules/validate?secured_type=${encodeURIComponent(securedType)}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        metrics,
+        as_of: opts?.asOf ?? null,
+        product_code: opts?.productCode?.trim() || null,
+      }),
+    },
+  );
+}
+
+async function policyFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  // Same bases as catalog — Rule Engineer lives on the healthy API (:8001 today).
+  return catalogFetch<T>(path, init);
+}
+
 // --- Application intake (proxy → application-svc) ---
 
 export type ApplicationSectionADto = Record<string, unknown> & {
@@ -480,32 +661,16 @@ export type ApplicationSectionADto = Record<string, unknown> & {
 };
 
 export async function listApplications(limit = 100): Promise<ApplicationSectionADto[]> {
-  try {
-    const fromApi = await catalogFetch<ApplicationSectionADto[]>(`/applications?limit=${limit}`);
-    if (Array.isArray(fromApi) && fromApi.length > 0) return fromApi;
-  } catch {
-    // fall through to application-svc
-  }
-  try {
-    const res = await fetch(`${APPLICATION_SVC_URL}/applications?limit=${limit}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as ApplicationSectionADto[];
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
+  // Browser talks only to apps/api. Do NOT fetch application-svc (:8360) from the client.
+  // Match orchestrator→application-svc budget (cold Supabase can exceed 20s).
+  const fromApi = await catalogFetch<ApplicationSectionADto[]>(
+    `/applications?limit=${limit}`,
+    undefined,
+    45_000,
+  );
+  return Array.isArray(fromApi) ? fromApi : [];
 }
 
 export async function getApplication(id: string): Promise<ApplicationSectionADto> {
-  try {
-    return await catalogFetch(`/applications/${encodeURIComponent(id)}`);
-  } catch {
-    const res = await fetch(`${APPLICATION_SVC_URL}/applications/${encodeURIComponent(id)}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error(`application not found: ${id}`);
-    return (await res.json()) as ApplicationSectionADto;
-  }
+  return catalogFetch(`/applications/${encodeURIComponent(id)}`);
 }

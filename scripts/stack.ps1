@@ -2,8 +2,8 @@
 # stack.ps1 - one command to run / stop / check the local SHB stack (Windows)
 # =============================================================================
 #
-#   .\scripts\stack.ps1 up                 # start + stream logs (Ctrl+C detach)
-#   .\scripts\stack.ps1 up -Profile full
+#   .\scripts\stack.ps1 up                 # start full stack + stream logs (Ctrl+C detach)
+#   .\scripts\stack.ps1 up -Profile demo
 #   .\scripts\stack.ps1 up -Detach         # start, no log follow
 #   .\scripts\stack.ps1 up -Force          # free ports then start
 #   .\scripts\stack.ps1 logs               # attach realtime logs again
@@ -20,7 +20,7 @@ param(
     [string]$Command = "help",
 
     [ValidateSet("demo", "full")]
-    [string]$Profile = "demo",
+    [string]$Profile = "full",
 
     [switch]$Setup,
 
@@ -34,9 +34,11 @@ $Root = Split-Path -Parent $PSScriptRoot
 $RunDir = Join-Path $Root ".run"
 $LogDir = Join-Path $RunDir "logs"
 $PidFile = Join-Path $RunDir "pids.json"
-$ApiDir = Join-Path $Root "apps\api"
+$ApiDir = Join-Path $Root "services\orchestrator-svc"
+$SharedDir = Join-Path $Root "packages\shared"
+$LegacyApiDir = Join-Path $Root "apps\api"
 $WebDir = Join-Path $Root "apps\web"
-$StackPorts = @(3000, 8000, 8080, 8100, 8200, 8300, 8310, 8320, 8330, 8340, 8401, 8402, 8403, 8404)
+$StackPorts = @(3000, 8000, 8080, 8100, 8200, 8300, 8310, 8320, 8330, 8340, 8400)
 
 function Resolve-Python {
     foreach ($candidate in @(
@@ -110,7 +112,7 @@ function Clear-StackPorts {
             $p = Get-Process -Id $pidVal -ErrorAction SilentlyContinue
             if ($p) { $procName = $p.ProcessName }
             Write-Host "  port $port -> kill pid $pidVal ($procName)" -ForegroundColor Yellow
-            & taskkill.exe /PID $pidVal /T /F 2>$null | Out-Null
+            try { & taskkill.exe /PID $pidVal /T /F 2>$null | Out-Null } catch {}
             try { Stop-Process -Id $pidVal -Force -ErrorAction SilentlyContinue } catch {}
         }
     }
@@ -184,19 +186,19 @@ function Get-ServiceCatalog([string]$Mode) {
     $services = New-Object System.Collections.ArrayList
 
     if ($Mode -eq "full") {
-        [void]$services.Add(@{ Name = "policy"; Port = 8100; Dir = "services\policy-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8100"); Exe = $py; Env = @{} })
-        [void]$services.Add(@{ Name = "audit"; Port = 8200; Dir = "services\audit-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8200"); Exe = $py; Env = @{} })
-        [void]$services.Add(@{ Name = "cic"; Port = 8300; Dir = "services\cic-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8300"); Exe = $py; Env = @{} })
-        [void]$services.Add(@{ Name = "los"; Port = 8310; Dir = "services\los-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8310"); Exe = $py; Env = @{} })
-        [void]$services.Add(@{ Name = "aml"; Port = 8320; Dir = "services\aml-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8320"); Exe = $py; Env = @{} })
-        [void]$services.Add(@{ Name = "property"; Port = 8330; Dir = "services\property-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8330"); Exe = $py; Env = @{} })
-        [void]$services.Add(@{ Name = "income"; Port = 8340; Dir = "services\income-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8340"); Exe = $py; Env = @{} })
-        [void]$services.Add(@{ Name = "credit-worker"; Port = 8401; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8401"); Exe = $py; Env = @{ AGENT_NAME = "credit" } })
-        [void]$services.Add(@{ Name = "operations-worker"; Port = 8402; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8402"); Exe = $py; Env = @{ AGENT_NAME = "operations" } })
-        [void]$services.Add(@{ Name = "compliance-worker"; Port = 8403; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8403"); Exe = $py; Env = @{ AGENT_NAME = "compliance" } })
-        [void]$services.Add(@{ Name = "critic-worker"; Port = 8404; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8404"); Exe = $py; Env = @{ AGENT_NAME = "critic" } })
+        $svcPythonPath = @{ PYTHONPATH = $SharedDir }
+        [void]$services.Add(@{ Name = "policy"; Port = 8100; Dir = "services\policy-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8100"); Exe = $py; Env = $svcPythonPath })
+        [void]$services.Add(@{ Name = "audit"; Port = 8200; Dir = "services\audit-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8200"); Exe = $py; Env = $svcPythonPath })
+        [void]$services.Add(@{ Name = "cic"; Port = 8300; Dir = "services\cic-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8300"); Exe = $py; Env = $svcPythonPath })
+        [void]$services.Add(@{ Name = "los"; Port = 8310; Dir = "services\los-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8310"); Exe = $py; Env = $svcPythonPath })
+        [void]$services.Add(@{ Name = "aml"; Port = 8320; Dir = "services\aml-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8320"); Exe = $py; Env = $svcPythonPath })
+        [void]$services.Add(@{ Name = "property"; Port = 8330; Dir = "services\property-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8330"); Exe = $py; Env = $svcPythonPath })
+        [void]$services.Add(@{ Name = "income"; Port = 8340; Dir = "services\income-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8340"); Exe = $py; Env = $svcPythonPath })
+        [void]$services.Add(@{ Name = "agent-worker"; Port = 8400; Dir = "services\agent-worker-svc"; Args = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8400"); Exe = $py; Env = $svcPythonPath })
     }
 
+    # orchestrator-svc replaces apps/api (src moved to packages/shared + this service).
+    $pythonPath = "$SharedDir;$ApiDir"
     if ($Mode -eq "full") {
         $apiEnv = @{
             POLICY_SVC_URL       = "http://127.0.0.1:8100"
@@ -206,22 +208,23 @@ function Get-ServiceCatalog([string]$Mode) {
             AML_SVC_URL          = "http://127.0.0.1:8320"
             PROPERTY_SVC_URL     = "http://127.0.0.1:8330"
             INCOME_SVC_URL       = "http://127.0.0.1:8340"
-            CREDIT_AGENT_URL     = "http://127.0.0.1:8401"
-            OPERATIONS_AGENT_URL = "http://127.0.0.1:8402"
-            COMPLIANCE_AGENT_URL = "http://127.0.0.1:8403"
-            CRITIC_AGENT_URL     = "http://127.0.0.1:8404"
+            AGENT_WORKER_URL     = "http://127.0.0.1:8400"
             CORS_ORIGINS         = "http://localhost:3000"
+            PYTHONPATH           = $pythonPath
         }
     }
     else {
-        $apiEnv = @{ CORS_ORIGINS = "http://localhost:3000" }
+        $apiEnv = @{
+            CORS_ORIGINS = "http://localhost:3000"
+            PYTHONPATH   = $pythonPath
+        }
     }
 
     [void]$services.Add(@{
             Name = "api"
             Port = 8000
-            Dir  = "apps\api"
-            Args = @("-m", "uvicorn", "src.main:app", "--reload", "--host", "127.0.0.1", "--port", "8000")
+            Dir  = "services\orchestrator-svc"
+            Args = @("-m", "uvicorn", "app.main:app", "--reload", "--host", "127.0.0.1", "--port", "8000")
             Exe  = $py
             Env  = $apiEnv
         })
@@ -238,10 +241,7 @@ function Get-ServiceCatalog([string]$Mode) {
         $gwEnv["AML_SVC_URL"] = "http://127.0.0.1:8320"
         $gwEnv["PROPERTY_SVC_URL"] = "http://127.0.0.1:8330"
         $gwEnv["INCOME_SVC_URL"] = "http://127.0.0.1:8340"
-        $gwEnv["CREDIT_AGENT_URL"] = "http://127.0.0.1:8401"
-        $gwEnv["OPERATIONS_AGENT_URL"] = "http://127.0.0.1:8402"
-        $gwEnv["COMPLIANCE_AGENT_URL"] = "http://127.0.0.1:8403"
-        $gwEnv["CRITIC_AGENT_URL"] = "http://127.0.0.1:8404"
+        $gwEnv["AGENT_WORKER_URL"] = "http://127.0.0.1:8400"
     }
     [void]$services.Add(@{
             Name = "gateway"
@@ -353,11 +353,23 @@ function Invoke-Setup {
         python -m venv (Join-Path $Root ".venv")
         $py = Join-Path $Root ".venv\Scripts\python.exe"
         & $py -m pip install -U pip
-        & $py -m pip install -r (Join-Path $ApiDir "requirements.txt")
     }
+    Write-Host "Installing shared + orchestrator deps..." -ForegroundColor Yellow
+    & $py -m pip install -r (Join-Path $SharedDir "requirements.txt")
+    & $py -m pip install -r (Join-Path $ApiDir "requirements.txt")
     if (-not (Test-Path (Join-Path $ApiDir ".env"))) {
-        Copy-Item (Join-Path $ApiDir ".env.example") (Join-Path $ApiDir ".env")
-        Write-Host "Created apps\api\.env from example (OPENAI_API_KEY optional)." -ForegroundColor Yellow
+        if (Test-Path (Join-Path $LegacyApiDir ".env")) {
+            Copy-Item (Join-Path $LegacyApiDir ".env") (Join-Path $ApiDir ".env")
+            Write-Host "Copied apps\api\.env -> services\orchestrator-svc\.env" -ForegroundColor Yellow
+        }
+        elseif (Test-Path (Join-Path $ApiDir ".env.example")) {
+            Copy-Item (Join-Path $ApiDir ".env.example") (Join-Path $ApiDir ".env")
+            Write-Host "Created services\orchestrator-svc\.env from example." -ForegroundColor Yellow
+        }
+        elseif (Test-Path (Join-Path $LegacyApiDir ".env.example")) {
+            Copy-Item (Join-Path $LegacyApiDir ".env.example") (Join-Path $ApiDir ".env")
+            Write-Host "Created services\orchestrator-svc\.env from apps\api example." -ForegroundColor Yellow
+        }
     }
     if (-not (Test-Path (Join-Path $WebDir ".env.local"))) {
         @(
@@ -434,6 +446,9 @@ function Invoke-Up([string]$Mode) {
         }
     }
 
+    Ensure-RunDirs
+    Get-ChildItem $LogDir -Filter "*.log" -ErrorAction SilentlyContinue | Remove-Item -Force
+
     Write-Host "=== Starting profile=$Mode ===" -ForegroundColor Cyan
     $catalog = Get-ServiceCatalog -Mode $Mode
     $map = @{}
@@ -492,8 +507,8 @@ function Invoke-Up([string]$Mode) {
 function Show-Help {
     Write-Host "stack.ps1 - manage local API / Web / microservices"
     Write-Host ""
-    Write-Host "  .\scripts\stack.ps1 up                 # start + live logs (Ctrl+C detach)"
-    Write-Host "  .\scripts\stack.ps1 up -Profile full"
+    Write-Host "  .\scripts\stack.ps1 up                 # start full stack + live logs (Ctrl+C detach)"
+    Write-Host "  .\scripts\stack.ps1 up -Profile demo   # API + gateway + web only"
     Write-Host "  .\scripts\stack.ps1 up -Detach         # start without following logs"
     Write-Host "  .\scripts\stack.ps1 up -Force          # free ports then start"
     Write-Host "  .\scripts\stack.ps1 logs               # live logs again"

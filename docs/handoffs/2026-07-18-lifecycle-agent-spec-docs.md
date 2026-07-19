@@ -6,11 +6,11 @@
 - **Status:** Done
 
 ## What Changed & Why
-Updated the agent spec from a narrow 5-role underwriting-core contract into a lifecycle multi-agent contract. The new spec keeps the current Planner/Credit/Operations/Compliance/Critic core as Stage 3, but documents the target lifecycle around it: Intake, RM Proposal, Approval, and Disbursement. Added a shareable architecture doc for slides/team discussion.
+Updated the agent spec to describe a loan lifecycle powered by the existing five-agent core, without adding one agent per lifecycle stage. The new spec focuses on what each current agent does, what it reads/calls, and what it outputs. It also clarifies that proposal, approval, and disbursement should first be schemas/deterministic stages, not new LLM agents.
 
 ## Files Touched
-- `docs/AGENT-SPEC.md` - rewritten as the binding lifecycle multi-agent role/spec document.
-- `docs/LIFECYCLE-MULTI-AGENT-ARCHITECTURE.md` - new shareable doc with lifecycle diagrams, stage ownership, service view, and build order.
+- `docs/AGENT-SPEC.md` - rewritten as the binding five-agent role/output contract.
+- `docs/LIFECYCLE-MULTI-AGENT-ARCHITECTURE.md` - shareable doc explaining lifecycle stages around the five-agent core.
 - `docs/handoffs/2026-07-18-lifecycle-agent-spec-docs.md` - this handoff.
 
 ## How To Run / Verify
@@ -24,10 +24,11 @@ Expected result: no whitespace errors. This is a docs-only slice; backend/fronte
 None. No API schema or frontend type files were changed.
 
 ## Follow-Ups / TODO
-- [ ] Implement `LoanProposal` / RM Proposal stage so proposal and underwriting are no longer folded into Credit.
-- [ ] Implement explicit Approval Gate risk routing.
-- [ ] Implement Disbursement Agent/service action for unsecured STP.
+- [ ] Implement `LoanProposal` object/stage so proposal and underwriting are no longer blurred.
+- [ ] Make Credit explicitly validate proposal reasonableness.
+- [ ] Implement explicit deterministic Approval Gate risk routing.
+- [ ] Implement deterministic DisbursementAction/service for unsecured STP.
 - [ ] Add real `knowledge-svc` namespaces for Credit/Compliance/Ops/Critic citations.
 
 ## Gotchas
-The current code lives under `packages/shared/aulacys`, not the older `apps/api/src/agents` paths in some historical docs. `docs/AGENT-SPEC.md` is now target-state plus current-state; do not read it as saying RM Proposal/Disbursement are implemented today.
+The current code lives under `packages/shared/aulacys`, not the older `apps/api/src/agents` paths in some historical docs. Do not add `RM Proposal Agent`, `Approval Agent`, or `Disbursement Agent` yet; the docs intentionally steer next work toward objects/gates/services first.

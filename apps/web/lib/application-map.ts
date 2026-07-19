@@ -221,8 +221,14 @@ export function toAssessRequest(
   form: AssessFormState,
   applicationId?: string | null,
 ): AssessApplicationRequest {
+  // Always include product+declared so assess can fall back if application-svc times out.
   if (applicationId) {
-    return { application_id: applicationId, documents: form.documents };
+    return {
+      application_id: applicationId,
+      product: form.product,
+      declared: form.declared,
+      documents: form.documents,
+    };
   }
   return {
     product: form.product,

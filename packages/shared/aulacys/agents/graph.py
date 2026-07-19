@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -8,23 +9,28 @@ import yaml
 from langgraph.graph import END, StateGraph
 
 from aulacys.agents.audit_client import post_audit
-from aulacys.agents.harness.runner import run
 from aulacys.agents.nodes.compliance import ComplianceSpec
 from aulacys.agents.nodes.credit import CreditSpec
 from aulacys.agents.nodes.critic import CriticSpec
 from aulacys.agents.nodes.operations import OperationsSpec, write_outcome_ticket
-from aulacys.agents.nodes.planner import PlannerSpec
+from aulacys.agents.nodes.planner import PlannerSpec, topological_agent_order
 from aulacys.agents.state import AgentState, Document, LoanApplication, RunTrace
 from aulacys.agents.worker_client import run_agent
 
 PRODUCTS_DIR = Path(__file__).parent / "products"
 REPLAN_CAP = 2
 
+logger = logging.getLogger(__name__)
+
 AGENT_SPECS = {
     "credit": CreditSpec,
     "operations": OperationsSpec,
     "compliance": ComplianceSpec,
 }
+
+
+def _agent_contracts() -> dict[str, dict[str, list[str]]]:
+    return {name: {"reads": spec.reads} for name, spec in AGENT_SPECS.items()}
 
 
 def load_product_config(product: str) -> dict[str, Any]:
@@ -62,6 +68,7 @@ _UNSECURED_HAPPY: dict = {
         "dob": "10/06/2000",
         "gender": "Nữ",
         "national_id": "074300004128",
+        "id_number": "074300004128",
         "national_id_issue_date": "21/05/2025",
         "national_id_issue_place": "Bộ Công an",
         "old_national_id": "074300001234",
@@ -109,16 +116,17 @@ _UNSECURED_VETO: dict = {
     "declared": {
         # --- Khoản vay ---
         "customer_name": "TRẦN THỊ VUI",
-        "amount": 300_000_000,  # 300 triệu, mục đích KHAI là tiêu dùng
+        "amount": 160_000_000,  # ≤12× thu nhập — SOP pass; veto = purpose evidence
         "term_months": 24,
         "annual_rate": 0.13,
         "monthly_income": 18_000_000,
-        "existing_monthly_debt": 8_500_000,  # nợ cũ cao → DTI biên giới
+        "existing_monthly_debt": 0,  # CIC sạch → DTI/disposable pass; purpose alone vetoes
         "declared_purpose": "Tiêu dùng cá nhân",  # khai báo hợp lệ…
         # --- CCCD (ảnh thực) ---
         "dob": "10/05/1985",
         "gender": "Nữ",
         "national_id": "091185013867",
+        "id_number": "091185013867",
         "national_id_issue_date": "02/06/2023",
         "national_id_issue_place": "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
         "old_national_id": "091185002233",
@@ -182,6 +190,7 @@ _UNSECURED_HITL: dict = {
         "dob": "19/03/2001",
         "gender": "Nữ",
         "national_id": "054301008970",
+        "id_number": "054301008970",
         "national_id_issue_date": "05/07/2022",
         "national_id_issue_place": "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
         "old_national_id": "054301001111",
@@ -227,71 +236,91 @@ _UNSECURED_HITL: dict = {
 }
 
 
+_MORTGAGE_HITL: dict = {
+    "declared": {
+        "customer_name": "TRẦN THỊ BÌNH",
+        "amount": 2_500_000_000,
+        "term_months": 240,
+        "annual_rate": 0.105,
+        "monthly_income": 85_000_000,
+        "existing_monthly_debt": 8_000_000,
+        "declared_purpose": "Mua nhà để ở",
+        "collateral_value_declared": 4_000_000_000,
+        "dob": "15/08/1988",
+        "gender": "Nữ",
+        "national_id": "001099000001",
+        "national_id_issue_date": "10/05/2021",
+        "national_id_issue_place": "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
+        "old_national_id": "001088001122",
+        "phone": "0901234567",
+        "phone_2": "0911223344",
+        "email": "binh.tran@email.com",
+        "occupation": "Cán bộ quản lý",
+        "company_name": "Công ty Cổ phần Thương mại và Dịch vụ SHB",
+        "position": "Trưởng phòng Kinh doanh",
+        "permanent_address": "Số 45, Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh",
+        "current_address": "Số 45, Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh",
+        "personal_expense": 25_000_000,
+        "disbursement_method": "Giải ngân cho Bên thụ hưởng",
+        "disbursement_bank": "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
+        "disbursement_account": "101123456789",
+        "disbursement_account_name": "NGUYỄN VĂN BÁN",
+        "spouse_name": "NGUYỄN VĂN AN",
+        "spouse_phone": "0902345678",
+        "spouse_national_id": "001085054321",
+        "spouse_income": 35_000_000,
+        "spouse_company": "Công ty Cổ phần Đầu tư SHB",
+        "spouse_workplace_phone": "0243123456",
+        "consent_data_processing": True,
+        "consent_advertising": False,
+        "id_number": "001099000001",
+        "cic_consent": True,
+    },
+    "documents": [
+        Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": "001099000001"}),
+        Document(kind="sao_ke_tai_khoan", tier=1, extracted={"monthly_income": 85_000_000}),
+        Document(kind="so_do", tier=2, extracted={"parcel": "DEMO-001"}),
+        Document(kind="hop_dong_mua_ban", tier=2, extracted={"seller": "Demo Seller"}),
+        Document(kind="cic", tier=1, extracted={"score_band": "A"}),
+        Document(
+            kind="purpose_evidence",
+            tier=2,
+            extracted={"actual_purpose": "Mua nhà để ở"},
+        ),
+    ],
+}
+
+_MORTGAGE_VETO: dict = {
+    "declared": dict(_MORTGAGE_HITL["declared"]),
+    "documents": [
+        Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": "001099000001"}),
+        Document(kind="sao_ke_tai_khoan", tier=1, extracted={"monthly_income": 85_000_000}),
+        Document(kind="so_do", tier=2, extracted={"parcel": "DEMO-001"}),
+        Document(kind="hop_dong_mua_ban", tier=2, extracted={"seller": "Demo Seller"}),
+        Document(kind="cic", tier=1, extracted={"score_band": "A"}),
+        Document(
+            kind="purpose_evidence",
+            tier=2,
+            extracted={"actual_purpose": "tất toán khoản vay ở TCTD khác"},
+        ),
+    ],
+}
+
+
 def seed_application(query: str) -> LoanApplication:
     """Seed a demo consumer-loan application from chat text.
 
     Routing keywords:
-    - "veto"  / "bad"      → TRẦN THỊ VUI      (purpose evidence veto)
-    - "hitl"  / "biên giới" → NGUYỄN THỊ HUYỀN TRẦN (borderline DTI → human)
-    - "mortgage" / "nhà"   → retail_mortgage demo
-    - default              → NGUYỄN THỊ BÉ HOA (happy STP path)
+    - "mortgage"/"nhà" + "veto"/"bad" → mortgage purpose-contradiction veto
+    - "mortgage"/"nhà"              → mortgage HITL (clean purpose, gate never STP)
+    - "veto"/"bad"                  → unsecured TRẦN THỊ VUI (purpose veto)
+    - "hitl"/"biên giới"            → unsecured NGUYỄN THỊ HUYỀN TRẦN (borderline)
+    - default                       → unsecured NGUYỄN THỊ BÉ HOA (happy STP)
     """
     lowered = query.lower()
     if "mortgage" in lowered or "nhà" in lowered:
         product = "retail_mortgage"
-        seed = {
-            "declared": {
-                "customer_name": "TRẦN THỊ BÌNH",
-                "amount": 2_500_000_000,
-                "term_months": 240,
-                "annual_rate": 0.105,
-                "monthly_income": 85_000_000,
-                "existing_monthly_debt": 8_000_000,
-                "declared_purpose": "Mua nhà để ở",
-                "collateral_value_declared": 4_000_000_000,
-                "dob": "15/08/1988",
-                "gender": "Nữ",
-                "national_id": "001088012345",
-                "national_id_issue_date": "10/05/2021",
-                "national_id_issue_place": "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-                "old_national_id": "001088001122",
-                "phone": "0901234567",
-                "phone_2": "0911223344",
-                "email": "binh.tran@email.com",
-                "occupation": "Cán bộ quản lý",
-                "company_name": "Công ty Cổ phần Thương mại và Dịch vụ SHB",
-                "position": "Trưởng phòng Kinh doanh",
-                "permanent_address": "Số 45, Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh",
-                "current_address": "Số 45, Đường Lê Duẩn, Quận 1, TP. Hồ Chí Minh",
-                "personal_expense": 25_000_000,
-                "disbursement_method": "Giải ngân cho Bên thụ hưởng",
-                "disbursement_bank": "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-                "disbursement_account": "101123456789",
-                "disbursement_account_name": "NGUYỄN VĂN BÁN",
-                "spouse_name": "NGUYỄN VĂN AN",
-                "spouse_phone": "0902345678",
-                "spouse_national_id": "001085054321",
-                "spouse_income": 35_000_000,
-                "spouse_company": "Công ty Cổ phần Đầu tư SHB",
-                "spouse_workplace_phone": "0243123456",
-                "consent_data_processing": True,
-                "consent_advertising": False,
-                "id_number": "001099000003",  # overdue 120d — demo CIC bad path
-                "cic_consent": True,
-            },
-            "documents": [
-                Document(kind="cccd", tier=1, extracted={"verified": True}),
-                Document(kind="sao_ke_tai_khoan", tier=1, extracted={"monthly_income": 85_000_000}),
-                Document(kind="so_do", tier=2, extracted={"parcel": "DEMO-001"}),
-                Document(kind="hop_dong_mua_ban", tier=2, extracted={"seller": "Demo Seller"}),
-                Document(kind="cic", tier=1, extracted={"score_band": "A"}),
-                Document(
-                    kind="purpose_evidence",
-                    tier=2,
-                    extracted={"actual_purpose": "tất toán khoản vay ở TCTD khác"},
-                ),
-            ],
-        }
+        seed = _MORTGAGE_HITL if ("clean" in lowered or "hitl" in lowered) else _MORTGAGE_VETO
     else:
         product = "retail_unsecured_salary"
         if "veto" in lowered or "bad" in lowered:
@@ -308,45 +337,30 @@ def _configured_agent_names(config: dict[str, Any]) -> list[str]:
 
 
 def _agent_execution_order(state: AgentState, config: dict[str, Any]) -> list[str]:
-    """Topologically order configured agents from Planner's DAG plus spec read-sets."""
+    """Topologically order configured agents from Planner's DAG."""
     configured = _configured_agent_names(config)
-    dependencies: dict[str, set[str]] = {agent_name: set() for agent_name in configured}
     plan = state.get("plan")
-
-    if plan is not None:
-        for prerequisite, node in plan.edges:
-            if node in dependencies and prerequisite in dependencies:
-                dependencies[node].add(prerequisite)
-
-    for agent_name in configured:
-        for read_key in AGENT_SPECS[agent_name].reads:
-            if read_key in dependencies:
-                dependencies[agent_name].add(read_key)
-
-    remaining = configured.copy()
-    ordered: list[str] = []
-    completed: set[str] = set()
-    while remaining:
-        ready = [agent_name for agent_name in remaining if dependencies[agent_name].issubset(completed)]
-        if not ready:
-            state.setdefault("metadata", {}).setdefault("graph_warnings", []).append(
-                f"DAG dependency cycle or missing prerequisite: {', '.join(remaining)}"
-            )
-            ordered.extend(remaining)
-            break
-        for agent_name in ready:
-            ordered.append(agent_name)
-            completed.add(agent_name)
-            remaining.remove(agent_name)
+    edges = plan.edges if plan is not None else []
+    ordered, warnings = topological_agent_order(configured, edges)
+    for warning in warnings:
+        state.setdefault("metadata", {}).setdefault("graph_warnings", []).append(warning)
     return ordered
 
 
 def _run_configured_agents(state: AgentState, config: dict[str, Any]) -> None:
-    for agent_name in _agent_execution_order(state, config):
+    request_id = str(state.get("metadata", {}).get("request_id", ""))
+    order = _agent_execution_order(state, config)
+    logger.info("agent-run request_id=%s dag_order=%s", request_id, " -> ".join(order))
+    for agent_name in order:
         spec = AGENT_SPECS.get(agent_name)
         if spec is None:
             continue
-        state[agent_name] = run_agent(spec, state)
+        logger.info("agent-run request_id=%s node=%s status=start", request_id, agent_name)
+        result = run_agent(spec, state)
+        state[agent_name] = result
+        if agent_name == "credit" and getattr(result, "proposal", None) is not None:
+            state["proposal"] = result.proposal
+        logger.info("agent-run request_id=%s node=%s status=done", request_id, agent_name)
 
 
 def _has_veto(state: AgentState) -> bool:
@@ -368,7 +382,14 @@ def _stp_eligible(state: AgentState, config: dict[str, Any]) -> bool:
         return False
     if "all_rules_pass" not in stp_when:
         return False
-    if _has_veto(state):
+    credit = state.get("credit")
+    compliance = state.get("compliance")
+    if not credit or credit.recommendation != "support":
+        return False
+    if not compliance or compliance.veto or compliance.violations:
+        return False
+    report = (compliance.tool_results or {}).get("metric_report")
+    if not isinstance(report, dict) or not report.get("complete"):
         return False
     ceiling = (config.get("limits") or {}).get("amount_ceiling")
     if ceiling is not None:
@@ -409,6 +430,46 @@ def _summarize(state: AgentState, outcome: str, escalated: bool) -> str:
     )
 
 
+def run_credit_proposal(
+    application: LoanApplication,
+    *,
+    application_id: str | None = None,
+) -> dict[str, Any]:
+    """Stage-2 only: run Credit → LoanProposal (no Ops/Compliance/Critic/ticket).
+
+    Matches FLOW-BUSINESS-CONFIRMED §2 — RM đề xuất is the editable input for
+    stage-3 thẩm định. Demo-proof: harness fallback inside ``run_agent``.
+    """
+    config = load_product_config(application.product)
+    state: AgentState = {
+        "query": f"propose {application.product}",
+        "application": application,
+        "metadata": {
+            "product_config": config,
+            "agent_contracts": _agent_contracts(),
+            "application_id": application_id or f"inline-{application.product}",
+            "request_id": str(uuid4()),
+            "stage": "rm_proposal",
+        },
+        "trace": [],
+        "replan_count": 0,
+        "run_trace": RunTrace(),
+    }
+    credit = run_agent(CreditSpec, state)
+    state["credit"] = credit
+    proposal = getattr(credit, "proposal", None)
+    if proposal is not None:
+        state["proposal"] = proposal
+    rec = getattr(credit, "recommendation", "") or ""
+    status = getattr(proposal, "status", None) if proposal is not None else None
+    state["response"] = (
+        f"{application.product}: Credit đề xuất xong — recommendation={rec}"
+        + (f", proposal.status={status}" if status else "")
+        + ". Chỉnh phương án rồi gửi thẩm định (stage 3)."
+    )
+    return dict(state)
+
+
 async def process_application(state: AgentState) -> dict[str, Any]:
     next_state: AgentState = dict(state)
     next_state.setdefault("query", "")
@@ -422,30 +483,66 @@ async def process_application(state: AgentState) -> dict[str, Any]:
     config = load_product_config(next_state["application"].product)
     next_state.setdefault("metadata", {})
     next_state["metadata"]["product_config"] = config
+    next_state["metadata"]["agent_contracts"] = _agent_contracts()
     next_state["metadata"].setdefault("application_id", "retail-demo")
     next_state["metadata"].setdefault("request_id", str(uuid4()))
+    request_id = str(next_state["metadata"]["request_id"])
+    app = next_state["application"]
+
+    logger.info(
+        "agent-run request_id=%s status=start application_id=%s product=%s customer=%s amount=%s",
+        request_id,
+        next_state["metadata"].get("application_id"),
+        app.product,
+        app.declared.customer_name,
+        app.declared.amount,
+    )
 
     # Plan -> execute -> (veto -> replan -> RE-EXECUTE)* up to the cap.
     # This loop IS the demo: the veto is an edge back to the planner, and the
     # cap is what stops an infinite veto/replan cycle mid-demo (BUILD-GUIDE §5.2).
-    next_state["plan"] = run(PlannerSpec, next_state)
+    logger.info("agent-run request_id=%s node=planner status=start pass=1", request_id)
+    next_state["plan"] = run_agent(PlannerSpec, next_state)
+    logger.info("agent-run request_id=%s node=planner status=done pass=1", request_id)
     _run_configured_agents(next_state, config)
     veto_fired = _has_veto(next_state)
 
     while _has_veto(next_state) and next_state["replan_count"] < REPLAN_CAP:
         next_state["replan_count"] += 1
-        next_state["plan"] = run(PlannerSpec, next_state)  # planner reads replan_count
+        logger.info(
+            "agent-run request_id=%s status=replan count=%s reason=compliance_veto",
+            request_id,
+            next_state["replan_count"],
+        )
+        logger.info(
+            "agent-run request_id=%s node=planner status=start pass=%s",
+            request_id,
+            next_state["replan_count"] + 1,
+        )
+        next_state["plan"] = run_agent(PlannerSpec, next_state)  # planner reads replan_count
+        logger.info(
+            "agent-run request_id=%s node=planner status=done pass=%s",
+            request_id,
+            next_state["replan_count"] + 1,
+        )
         _run_configured_agents(next_state, config)
 
     escalated = _has_veto(next_state)  # still vetoed after the cap -> human
 
     lane = 3 if veto_fired else _base_lane(config)
     if lane == 3:  # Critic (tuyến 3) only runs on lane 3 (BUILD-GUIDE §8)
+        logger.info("agent-run request_id=%s node=critic status=start lane=%s", request_id, lane)
         next_state["critic"] = run_agent(CriticSpec, next_state)
+        logger.info(
+            "agent-run request_id=%s node=critic status=done passed=%s",
+            request_id,
+            next_state["critic"].passed,
+        )
         if not next_state["critic"].passed:
             escalated = True
 
     outcome = _decide_outcome(next_state, config, escalated)
+    logger.info("agent-run request_id=%s node=gate status=start outcome=%s", request_id, outcome)
     next_state["outcome"] = outcome
     next_state["ticket"] = _write_ticket(next_state, outcome)
     next_state["run_trace"] = RunTrace(
@@ -457,6 +554,22 @@ async def process_application(state: AgentState) -> dict[str, Any]:
     # Best-effort append to audit-svc (no-op unless AUDIT_SVC_URL is set).
     next_state["audit"] = post_audit(next_state)
     next_state["response"] = _summarize(next_state, outcome, escalated)
+    logger.info(
+        "agent-run request_id=%s node=gate status=done ticket=%s audit=%s",
+        request_id,
+        (next_state.get("ticket") or {}).get("ticket_id"),
+        bool(next_state.get("audit")),
+    )
+    agents_ran = [name for name in AGENT_SPECS if next_state.get(name) is not None]
+    logger.info(
+        "run done: product=%s outcome=%s lane=%s replans=%s veto=%s agents=%s",
+        next_state["application"].product,
+        outcome,
+        lane,
+        next_state["replan_count"],
+        veto_fired,
+        agents_ran,
+    )
     return dict(next_state)
 
 

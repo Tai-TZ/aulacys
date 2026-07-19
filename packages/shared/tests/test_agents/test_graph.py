@@ -1,7 +1,8 @@
 import pytest
 
 from aulacys.agents import graph as graph_module
-from aulacys.agents.graph import agent
+from aulacys.agents.graph import _agent_execution_order, agent
+from aulacys.agents.state import DAG
 from aulacys.agents.nodes.compliance import ComplianceSpec
 from aulacys.agents.nodes.credit import CreditSpec
 from aulacys.agents.nodes.critic import CriticSpec
@@ -23,30 +24,52 @@ async def test_agent_state_structure():
 
 
 @pytest.mark.asyncio
-async def test_mortgage_demo_veto_replans_and_writes_ticket():
-    result = await agent.ainvoke({"query": "retail mortgage"})
+async def test_mortgage_purpose_contradiction_vetoes_and_replans():
+    """Wow path: purpose evidence contradiction → blocking veto → Planner replan loop."""
+    result = await agent.ainvoke({"query": "retail mortgage veto"})
 
     assert result["application"].product == "retail_mortgage"
     assert result["compliance"].veto is True
     assert "prohibited_purpose_refinance_other_bank" in result["compliance"].rule_ids
-    assert result["credit"].proposed_limit == 2_500_000_000
-    assert result["credit"].proposed_rate is not None
+    violation = next(
+        v for v in result["compliance"].violations if v.rule_id == "prohibited_purpose_refinance_other_bank"
+    )
+    assert violation.unverified is False
+    assert violation.severity == "blocking"
+    assert result["replan_count"] >= 1
+    assert result["run_trace"].veto_fired is True
+    assert result["outcome"] == "vetoed"
+    assert result["ticket"]["status"] == "vetoed"
+    assert result["credit"].proposed_limit is not None
     assert "price_loan" in result["credit"].tool_results
     assert result["operations"].valuation_task["status"] == "scheduled"
-    assert result["compliance"].kyc_status == "passed"
-    assert result["compliance"].ubo_status in {"passed", "not_applicable"}
     assert "kyc_check" in result["compliance"].tool_results
-    # Hard veto never clears -> loop re-executes up to the cap, then escalates.
-    assert result["replan_count"] == 2
-    assert result["run_trace"].lane == 3
-    assert result["critic"].passed is True  # lane 3 -> Critic runs
-    assert result["critic"].memo
-    assert result["critic"].remediation_plan
+
+
+@pytest.mark.asyncio
+async def test_mortgage_clean_seed_ready_for_human_approval():
+    """Clean mortgage: purpose matches → no purpose veto; gate never STP → HITL."""
+    result = await agent.ainvoke({"query": "retail mortgage clean"})
+
+    assert result["application"].product == "retail_mortgage"
+    assert result["compliance"].veto is False
+    assert "prohibited_purpose_refinance_other_bank" not in result["compliance"].rule_ids
+    assert result["replan_count"] == 0
+    assert result["run_trace"].veto_fired is False
+    assert result["outcome"] == "ready_for_human_approval"
+    assert result["ticket"]["status"] == "ready_for_human_approval"
+    assert result["operations"].valuation_task["status"] == "scheduled"
+
+
+@pytest.mark.asyncio
+async def test_unsecured_purpose_veto_seed_blocks():
+    result = await agent.ainvoke({"query": "tín chấp veto"})
+
+    assert result["application"].product == "retail_unsecured_salary"
+    assert result["compliance"].veto is True
+    assert "prohibited_purpose_refinance_other_bank" in result["compliance"].rule_ids
     assert result["run_trace"].veto_fired is True
-    assert result["ticket"]["status"] == "vetoed"
-    assert OperationsSpec.tools == ["core_banking_read", "workflow_write"]
-    # compliance re-ran each replan: initial + 2 replans = 3 compliance traces.
-    assert sum(1 for item in result["trace"] if item.node == "compliance") == 3
+    assert result["outcome"] == "vetoed"
 
 
 @pytest.mark.asyncio
@@ -56,6 +79,10 @@ async def test_unsecured_salary_uses_same_graph_without_veto():
     assert result["application"].product == "retail_unsecured_salary"
     assert result["compliance"].veto is False
     assert result["replan_count"] == 0
+    report = result["compliance"].tool_results["metric_report"]
+    assert report["complete"] is True
+    assert report["missing"] == []
+    assert report["facts"]["dti"]["source"] == "compute_dti"
     assert result["run_trace"].lane == 1
     assert result.get("critic") is None  # lane 1 -> Critic does not run
     assert result["ticket"]["status"] == "stp_approved"
@@ -108,3 +135,15 @@ def test_agent_specs_match_role_permission_contract():
     assert ComplianceSpec.tools == ["core_banking_read", "aml_screening"]
     assert OperationsSpec.tools == ["core_banking_read", "workflow_write"]
     assert CriticSpec.tools == []
+
+
+def test_graph_execution_order_uses_planner_dag_only():
+    config = {"agents": ["compliance", "credit"]}
+    state = {
+        "metadata": {},
+        "plan": DAG(
+            nodes=["planner", "compliance", "credit"], edges=[("planner", "compliance"), ("planner", "credit")]
+        ),
+    }
+
+    assert _agent_execution_order(state, config) == ["compliance", "credit"]

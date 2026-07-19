@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
@@ -7,10 +8,29 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Gemini OpenAI-compatible API (no extra langchain package needed).
 GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
+# packages/shared/aulacys/config.py → repo root is parents[3]
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _env_files() -> tuple[str, ...]:
+    """Load cwd .env first, then the orchestrator-svc .env so any CWD still sees LLM keys."""
+    candidates = [
+        Path.cwd() / ".env",
+        _REPO_ROOT / "services" / "orchestrator-svc" / ".env",
+    ]
+    seen: set[str] = set()
+    files: list[str] = []
+    for path in candidates:
+        key = str(path.resolve()) if path.exists() else ""
+        if key and key not in seen:
+            seen.add(key)
+            files.append(str(path))
+    return tuple(files) or (".env",)
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_env_files(),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -29,6 +49,9 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
 
     openai_api_key: str = ""
+    # Custom OpenAI-compatible endpoint (empty ⇒ real OpenAI). Set for FPT AI Factory
+    # or any gateway that speaks the OpenAI Chat Completions API.
+    openai_base_url: str = ""
     model_name: str = "gpt-4o-mini"  # used when llm_provider=openai
     strong_model: str = "gpt-4o-mini"
     mini_model: str = "gpt-4o-mini"

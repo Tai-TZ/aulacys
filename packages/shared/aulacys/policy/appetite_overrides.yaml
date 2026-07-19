@@ -1,0 +1,7 @@
+# Appetite thresholds tuned by Rule Engineer.
+# overrides.<profile>: applies to all packages in secured|unsecured
+# products.<product_code>: per-package overrides (win over profile)
+# change_log: last N edits (audit light)
+overrides: {}
+products: {}
+change_log: []

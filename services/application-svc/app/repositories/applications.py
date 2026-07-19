@@ -80,6 +80,7 @@ def create_application(payload: ApplicationCreateRequest) -> dict[str, Any]:
         session.add(
             Applicant(
                 application_id=app_id,
+                customer_id=a.customer_id,
                 full_name=a.full_name,
                 dob=a.dob,
                 gender=a.gender,
@@ -294,6 +295,7 @@ def _serialize(row: LoanApplication) -> dict[str, Any]:
         "applicant": None
         if row.applicant is None
         else {
+            "customer_id": row.applicant.customer_id,
             "full_name": row.applicant.full_name,
             "dob": row.applicant.dob.isoformat() if row.applicant.dob else None,
             "gender": row.applicant.gender,

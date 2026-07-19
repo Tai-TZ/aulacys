@@ -10,10 +10,11 @@ import {
 } from "lucide-react";
 import { Button, Card, Input } from "@/components/ui";
 import {
-  assess,
   assessApplication,
+  assessCreditProposal,
   listApplications,
   type AssessResponse,
+  type CreditProposalResponse,
   type DeclaredForm,
   type DocumentInput,
 } from "@/lib/api";
@@ -28,8 +29,11 @@ import {
   AgentRunProgress,
   PIPELINE_RUN_STEPS,
 } from "@/components/admin/agent-run-progress";
+import { AppraisalCriteriaPanel } from "@/components/admin/appraisal-criteria-panel";
+import { CreditProposalDashboard } from "@/components/admin/credit-proposal-dashboard";
 import { NodeTimeline } from "@/components/admin/node-timeline";
 import { cn } from "@/lib/cn";
+import { useRouter } from "next/navigation";
 import {
   docKindLabelVi,
   fieldSlugLabelVi,
@@ -45,240 +49,40 @@ import {
 /** Dashboard always edits a full body (id path is API-only for now). */
 type AssessFormState = MappedAssessForm;
 
-const MORTGAGE_DEMO: AssessFormState = {
-  product: "retail_mortgage",
-  declared: {
-    customer_name: "TRẦN THỊ BÌNH",
-    amount: 2_500_000_000,
-    term_months: 240,
-    annual_rate: 0.105,
-    monthly_income: 85_000_000,
-    existing_monthly_debt: 8_000_000,
-    declared_purpose: "Mua nhà để ở",
-    collateral_value_declared: 4_000_000_000,
-    dob: "15/08/1988",
-    gender: "Nữ",
-    national_id: "001088012345",
-    national_id_issue_date: "10/05/2021",
-    national_id_issue_place: "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-    old_national_id: "001088001122",
-    phone: "0901234567",
-    phone_2: "0911223344",
-    zalo_phone: "0901234567",
-    permanent_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-    current_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-    email: "binh.tran@email.com",
-    occupation: "Cán bộ quản lý",
-    company_name: "Công ty Cổ phần Thương mại và Dịch vụ SHB",
-    position: "Trưởng phòng Kinh doanh",
-    company_address: "Tòa nhà Gelex, 52 Lê Đại Hành, Quận Hai Bà Trưng, Hà Nội",
-    salary_payday: "Ngày 10 hàng tháng",
-    personal_expense: 25_000_000,
-    disbursement_method: "Giải ngân cho Bên thụ hưởng",
-    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-    disbursement_branch: "Chi nhánh Hà Nội",
-    disbursement_account: "101123456789",
-    disbursement_account_name: "NGUYỄN VĂN BÁN",
-    spouse_name: "NGUYỄN VĂN AN",
-    spouse_phone: "0902345678",
-    spouse_national_id: "001085054321",
-    spouse_income: 35_000_000,
-    spouse_company: "Công ty Cổ phần Đầu tư SHB",
-    spouse_workplace_phone: "0243123456",
-    consent_data_processing: true,
-    consent_advertising: false,
-    ref1_name: "Trần Thị Mai",
-    ref1_relationship: "Chị gái",
-    ref1_phone: "0903456789",
-    ref1_same_address: false,
-    ref2_name: "Nguyễn Văn Cường",
-    ref2_relationship: "Bạn thân",
-    ref2_phone: "0904567890",
-    ref2_same_address: false,
-    id_number: "001099000003",
-    cic_consent: true,
-  },
-  documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true } },
-    { kind: "sao_ke_tai_khoan", tier: 1, extracted: { monthly_income: 85_000_000 } },
-    { kind: "so_do", tier: 2, extracted: { parcel: "DEMO-001" } },
-    { kind: "hop_dong_mua_ban", tier: 2, extracted: { seller: "Demo Seller" } },
-    { kind: "cic", tier: 1, extracted: { score_band: "A" } },
-    {
-      kind: "purpose_evidence",
-      tier: 2,
-      extracted: { actual_purpose: "tất toán khoản vay ở TCTD khác" },
-    },
-  ],
-};
-
 // ---------------------------------------------------------------------------
-// Ba kịch bản demo — Vay tiêu dùng tín chấp (retail_unsecured_salary)
+// Form placeholder — list luôn lấy từ database (application-svc via orchestrator)
 // ---------------------------------------------------------------------------
 
-/** Happy path — NGUYỄN THỊ BÉ HOA (CCCD 074300004128) */
-const HAPPY_DEMO: AssessFormState = {
+const EMPTY_FORM: AssessFormState = {
   product: "retail_unsecured_salary",
   declared: {
-    customer_name: "NGUYỄN THỊ BÉ HOA",
-    amount: 150_000_000,
-    term_months: 36,
+    customer_name: "",
+    amount: 0,
+    term_months: 12,
     annual_rate: 0.13,
-    monthly_income: 22_000_000,
+    monthly_income: 0,
     existing_monthly_debt: 0,
-    declared_purpose: "Mua sắm nội thất, tiêu dùng cá nhân",
-    dob: "10/06/2000",
-    gender: "Nữ",
-    national_id: "074300004128",
-    national_id_issue_date: "21/05/2025",
-    national_id_issue_place: "Bộ Công an",
-    old_national_id: "074300001234",
-    phone: "0912300004",
-    phone_2: "0987654321",
-    zalo_phone: "0912300004",
-    permanent_address: "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
-    current_address: "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
-    email: "behoa.nguyen@email.com",
-    occupation: "Nhân viên văn phòng",
-    company_name: "Công ty TNHH SX TM Phúc Thịnh",
-    position: "Nhân viên kinh doanh",
-    company_address: "Khu công nghiệp VSIP II, Bình Dương",
-    salary_payday: "Ngày 5 hàng tháng",
-    personal_expense: 8_000_000,
-    disbursement_method: "Giải ngân cho Bên vay",
-    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-    disbursement_branch: "Chi nhánh Bình Dương",
-    disbursement_account: "104074300004",
-    disbursement_account_name: "NGUYỄN THỊ BÉ HOA",
-    ref1_name: "Nguyễn Thị Kim Loan",
-    ref1_relationship: "Mẹ",
-    ref1_phone: "0912300001",
-    ref1_same_address: true,
-    ref2_name: "Trần Văn Minh",
-    ref2_relationship: "Đồng nghiệp",
-    ref2_phone: "0912300002",
-    ref2_same_address: false,
-    consent_data_processing: true,
-    consent_advertising: true,
-    id_number: "001099000001",
-    cic_consent: true,
-  },
-  documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "074300004128" } },
-    { kind: "sao_ke_luong", tier: 1, extracted: { monthly_income: 22_000_000 } },
-    { kind: "cic", tier: 1, extracted: { score_band: "A" } },
-  ],
-};
-
-/** Veto path — TRẦN THỊ VUI (CCCD 091185013867) — mục đích thực là tất toán nợ */
-const VETO_DEMO: AssessFormState = {
-  product: "retail_unsecured_salary",
-  declared: {
-    customer_name: "TRẦN THỊ VUI",
-    amount: 300_000_000,
-    term_months: 24,
-    annual_rate: 0.13,
-    monthly_income: 18_000_000,
-    existing_monthly_debt: 8_500_000,
-    declared_purpose: "Tiêu dùng cá nhân",
-    dob: "10/05/1985",
-    gender: "Nữ",
-    national_id: "091185013867",
-    national_id_issue_date: "02/06/2023",
-    national_id_issue_place: "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-    old_national_id: "091185002233",
-    phone: "0913000091",
-    phone_2: "0922334455",
-    zalo_phone: "0913000091",
-    permanent_address: "Mong Thá, Châu Thành, Kiên Giang",
-    current_address: "Thổ Sơn, Hòn Đất, Kiên Giang",
-    email: "vui.tran@email.com",
-    occupation: "Buôn bán tự do",
-    company_name: "Hộ kinh doanh cá thể",
-    position: "Chủ hộ",
-    company_address: "Chợ Thổ Sơn, Hòn Đất, Kiên Giang",
-    salary_payday: "Không cố định",
-    personal_expense: 10_000_000,
-    disbursement_method: "Giải ngân cho Bên vay",
-    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-    disbursement_branch: "Chi nhánh Kiên Giang",
-    disbursement_account: "109091185013",
-    disbursement_account_name: "TRẦN THỊ VUI",
-    ref1_name: "Trần Văn Thanh",
-    ref1_relationship: "Anh trai",
-    ref1_phone: "0913000092",
-    ref1_same_address: true,
-    ref2_name: "Lê Thị Hồng",
-    ref2_relationship: "Hàng xóm",
-    ref2_phone: "0913000093",
-    ref2_same_address: false,
-    consent_data_processing: true,
-    consent_advertising: true,
-    id_number: "091185013867",
-    cic_consent: true,
-  },
-  documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "091185013867" } },
-    { kind: "sao_ke_luong", tier: 1, extracted: { monthly_income: 18_000_000 } },
-    { kind: "cic", tier: 1, extracted: { score_band: "B" } },
-    // purpose_evidence mâu thuẫn → VETO
-    { kind: "purpose_evidence", tier: 2, extracted: { actual_purpose: "tất toán khoản vay ở TCTD khác" } },
-  ],
-};
-
-/** HITL / biên giới — NGUYỄN THỊ HUYỀN TRẦN (CCCD 054301008970) */
-const HITL_DEMO: AssessFormState = {
-  product: "retail_unsecured_salary",
-  declared: {
-    customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
-    amount: 200_000_000,
-    term_months: 48,
-    annual_rate: 0.135,
-    monthly_income: 15_000_000,
-    existing_monthly_debt: 5_000_000,
-    declared_purpose: "Tiêu dùng cá nhân (sửa chữa nhà)",
-    dob: "19/03/2001",
-    gender: "Nữ",
-    national_id: "054301008970",
-    national_id_issue_date: "05/07/2022",
-    national_id_issue_place: "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-    old_national_id: "054301001111",
-    phone: "0905400054",
-    phone_2: "0933445566",
-    zalo_phone: "0905400054",
-    permanent_address: "Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
-    current_address: "Khu Phổ Phú Hòa, Hòa Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
-    email: "huyentran.nguyen@email.com",
-    occupation: "Giáo viên",
-    company_name: "Trường THCS Hòa Hiệp Trung",
-    position: "Giáo viên",
-    company_address: "Thị xã Đông Hòa, Phú Yên",
-    salary_payday: "Ngày 15 hàng tháng",
-    personal_expense: 7_000_000,
-    disbursement_method: "Giải ngân cho Bên vay",
-    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-    disbursement_branch: "Chi nhánh Phú Yên",
-    disbursement_account: "105054301008",
-    disbursement_account_name: "NGUYỄN THỊ HUYỀN TRẦN",
-    ref1_name: "Nguyễn Thị Lan",
-    ref1_relationship: "Mẹ",
-    ref1_phone: "0905400055",
-    ref1_same_address: true,
-    ref2_name: "Trần Văn Phúc",
-    ref2_relationship: "Đồng nghiệp",
-    ref2_phone: "0905400056",
-    ref2_same_address: false,
+    declared_purpose: "",
+    dob: "",
+    gender: "",
+    national_id: "",
+    national_id_issue_date: "",
+    national_id_issue_place: "",
+    phone: "",
+    permanent_address: "",
+    current_address: "",
+    email: "",
+    occupation: "",
+    company_name: "",
+    position: "",
+    company_address: "",
+    personal_expense: 0,
     consent_data_processing: true,
     consent_advertising: false,
-    id_number: "054301008970",
+    id_number: "",
     cic_consent: true,
   },
-  documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "054301008970" } },
-    // tier-2: sao kê chưa verify chính thức → HITL
-    { kind: "sao_ke_luong", tier: 2, extracted: { monthly_income: 15_000_000 } },
-    { kind: "cic", tier: 1, extracted: { score_band: "B" } },
-  ],
+  documents: [],
 };
 
 function StatusBadge({ tone, children }: { tone: string; children: React.ReactNode }) {
@@ -293,6 +97,32 @@ function StatusBadge({ tone, children }: { tone: string; children: React.ReactNo
       {children}
     </span>
   );
+}
+
+function formatMoney(n?: number | null): string {
+  return n == null || Number.isNaN(n) ? "—" : `${new Intl.NumberFormat("vi-VN").format(n)} ₫`;
+}
+
+function formatRate(n?: number | null): string {
+  return n == null || Number.isNaN(n) ? "—" : `${(Number(n) * 100).toFixed(2)}%/năm`;
+}
+
+function formatRatio(n?: number | null): string {
+  return n == null || Number.isNaN(n) ? "—" : `${(Number(n) * 100).toFixed(1)}%`;
+}
+
+function proposalStatusLabelVi(status?: string): string {
+  if (status === "accepted") return "Chấp nhận";
+  if (status === "revised") return "Điều chỉnh";
+  if (status === "rejected") return "Từ chối";
+  return "Chưa có";
+}
+
+function proposalStatusTone(status?: string): string {
+  if (status === "accepted") return "success";
+  if (status === "revised") return "pending";
+  if (status === "rejected") return "warning";
+  return "active";
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -351,8 +181,16 @@ function MoneyInput({
 
 const SCENARIO_META: Record<string, { label: string; border: string }> = {
   happy: { label: "✅ Happy path — Hồ sơ đầy đủ, dự kiến phê duyệt", border: "border-[#16a34a]" },
-  veto:  { label: "🚫 Veto — Mục đích khai báo mâu thuẫn chứng từ",  border: "border-[#ea580c]" },
-  hitl:  { label: "⏳ Biên giới — Cần nhân viên xem xét thủ công",   border: "border-[#d97706]" },
+  veto: { label: "🚫 Veto — Mục đích khai báo mâu thuẫn chứng từ", border: "border-[#ea580c]" },
+  hitl: { label: "⏳ Biên giới — Cần nhân viên xem xét thủ công", border: "border-[#d97706]" },
+  mortgage: {
+    label: "🏠 Mortgage HITL — Mục đích khớp, chờ phê duyệt người",
+    border: "border-[#2563eb]",
+  },
+  "mortgage-veto": {
+    label: "🚫 Mortgage veto — Purpose contradiction → replan",
+    border: "border-[#ea580c]",
+  },
 };
 
 function FL({ label, value, wide }: { label: string; value?: string | null; wide?: boolean }) {
@@ -810,7 +648,9 @@ function DossierPreviewCard({
         {/* === D === */}
         <SBanner>D. HỒ SƠ TÀI LIỆU KÈM THEO (CHỨNG TỪ MINH CHỨNG)</SBanner>
         <div className="col-span-2 flex flex-wrap gap-2">
-          {data.documents.map((doc, i) => {
+          {data.documents
+            .filter((doc) => doc.kind !== "cic")
+            .map((doc, i) => {
             const cls = doc.tier >= 2
               ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
               : "border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100";
@@ -986,7 +826,9 @@ function DossierSummaryCard({
             3. Hồ sơ tài liệu kèm theo (Nhấp để xem bản gốc)
           </h4>
           <div className="flex flex-wrap gap-2">
-            {data.documents.map((doc, i) => {
+            {data.documents
+              .filter((doc) => doc.kind !== "cic")
+              .map((doc, i) => {
               const cls = doc.tier >= 2
                 ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
                 : "border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100";
@@ -1008,7 +850,8 @@ function DossierSummaryCard({
         </div>
 
         <p className="text-left text-xs text-muted-foreground">
-          Sau khi chạy thẩm định multi-agent, kết quả graph hiện bên dưới.
+          Đây là tóm tắt hồ sơ tiếp nhận. Bấm <strong>Tiếp nhận hồ sơ</strong> rồi Credit lập phương án
+          (có báo cáo CIC) trước khi chạy thẩm định.
         </p>
 
       </div>
@@ -1047,21 +890,28 @@ export function AssessDashboard() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const [form, setForm] = useState<AssessFormState>(HAPPY_DEMO);
+  const [form, setForm] = useState<AssessFormState>(EMPTY_FORM);
   const [dossier, setDossier] = useState<{
     data: AssessFormState;
     scenario: string;
     applicationId?: string | null;
-  } | null>({ data: HAPPY_DEMO, scenario: "happy" });
+  } | null>(null);
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
   const [result, setResult] = useState<AssessResponse | null>(null);
+  const [creditProposal, setCreditProposal] = useState<CreditProposalResponse | null>(null);
   const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
   const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [proposing, setProposing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /** Step 1 only completes after user clicks Tiếp nhận */
   const [ingested, setIngested] = useState(false);
   const [agentStepIndex, setAgentStepIndex] = useState(0);
+  const [creditDashboardOpen, setCreditDashboardOpen] = useState(false);
+  /** Sau thẩm định, officer bấm Duyệt → chuyển bước Phê duyệt. */
+  const [handedToApproval, setHandedToApproval] = useState(false);
+  const router = useRouter();
   const agentTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function clearAgentTimer() {
@@ -1085,71 +935,36 @@ export function AssessDashboard() {
     clearAgentTimer();
     setIngested(false);
     setResult(null);
+    setCreditProposal(null);
     setError(null);
     setLoading(false);
+    setProposing(false);
     setAgentStepIndex(0);
     setTier3Confirmed(false);
+    setCreditDashboardOpen(false);
+    setHandedToApproval(false);
   }
-
-  const mockDossiers: DossierListItem[] = [
-    {
-      id: "happy",
-      application_id: "happy",
-      customer_name: "NGUYỄN THỊ BÉ HOA",
-      product: "retail_unsecured_salary",
-      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
-      amount: 150_000_000,
-      db_status: "submitted",
-      scenario: "happy",
-      data: HAPPY_DEMO,
-      fromDb: false,
-    },
-    {
-      id: "veto",
-      application_id: "veto",
-      customer_name: "TRẦN THỊ VUI",
-      product: "retail_unsecured_salary",
-      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
-      amount: 150_000_000,
-      db_status: "submitted",
-      scenario: "veto",
-      data: VETO_DEMO,
-      fromDb: false,
-    },
-    {
-      id: "hitl",
-      application_id: "hitl",
-      customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
-      product: "retail_mortgage",
-      product_label: "Vay thế chấp mua nhà (Mortgage Loan)",
-      amount: 2_500_000_000,
-      db_status: "submitted",
-      scenario: "hitl",
-      data: HITL_DEMO,
-      fromDb: false,
-    },
-  ];
 
   const refreshDossiers = useCallback(async () => {
     setListLoading(true);
+    setListError(null);
     try {
       const rows = await listApplications(100);
-      if (rows.length > 0) {
-        setDossiers(
-          rows.map((r) => ({
-            ...applicationToListRow(r as unknown as ApplicationSectionA),
-            fromDb: true,
-          })),
-        );
-      } else {
-        setDossiers(mockDossiers);
+      setDossiers(
+        rows.map((r) => ({
+          ...applicationToListRow(r as unknown as ApplicationSectionA),
+          fromDb: true,
+        })),
+      );
+      if (rows.length === 0) {
+        setListError("Database chưa có hồ sơ nào. Seed application-svc rồi thử lại.");
       }
-    } catch {
-      setDossiers(mockDossiers);
+    } catch (err) {
+      // Keep last good list on transient 503 / cold DB — don't wipe the table.
+      setListError(err instanceof Error ? err.message : "Không tải được hồ sơ từ API");
     } finally {
       setListLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mock is stable for fallback
   }, []);
 
   useEffect(() => {
@@ -1189,19 +1004,77 @@ export function AssessDashboard() {
     return { key: "ingested", label: "Tiếp nhận hồ sơ", tone: "active" as const };
   };
 
-  /** Stage 1 only — tiếp nhận; RM proposal panel appears after this. */
+  /** Stage 1 only — tiếp nhận; rồi tự gọi Credit lập phương án (stage 2). */
   function acceptIntake() {
     setIngested(true);
     setError(null);
     setResult(null);
-    // Demo: agent RM “đề xuất” = giữ số liệu hồ sơ; điền LS mặc định nếu trống
+    setCreditProposal(null);
+    const nextForm: AssessFormState =
+      form.declared.annual_rate != null
+        ? form
+        : { ...form, declared: { ...form.declared, annual_rate: 0.13 } };
+    if (nextForm !== form) setForm(nextForm);
+    void runCreditProposal(nextForm);
+  }
+
+  function applyProposalToForm(proposal: CreditProposalResponse) {
+    const p = proposal.proposal;
+    if (!p) return;
     setForm((prev) => {
-      if (prev.declared.annual_rate != null) return prev;
+      const nextAmount =
+        p.proposed_limit && p.proposed_limit > 0
+          ? p.proposed_limit
+          : p.requested_amount && p.requested_amount > 0
+            ? p.requested_amount
+            : prev.declared.amount;
       return {
         ...prev,
-        declared: { ...prev.declared, annual_rate: 0.13 },
+        declared: {
+          ...prev.declared,
+          amount: nextAmount,
+          term_months: p.term_months || prev.declared.term_months,
+          annual_rate: p.proposed_rate ?? prev.declared.annual_rate ?? 0.13,
+        },
       };
     });
+  }
+
+  /** Stage 2 — Credit only → LoanProposal (FLOW-BUSINESS-CONFIRMED §2). */
+  async function runCreditProposal(sourceForm?: AssessFormState) {
+    setProposing(true);
+    setError(null);
+    setCreditProposal(null);
+    try {
+      const base = sourceForm ?? form;
+      const body: AssessFormState = {
+        ...base,
+        declared: {
+          ...base.declared,
+          annual_rate: base.declared.annual_rate ?? 0.13,
+        },
+        documents: base.documents.map((doc) =>
+          doc.tier === 3
+            ? { ...doc, confirmed_by: tier3Confirmed ? "officer-demo" : doc.confirmed_by }
+            : doc,
+        ),
+      };
+      const appId = dossier?.applicationId;
+      const next = await assessCreditProposal(
+        toAssessRequest(body, appId && appId.length > 20 ? appId : null),
+      );
+      setCreditProposal(next);
+      applyProposalToForm(next);
+      setCreditDashboardOpen(true);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Credit không lập được phương án. Kiểm tra API :8000 / application-svc :8360.",
+      );
+    } finally {
+      setProposing(false);
+    }
   }
 
   /** Stage 3 — gửi phương án RM (JSON form) vào multi-agent thẩm định. */
@@ -1211,9 +1084,14 @@ export function AssessDashboard() {
       setError("Cần tiếp nhận hồ sơ trước khi chạy thẩm định.");
       return;
     }
+    if (!creditProposal) {
+      setError("Cần Credit lập phương án (bước RM đề xuất) trước khi thẩm định.");
+      return;
+    }
     setLoading(true);
     setError(null);
     setResult(null);
+    setHandedToApproval(false);
     startAgentProgress();
     try {
       const body: AssessFormState = {
@@ -1244,28 +1122,9 @@ export function AssessDashboard() {
     }
   }
 
-  async function runSeedDemo(keyword: string, fallbackForm: AssessFormState) {
-    setIngested(true);
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    startAgentProgress();
-    try {
-      const next = await assess(keyword);
-      clearAgentTimer();
-      setAgentStepIndex(PIPELINE_RUN_STEPS.length - 1);
-      setResult(next);
-      rememberResult(next, fallbackForm, dossier?.applicationId);
-    } catch (err) {
-      clearAgentTimer();
-      setError(err instanceof Error ? err.message : "Không gọi được API seed.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const run = result?.run_trace;
   const compliance = result?.compliance;
+  const proposal = result?.proposal ?? result?.credit?.proposal ?? null;
   const veto = Boolean(compliance?.veto);
 
   // Step status — FLOW-BUSINESS-CONFIRMED.md (5 stages)
@@ -1278,6 +1137,9 @@ export function AssessDashboard() {
 
   if (!ingested) {
     step1Status = "active";
+  } else if (proposing) {
+    step1Status = "complete";
+    step2Status = "active";
   } else if (loading) {
     // Thẩm định đang chạy — panel agent chỉ thuộc stage 3
     step1Status = "complete";
@@ -1304,11 +1166,20 @@ export function AssessDashboard() {
           form.product === "retail_unsecured_salary" || form.product.includes("unsecured")
             ? "complete"
             : "active";
-      } else {
+      } else if (handedToApproval) {
         step4Status = "active";
+        step5Status = "pending";
+      } else {
+        // Giữ ở bước thẩm định cho đến khi officer bấm Duyệt
+        step3Status = "complete";
+        step4Status = "pending";
         step5Status = "pending";
       }
     }
+  } else if (ingested && creditProposal) {
+    step1Status = "complete";
+    step2Status = "complete";
+    step3Status = "active";
   } else if (ingested) {
     step1Status = "complete";
     step2Status = "active";
@@ -1322,11 +1193,12 @@ export function AssessDashboard() {
     },
     {
       title: "RM đề xuất",
-      desc:
-        step2Status === "active"
-          ? "Xem / chỉnh phương án agent"
-          : step2Status === "complete"
-            ? productLabelVi(dossier?.data.product)
+      desc: proposing
+        ? "Credit đang lập phương án…"
+        : creditProposal
+          ? `${recommendationLabelVi(creditProposal.credit.recommendation)} · chỉnh rồi gửi thẩm định`
+          : step2Status === "active"
+            ? "Credit lập LoanProposal"
             : "Sau tiếp nhận",
       status: step2Status,
     },
@@ -1336,9 +1208,11 @@ export function AssessDashboard() {
         step3Status === "failed"
           ? "Compliance veto"
           : step3Status === "complete"
-            ? "Credit · Compliance · Critic"
+            ? "Đã đối chiếu tiêu chí"
             : step3Status === "active"
-              ? "Multi-agent đang thẩm định…"
+              ? creditProposal
+                ? "Đối chiếu tiêu chí / policy"
+                : "Chờ phương án Credit"
               : "Chờ phương án RM",
       status: step3Status,
     },
@@ -1351,7 +1225,11 @@ export function AssessDashboard() {
             : "Người đã duyệt"
           : step4Status === "active"
             ? "Chờ người (HITL)"
-            : "STP hoặc HITL",
+            : result &&
+                !handedToApproval &&
+                !(veto || result.outcome === "vetoed")
+              ? "Sau khi bấm Duyệt"
+              : "STP hoặc HITL",
       status: step4Status,
     },
     {
@@ -1394,7 +1272,7 @@ export function AssessDashboard() {
     return laneLabelVi(run?.lane ?? 3);
   })();
 
-  if (viewMode === "list") {
+  if (viewMode === "list" || !dossier) {
     const filteredDossiers = dossiers.filter((d) => {
       const statusInfo = getDossierStatusInfo(d);
       if (filterStatus !== "all" && statusInfo.key !== filterStatus) return false;
@@ -1420,9 +1298,32 @@ export function AssessDashboard() {
             <h1 className="text-xl font-bold tracking-tight text-navy uppercase">Yêu cầu vay từ khách hàng</h1>
             <p className="text-xs text-muted-foreground">
               Xem chi tiết hồ sơ, đối chiếu chứng từ gốc và thực thi quy trình phê duyệt tự động.
+              {listLoading ? " · Đang tải…" : ` · Nguồn: database (${dossiers.length} hồ sơ)`}
             </p>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={() => void refreshDossiers()}
+            disabled={listLoading}
+          >
+            {listLoading ? "Đang tải…" : "Tải lại"}
+          </Button>
         </div>
+
+        {listError ? (
+          <div
+            role="alert"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
+            <span>Không tải được hồ sơ: {listError}</span>
+            <Button type="button" variant="outline" size="sm" onClick={() => void refreshDossiers()}>
+              Thử lại
+            </Button>
+          </div>
+        ) : null}
 
         {/* Filter & Search Bar */}
         <Card className="border border-border/70 p-4 shadow-sm bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1491,7 +1392,11 @@ export function AssessDashboard() {
                 ) : filteredDossiers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-12 text-xs text-muted-foreground italic bg-secondary/5">
-                      Không tìm thấy hồ sơ nào phù hợp với bộ lọc.
+                      {listError
+                        ? "Không có dữ liệu vì API lỗi — bấm Thử lại phía trên."
+                        : dossiers.length === 0
+                          ? "Database chưa có hồ sơ yêu cầu vay."
+                          : "Không tìm thấy hồ sơ nào phù hợp với bộ lọc."}
                     </td>
                   </tr>
                 ) : (
@@ -1565,19 +1470,24 @@ export function AssessDashboard() {
             type="button"
             variant="primary"
             size="sm"
-            disabled={loading}
+            disabled={loading || proposing}
             onClick={() => {
               if (!ingested) acceptIntake();
+              else if (!creditProposal) void runCreditProposal();
               else void runAppraisal();
             }}
           >
             {loading
               ? "Đang thẩm định…"
-              : result
-                ? "Chạy lại thẩm định"
-                : !ingested
-                  ? "Tiếp nhận hồ sơ"
-                  : "Chạy thẩm định"}
+              : proposing
+                ? "Credit đang lập phương án…"
+                : result
+                  ? "Chạy lại thẩm định"
+                  : !ingested
+                    ? "Tiếp nhận hồ sơ"
+                    : !creditProposal
+                      ? "Credit lập phương án"
+                      : "Chạy thẩm định"}
             <ArrowRight size={14} />
           </Button>
         )}
@@ -1633,6 +1543,20 @@ export function AssessDashboard() {
         <p className="rounded-lg bg-warning-soft p-2.5 text-xs text-warning-foreground">{error}</p>
       )}
 
+      {proposing && (
+        <Card className="border border-brand/20 bg-card p-4 shadow-card text-left">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin text-brand" aria-hidden />
+            <div>
+              <p className="text-sm font-semibold text-navy">Credit đang lập phương án vay</p>
+              <p className="text-[11px] text-muted-foreground">
+                CIC · thu nhập · DTI · định giá — chưa chạy Compliance / Critic
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {loading && (
         <AgentRunProgress
           activeIndex={agentStepIndex}
@@ -1640,14 +1564,57 @@ export function AssessDashboard() {
         />
       )}
 
-      {/* RM đề xuất — chỉ sau tiếp nhận; agent lập PA, user chỉnh rồi gửi thẩm định */}
+      {/* RM đề xuất — sau tiếp nhận; Credit lập PA, user chỉnh rồi gửi thẩm định */}
       {ingested && !result && !loading && (
         <Card className="border border-border/70 bg-card p-4 shadow-card">
-          <h3 className="mb-1 text-left text-sm font-semibold text-navy">Phương án đề xuất (RM)</h3>
-          <p className="mb-3 text-left text-[11px] text-muted-foreground">
-            Agent đã lập phương án từ hồ sơ. Chỉnh nếu cần, rồi bấm <strong>Chạy thẩm định</strong> —
-            JSON phương án này là input cho multi-agent.
-          </p>
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h3 className="text-left text-sm font-semibold text-navy">Phương án đề xuất (RM / Credit)</h3>
+              <p className="mt-1 text-left text-[11px] text-muted-foreground">
+                {creditProposal
+                  ? "Credit đã trả LoanProposal. Chỉnh nếu cần, rồi bấm Chạy thẩm định để đối chiếu tiêu chí."
+                  : proposing
+                    ? "Đang chờ Credit…"
+                    : "Bấm Credit lập phương án để agent chạy CIC / DTI / định giá."}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {creditProposal ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCreditDashboardOpen(true)}
+                >
+                  Đề xuất phương án vay
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={proposing}
+                onClick={() => void runCreditProposal()}
+              >
+                {creditProposal ? "Chạy lại Credit" : "Credit lập phương án"}
+              </Button>
+            </div>
+          </div>
+          {creditProposal ? (
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+              <StatusBadge tone="active">
+                {recommendationLabelVi(creditProposal.credit.recommendation)}
+              </StatusBadge>
+              {creditProposal.proposal ? (
+                <StatusBadge tone={proposalStatusTone(creditProposal.proposal.status)}>
+                  {proposalStatusLabelVi(creditProposal.proposal.status)}
+                </StatusBadge>
+              ) : null}
+              <span className="text-muted-foreground">
+                DTI {formatRatio(creditProposal.credit.dti)}
+              </span>
+            </div>
+          ) : null}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-left text-[11px] text-muted-foreground">
               Số tiền đề nghị (₫)
@@ -1700,7 +1667,7 @@ export function AssessDashboard() {
         </Card>
       )}
 
-      {/* Kết quả — gọn: outcome + values + agent process + hồ sơ */}
+      {/* Kết quả — gọn: outcome + tiêu chí thẩm định + values + agent process */}
       {result && (
         <div className="space-y-4">
           {/* Outcome banner — nghiệp vụ: đã giải ngân | từ chối + lý do | chờ HITL */}
@@ -1718,7 +1685,7 @@ export function AssessDashboard() {
             <div className="flex flex-wrap items-start justify-between gap-3 text-left">
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Kết quả
+                  Kết quả thẩm định
                 </p>
                 <p
                   className={cn(
@@ -1746,14 +1713,6 @@ export function AssessDashboard() {
                     bởi hạn mức cứng — không giải ngân.
                   </p>
                 )}
-                {!isRejected && result.outcome === "ready_for_human_approval" && (
-                  <Link
-                    href="/admin/approvals"
-                    className="mt-3 inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-on-primary"
-                  >
-                    Mở phê duyệt <ArrowRight size={14} />
-                  </Link>
-                )}
               </div>
               <StatusBadge
                 tone={isRejected ? "warning" : isDisbursed ? "success" : "pending"}
@@ -1762,6 +1721,166 @@ export function AssessDashboard() {
               </StatusBadge>
             </div>
           </Card>
+
+          <AppraisalCriteriaPanel
+            result={result}
+            onApprove={() => {
+              setHandedToApproval(true);
+              router.push("/admin/approvals");
+            }}
+          />
+
+          {proposal && (
+            <Card className="border border-border/70 p-4 shadow-card text-left">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-navy">Phương án Credit trả ra</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Credit kiểm phương án vay, không phê duyệt và không veto.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge tone={proposalStatusTone(proposal.status)}>
+                    {proposalStatusLabelVi(proposal.status)}
+                  </StatusBadge>
+                  {result.credit ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCreditDashboardOpen(true)}
+                    >
+                      Đề xuất phương án vay
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm md:grid-cols-6">
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Số tiền xin vay</dt>
+                  <dd className="font-semibold text-navy">{formatMoney(proposal.requested_amount)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Hạn mức đề xuất</dt>
+                  <dd className="font-semibold text-navy">{formatMoney(proposal.proposed_limit)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Lãi suất đề xuất</dt>
+                  <dd className="font-semibold text-navy">{formatRate(proposal.proposed_rate)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Kỳ hạn</dt>
+                  <dd className="font-semibold text-navy">{proposal.term_months} tháng</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">Trả hàng tháng</dt>
+                  <dd className="font-semibold text-navy">{formatMoney(proposal.monthly_payment)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">DTI</dt>
+                  <dd className="font-semibold text-navy">{formatRatio(proposal.dti)}</dd>
+                </div>
+              </dl>
+              {proposal.revisions.length > 0 && (
+                <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                  {proposal.revisions.map((item) => (
+                    <li key={item}>· {item}</li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
+
+          {result.credit && !proposal ? (
+            <div className="flex justify-start">
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => setCreditDashboardOpen(true)}
+              >
+                Đề xuất phương án vay
+              </Button>
+            </div>
+          ) : null}
+
+          {(result.credit?.rationale ||
+            result.operations?.rationale ||
+            result.compliance?.rationale ||
+            result.critic) && (
+            <Card className="border border-border/70 p-4 shadow-card text-left">
+              <h3 className="text-sm font-semibold text-navy">Lý do agent &amp; Critic</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Prose từ Credit / Operations / Compliance; Critic chỉ xác minh số liệu có tool
+                call.
+              </p>
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                {[
+                  { title: "Credit", text: result.credit?.rationale },
+                  { title: "Operations", text: result.operations?.rationale },
+                  { title: "Compliance", text: result.compliance?.rationale },
+                ].map((item) =>
+                  item.text ? (
+                    <div
+                      key={item.title}
+                      className="rounded-lg border border-border/60 bg-muted/30 p-3"
+                    >
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {item.title}
+                      </p>
+                      <p className="mt-1.5 whitespace-pre-wrap text-sm text-foreground">{item.text}</p>
+                    </div>
+                  ) : null,
+                )}
+              </div>
+              {result.critic && (
+                <div className="mt-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Critic
+                    </p>
+                    <StatusBadge tone={result.critic.passed ? "success" : "warning"}>
+                      {result.critic.passed ? "Passed" : "Rejected"}
+                    </StatusBadge>
+                  </div>
+                  {result.critic.memo && (
+                    <p className="mt-1.5 whitespace-pre-wrap text-sm text-foreground">
+                      {result.critic.memo}
+                    </p>
+                  )}
+                  {result.critic.review && (
+                    <div className="mt-2 rounded-md border border-border/50 bg-card/70 p-2.5">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Independent review
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
+                        {result.critic.review}
+                      </p>
+                    </div>
+                  )}
+                  {(result.critic.rejections ?? []).length > 0 && (
+                    <ul className="mt-2 space-y-1 text-xs text-warning-foreground">
+                      {(result.critic.rejections ?? []).map((item) => (
+                        <li key={item}>· {item}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {(result.critic.remediation_plan ?? []).length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Remediation
+                      </p>
+                      <ul className="mt-1 space-y-1 text-xs text-foreground">
+                        {(result.critic.remediation_plan ?? []).map((item) => (
+                          <li key={item}>· {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+          )}
 
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Values */}
@@ -1833,6 +1952,77 @@ export function AssessDashboard() {
             </Card>
           </div>
 
+          {/* Agent narrative reports — Critic owns the full textual report */}
+          <Card className="border border-border/70 p-4 shadow-card text-left">
+            <h3 className="text-sm font-semibold text-navy">Báo cáo nhận định agent</h3>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Nhận định bằng văn bản của Credit / Operations / Compliance. Số liệu chi tiết vẫn lấy từ
+              tool (CIC, DTI, policy…).
+            </p>
+            <div className="mt-3 space-y-3">
+              {result.critic?.memo ? (
+                <div className="rounded-lg border border-brand/25 bg-accent/40 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-brand">
+                    Critic — báo cáo tổng hợp
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                    {result.critic.memo}
+                  </p>
+                  {result.critic.review ? (
+                    <div className="mt-3 border-t border-border/50 pt-2">
+                      <p className="text-[11px] font-semibold text-muted-foreground">
+                        Independent review
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-navy leading-relaxed">
+                        {result.critic.review}
+                      </p>
+                    </div>
+                  ) : null}
+                  {result.critic.remediation_plan?.length ? (
+                    <div className="mt-3 border-t border-border/50 pt-2">
+                      <p className="text-[11px] font-semibold text-muted-foreground">Việc cần làm tiếp</p>
+                      <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+                        {result.critic.remediation_plan.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+              {result.credit?.rationale ? (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Credit — nhận định chuyên môn
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                    {result.credit.rationale}
+                  </p>
+                </div>
+              ) : null}
+              {result.operations?.rationale ? (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Operations — nhận định chuyên môn
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                    {result.operations.rationale}
+                  </p>
+                </div>
+              ) : null}
+              {result.compliance?.rationale ? (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Compliance — nhận định chuyên môn
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                    {result.compliance.rationale}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </Card>
+
           {/* Hồ sơ data — summary only, not full form dump */}
           {dossier && (
             <DossierSummaryCard
@@ -1862,6 +2052,24 @@ export function AssessDashboard() {
           }
         />
       )}
+
+      {creditProposal?.credit ? (
+        <CreditProposalDashboard
+          open={creditDashboardOpen}
+          onOpenChange={setCreditDashboardOpen}
+          credit={creditProposal.credit}
+          proposal={creditProposal.proposal}
+          customerName={form.declared.customer_name || undefined}
+        />
+      ) : result?.credit ? (
+        <CreditProposalDashboard
+          open={creditDashboardOpen}
+          onOpenChange={setCreditDashboardOpen}
+          credit={result.credit}
+          proposal={proposal}
+          customerName={form.declared.customer_name || undefined}
+        />
+      ) : null}
     </div>
   );
 }

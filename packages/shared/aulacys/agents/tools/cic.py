@@ -35,6 +35,7 @@ def _normalize(payload: dict[str, Any]) -> dict[str, Any]:
 
 def _consent_denied(cccd: str, detail: str) -> dict[str, Any]:
     return {
+        "status": "invalid",
         "error": "consent_required",
         "consent_required": True,
         "detail": detail,
@@ -75,36 +76,102 @@ def _from_service(cccd: str, consent_granted: bool) -> dict[str, Any] | None:
         return None
 
 
+_GROUP_LABELS: dict[int, str] = {
+    1: "Nợ đủ tiêu chuẩn",
+    2: "Nợ cần chú ý",
+    3: "Nợ dưới tiêu chuẩn",
+    4: "Nợ nghi ngờ",
+    5: "Nợ có khả năng mất vốn",
+}
+
+_SEED_CACHE: dict[str, Any] | None = None
+
+
+def _seed_path() -> str:
+    # tools → agents → aulacys → shared → packages → repo root
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), *([".."] * 5)))
+    return os.path.join(root, "services", "cic-svc", "seed", "cic_records.json")
+
+
+def _load_seed() -> dict[str, Any]:
+    global _SEED_CACHE
+    if _SEED_CACHE is not None:
+        return _SEED_CACHE
+    path = _seed_path()
+    try:
+        with open(path, encoding="utf-8") as fh:
+            _SEED_CACHE = json.load(fh)
+    except Exception:
+        _SEED_CACHE = {"_meta": {"version": "fallback"}, "_default": {}}
+    return _SEED_CACHE
+
+
 def _fallback(cccd: str, consent_granted: bool) -> dict[str, Any]:
-    """Same fields as cic-svc LookupResponse (clean group-1 stub)."""
+    """Load cic_records.json (same seed as cic-svc) when CIC_SVC_URL is unset."""
     if not consent_granted:
         return _consent_denied(cccd, "CIC inquiry requires customer consent (consent_granted=true).")
+
+    data = _load_seed()
+    record_found = cccd in data and not str(cccd).startswith("_")
+    rec = data.get(cccd) if record_found else data.get("_default", {})
+    if not isinstance(rec, dict):
+        rec = {}
+
+    debt_group = int(rec.get("debt_group") or 1)
+    max_overdue_days = int(rec.get("max_overdue_days", 0))
+    overdue_amount = int(rec.get("overdue_amount_vnd", 0))
+    outstanding = int(rec.get("outstanding_debt", rec.get("total_outstanding_vnd", 0)) or 0)
+    overdue_history = rec.get("overdue_history")
+    if not isinstance(overdue_history, dict):
+        overdue_history = {
+            "count": 0 if max_overdue_days == 0 else 1,
+            "max_days": max_overdue_days,
+            "amount_vnd": overdue_amount,
+        }
+    version = str((data.get("_meta") or {}).get("version") or "fallback")
+    monthly = rec.get("monthly_debt_obligation_vnd")
     return {
+        "status": "checked",
         "cccd": cccd,
-        "full_name": "Seeded CIC snapshot",
-        "cic_group": 1,
-        "classification": "Nợ đủ tiêu chuẩn",
-        "score": 680,
-        "pd": 0.05,
-        "has_bad_debt": False,
-        "num_active_loans": 1,
-        "total_outstanding_vnd": 0,
-        "credit_limit_total_vnd": 50_000_000,
-        "max_overdue_days": 0,
-        "overdue_days": 0,
-        "overdue_amount_vnd": 0,
-        "credit_history_months": 36,
-        "credit_types": ["unsecured"],
-        "inquiries_last_6m": 1,
+        "customer_id": rec.get("customer_id"),
+        "full_name": str(rec.get("full_name") or "Khách hàng mặc định (dữ liệu tổng hợp)"),
+        "debt_group": debt_group,
+        "cic_group": debt_group,
+        "classification": _GROUP_LABELS.get(debt_group, "Không xác định"),
+        "score": 680 if debt_group == 1 else max(300, 700 - debt_group * 40),
+        "pd": round(0.02 * debt_group, 4),
+        "has_bad_debt": debt_group >= 3,
+        "outstanding_debt": outstanding,
+        "number_of_institutions": int(rec.get("number_of_institutions", 0)),
+        "institutions": list(rec.get("institutions") or []),
+        "overdue_history": {
+            "count": int(overdue_history.get("count", 0)),
+            "max_days": int(overdue_history.get("max_days", max_overdue_days)),
+            "amount_vnd": int(overdue_history.get("amount_vnd", overdue_amount)),
+        },
+        "num_active_loans": int(rec.get("num_active_loans", 0)),
+        "total_outstanding_vnd": outstanding,
+        "monthly_debt_obligation_vnd": int(monthly) if monthly is not None else 0,
+        "credit_limit_total_vnd": int(rec.get("credit_limit_total_vnd", 50_000_000)),
+        "max_overdue_days": max_overdue_days,
+        "overdue_days": max_overdue_days,
+        "overdue_amount_vnd": overdue_amount,
+        "credit_history_months": int(rec.get("credit_history_months", 36)),
+        "credit_types": list(rec.get("credit_types") or ["unsecured"]),
+        "credit_types_vi": list(rec.get("credit_types_vi") or ["Vay tín chấp"]),
+        "inquiries_last_6m": int(rec.get("inquiries_last_6m", 1)),
         "consent_granted": True,
         "score_breakdown": {
-            "scorecard_version": "fallback",
-            "pd": 0.05,
-            "linear_score": 0.9,
+            "scorecard_version": "seed-fallback",
+            "pd": round(0.02 * debt_group, 4),
+            "linear_score": round(1.0 - 0.1 * debt_group, 2),
             "components": {},
             "weights": {},
         },
         "source": "seeded_cic_snapshot",
+        "dataset_version": version,
+        "evidence_id": f"CIC-{cccd}" if record_found else "CIC-SYNTHETIC-FALLBACK",
+        "record_found": record_found,
         "inputs": {"cccd": cccd, "consent_granted": True},
         "computed_at": _now(),
     }

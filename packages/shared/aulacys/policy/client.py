@@ -17,9 +17,20 @@ from datetime import date
 
 from aulacys.policy.loader import PolicyViolation
 from aulacys.policy.loader import evaluate as _local_evaluate
+from aulacys.policy.profiles import PolicyProfile
 
 
-def evaluate_policy(metrics: dict[str, float], as_of: date | None = None) -> list[PolicyViolation]:
+def evaluate_policy(
+    metrics: dict[str, float],
+    as_of: date | None = None,
+    *,
+    profile: PolicyProfile | None = None,
+    product_code: str | None = None,
+) -> list[PolicyViolation]:
+    # Profile-scoped evaluate stays in-process (overrides live on the API host).
+    if profile is not None:
+        return _local_evaluate(metrics, as_of=as_of, profile=profile, product_code=product_code)
+
     url = os.getenv("POLICY_SVC_URL")
     if not url:
         return _local_evaluate(metrics, as_of=as_of)

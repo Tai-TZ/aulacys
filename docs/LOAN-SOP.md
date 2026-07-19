@@ -2,8 +2,8 @@
 
 > **📌 DECIDED — binding.** This is the authoritative loan-origination process the system
 > implements. Agents, nodes, graph edges, and product configs MUST follow this sequence and
-> these control points. Where [`FLOW-PROCESS-LOAN.md`](./FLOW-PROCESS-LOAN.md) (the raw draft)
-> is ambiguous, **this file wins**. Business rationale: [`FLOW-BUSINESS-REVIEW.md`](./FLOW-BUSINESS-REVIEW.md).
+> these control points. This file and [`FLOW-BUSINESS-CONFIRMED.md`](./FLOW-BUSINESS-CONFIRMED.md)
+> are the active business-process references. Agent responsibilities live in [`AGENT-SPEC.md`](./AGENT-SPEC.md).
 > Change = team decision, logged in `docs/TEAM_RULES.md` (`AGENTS.md` §3).
 >
 > **Product anchor:** vay **tín chấp lương** (unsecured salary). Mortgage deltas: §6.

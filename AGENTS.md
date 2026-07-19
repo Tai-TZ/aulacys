@@ -44,7 +44,7 @@ Everything tagged 🔒 below is a standing rule — leave it alone.
 
 **Five rules that outrank convenience** (full table + the failure each one causes: `docs/BUILD-GUIDE.md` §1):
 
-1. **An LLM never produces a number.** DTI, LTV, risk weight — deterministic tools in `apps/api/src/agents/tools/`. LLMs interpret and write prose; they do not compute. `Critic` rejects any figure that cannot be traced to a tool call.
+1. **An LLM never produces a number.** DTI, LTV, risk weight — deterministic tools in `packages/shared/aulacys/agents/tools/`. LLMs interpret and write prose; they do not compute. `Critic` rejects any figure that cannot be traced to a tool call.
 2. **Hard legal limits live in `policy/`, not in a prompt.** A model asked to recall a statutory threshold recalls the old one. Policy is data, versioned, with an effective date.
 3. **The veto is an edge in the graph, not a sentence in a prompt.** A prompt saying "refuse if it violates X" is a suggestion; a model can ignore it, and will.
 4. **The tool whitelist is enforced by the harness, not by the prompt.**
@@ -60,7 +60,7 @@ These exist so 5 agents on 5 machines produce **one coherent codebase**, not fiv
 
 1. **Stay in the slice.** Only build the "wow" flow above. New feature/page/endpoint = ask the team first.
 2. **No new dependency without approval.** The stack is locked (§3). Adding a lib is a team decision, logged in `docs/TEAM_RULES.md` → *Decisions*.
-3. **One contract.** API request/response shapes live ONLY in `apps/api/src/models/schemas.py`. The frontend mirrors them in `apps/web/lib/api.ts` — keep the two in sync, never invent a second shape or guess.
+3. **One contract.** API request/response shapes live ONLY in `packages/shared/aulacys/models/schemas.py`. The frontend mirrors them in `apps/web/lib/api.ts` — keep the two in sync, never invent a second shape or guess.
 4. **Small PRs, `main` always deployable.** Short-lived branches, merge fast, never push broken code to `main`.
 5. **Follow existing patterns.** Match the file you're editing (naming, structure, error handling). Don't refactor unrelated code mid-task.
 6. **Demo-proof over clever.** A boring path that never crashes on stage beats an elegant one that might.
@@ -71,13 +71,14 @@ These exist so 5 agents on 5 machines produce **one coherent codebase**, not fiv
 ## 2. Before you write code (ritual — every task) &nbsp;·&nbsp; 🔒 FIXED
 
 1. Read this file + `docs/TEAM_RULES.md`.
-2. Read `apps/api/src/models/schemas.py` (the contract) and the module you'll touch.
+2. Read `packages/shared/aulacys/models/schemas.py` (the contract) and the module you'll touch.
 3. Confirm the task is inside the current slice. If not → flag it, don't build it.
 4. State a 3–5 step plan before editing.
 
 ## After you write code (ritual — every task)
 
-1. Backend: `cd apps/api && make check` (lint + format + test) must pass.
+1. Backend domain core: `cd packages/shared && ruff check aulacys/ tests/ && pytest tests/` must pass.
+   Backend orchestrator (if touched): `cd services/orchestrator-svc && ruff check app/ tests/ && PYTHONPATH=.:../../packages/shared pytest tests/`.
    Frontend: `cd apps/web && npm run lint && npm run build` must pass.
 2. Add/adjust a test for what you changed.
 3. Conventional commit (§5). One logical change per commit.
@@ -94,7 +95,7 @@ These exist so 5 agents on 5 machines produce **one coherent codebase**, not fiv
 | Backend | FastAPI + Uvicorn | 0.115+ / 0.34+ |
 | Agent | LangGraph + LangChain | 0.2+ / 0.3+ |
 | Validation | Pydantic + pydantic-settings | 2.10+ / 2.7+ |
-| LLM | Google Gemini (`gemini-3.1-flash-lite` default; OpenAI fallback) | via `apps/api/src/services/llm.py` |
+| LLM | Gemini default; OpenAI-compatible fallback (OpenAI / FPT AI Factory via `OPENAI_BASE_URL`) | via `packages/shared/aulacys/services/llm.py` |
 | Lint/format (api) | Ruff | 0.8+ (line-length 120) |
 | Test (api) | pytest + pytest-asyncio | 8+ |
 | Frontend | Next.js (App Router) + TypeScript + Tailwind | Next 14 / React 18 |
@@ -107,33 +108,33 @@ Changing anything here = team decision, logged in `docs/TEAM_RULES.md`.
 ## 4. Repo layout (🔒 FIXED) & ownership (🔧 FILL-IN)
 
 ```
+packages/
+  shared/aulacys/         # DOMAIN CORE — imported by orchestrator + services  (owner: [name] 🔧)
+    agents/               #   LangGraph: graph.py, state.py, nodes/, tools/, harness/, specs/
+    models/schemas.py     #   Pydantic schemas = THE contract  (change = notify all + update web)
+    services/             #   LLM (llm.py) + business logic
+    policy/               #   policy-as-code: loader, client, rules  (veto source)
+    config.py             #   settings (env-driven, reads .env of the running process)
+    db/                   #   SQLAlchemy async models
+  shared/tests/           #   domain-core tests (CI job: packages/shared)
+services/                 # microservices — each: app/, tests/, Dockerfile, own .env, own DB schema
+  orchestrator-svc/       #   COMPOSITION ROOT — hosts the agent graph, :8000 (was apps/api)
+  api-gateway/            #   edge / status gateway, :8080
+  cic-svc  income-svc  aml-svc  property-svc  policy-svc  los-svc
+  application-svc  audit-svc  catalog-svc  legal-svc  agent-worker-svc
+  db/                     #   shared DB bootstrap
 apps/
-  api/                    # FastAPI backend  (owner: [name] 🔧)
-    src/
-      agents/             #   LangGraph: graph.py, state.py, nodes/, tools/
-      api/                #   FastAPI routes
-      models/schemas.py   #   Pydantic schemas = THE contract  (change = notify all + update web)
-      services/           #   LLM + business logic
-      db/                 #   Supabase Postgres: base.py, session.py (async engine), models/  (see docs/DATABASE.md)
-      config.py           #   settings (env-driven)
-    tests/                #   mirror src/ layout
-    migrations/           #   Alembic migrations (uses DIRECT_URL / session pooler)
-    alembic.ini  Dockerfile  Makefile  requirements.txt
   web/                    # Next.js frontend  (owner: [name] 🔧)
     app/                  #   App Router pages (page.tsx = chat UI); globals.css = DESIGN TOKENS (one place)
     components/ui/        #   design-system primitives (Button, Card, Input) — import these
     lib/api.ts  lib/cn.ts #   backend client (mirrors schemas) + class-merge helper
     Dockerfile
-packages/
-  shared/                 # cross-app contract notes (keep FE/BE types in sync)
-docs/                     # ARCHITECTURE.md, TEAM_RULES.md, DEPLOY.md, architecture_diagram.md
-eval/                     # evaluation report
-presentation/             # pitch deck + demo video
-render.yaml               # Render blueprint (API);  Vercel deploys web (see docs/DEPLOY.md)
-docker-compose.yml        # local full stack: api :8000 + web :3000
+docs/                     # SYSTEM-ARCHITECTURE.md, TEAM_RULES.md, DEPLOY.md, AGENT-SPEC.md
+render.yaml               # Render blueprint (orchestrator-svc);  Vercel deploys web (see docs/DEPLOY.md)
+docker-compose.yml        # local full stack: api(orchestrator) :8000 + web :3000 + all services
 ```
 
-- Touching `apps/api/src/models/schemas.py` (the contract) or `apps/api/src/config.py` affects everyone → announce in team channel **and** update `apps/web/lib/api.ts`.
+- Touching `packages/shared/aulacys/models/schemas.py` (the contract) or `packages/shared/aulacys/config.py` affects everyone → announce in team channel **and** update `apps/web/lib/api.ts`.
 - 🔧 Each area needs one human owner (fill in the `[name]` blanks above). Agents propose; owner merges.
 
 ---
@@ -154,15 +155,15 @@ docker-compose.yml        # local full stack: api :8000 + web :3000
 - Type hints on all public functions. Pydantic for all I/O.
 - Errors: raise `HTTPException` at API layer; nodes/tools return typed dict, never crash the graph.
 - **Demo-proof:** external calls (LLM, DB, network) must have a fallback — on failure return a safe default, log, do not 500 the demo path.
-- No secrets in code. Backend reads via `apps/api/src/config.py` (`.env`); frontend only uses `NEXT_PUBLIC_*` vars (never put secret keys there — they ship to the browser).
+- No secrets in code. Backend reads via `packages/shared/aulacys/config.py` (`.env` of the running process, e.g. `services/orchestrator-svc/.env`); frontend only uses `NEXT_PUBLIC_*` vars (never put secret keys there — they ship to the browser).
 - English identifiers; comments in the team's language are fine but keep them short.
 
 ---
 
 ## 7. Definition of Done (every feature) &nbsp;·&nbsp; 🔒 FIXED
 
-- [ ] Runs end-to-end locally (API `:8000` + web `:3000`, or `docker compose up`)
-- [ ] Backend `cd apps/api && make check` green; frontend `cd apps/web && npm run build` green
+- [ ] Runs end-to-end locally (orchestrator API `:8000` + web `:3000`, or `docker compose up`)
+- [ ] Backend `cd packages/shared && ruff check aulacys/ tests/ && pytest tests/` green; frontend `cd apps/web && npm run build` green
 - [ ] Has a fallback for its external calls
 - [ ] Contract unchanged, OR change announced + `schemas.py` **and** `apps/web/lib/api.ts` updated
 - [ ] Deployed to the live URL (or clearly PR-only) — see `docs/DEPLOY.md`
