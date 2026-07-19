@@ -8,8 +8,23 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Gemini OpenAI-compatible API (no extra langchain package needed).
 GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
-# packages/shared/aulacys/config.py → repo root is parents[3]
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+def _resolve_repo_root() -> Path:
+    """Monorepo root locally; package parent (/svc) inside Cloud Run images.
+
+    Local: packages/shared/aulacys/config.py → parents[3] = repo root.
+    Docker: /svc/aulacys/config.py is shallower — parents[3] raises IndexError.
+    """
+    here = Path(__file__).resolve()
+    try:
+        root = here.parents[3]
+        if (root / "packages" / "shared" / "aulacys").is_dir():
+            return root
+    except IndexError:
+        pass
+    return here.parents[1]
+
+
+_REPO_ROOT = _resolve_repo_root()
 
 
 def _env_files() -> tuple[str, ...]:
