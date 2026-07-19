@@ -80,6 +80,7 @@ class Applicant(Base):
     application_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("loan_application.id"), primary_key=True
     )
+    customer_id: Mapped[str | None] = mapped_column(Text, nullable=True, index=True)
     full_name: Mapped[str] = mapped_column(Text, nullable=False)
     dob: Mapped[date | None] = mapped_column(Date, nullable=True)
     gender: Mapped[str | None] = mapped_column(Text, nullable=True)

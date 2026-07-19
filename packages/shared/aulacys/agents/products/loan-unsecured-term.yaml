@@ -11,6 +11,18 @@ policy: retail_lending.yaml
 limits:
   amount_ceiling: 500000000
   term_months_max: 60
+pricing:
+  base_rate: 0.13
+  min_rate: 0.11
+  max_rate: 0.18
+  max_dti: 0.5
+  income_multiple: 14
+  cic_group_premium_bps: 100
+  dti_premium_threshold: 0.4
+  dti_premium_bps: 75
+  term_premium_threshold_months: 48
+  term_premium_bps: 50
+  bad_debt_premium_bps: 300
 documents:
   required: [cccd, sao_ke_luong, cic]
 gate:

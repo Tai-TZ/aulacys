@@ -1,0 +1,124 @@
+{
+  "_meta": {
+    "dataset_id": "aulacys-synthetic-branches",
+    "version": "2026.1",
+    "classification": "SYNTHETIC_TEST_DATA",
+    "contains_real_personal_data": false,
+    "description": "Danh sách CN/PGD giả lập để kiểm tra bán kính địa lý",
+    "max_radius_km": 50
+  },
+  "branches": [
+    {
+      "branch_id": "SHB-HN-01",
+      "name": "SHB Chi nhánh Hà Nội",
+      "province": "Hà Nội",
+      "lat": 21.0278,
+      "lon": 105.8342
+    },
+    {
+      "branch_id": "SHB-HP-01",
+      "name": "SHB Chi nhánh Hải Phòng",
+      "province": "Hải Phòng",
+      "lat": 20.85,
+      "lon": 106.68
+    },
+    {
+      "branch_id": "SHB-DN-01",
+      "name": "SHB Chi nhánh Đà Nẵng",
+      "province": "Đà Nẵng",
+      "lat": 16.06,
+      "lon": 108.21
+    },
+    {
+      "branch_id": "SHB-HUE-01",
+      "name": "SHB PGD Huế",
+      "province": "Thừa Thiên Huế",
+      "lat": 16.47,
+      "lon": 107.59
+    },
+    {
+      "branch_id": "SHB-PY-01",
+      "name": "SHB PGD Phú Yên",
+      "province": "Phú Yên",
+      "lat": 13.09,
+      "lon": 109.31
+    },
+    {
+      "branch_id": "SHB-KH-01",
+      "name": "SHB Chi nhánh Khánh Hòa",
+      "province": "Khánh Hòa",
+      "lat": 12.25,
+      "lon": 109.19
+    },
+    {
+      "branch_id": "SHB-BD-01",
+      "name": "SHB PGD Bình Định",
+      "province": "Bình Định",
+      "lat": 13.78,
+      "lon": 109.22
+    },
+    {
+      "branch_id": "SHB-HCM-01",
+      "name": "SHB Chi nhánh TP.HCM",
+      "province": "TP. Hồ Chí Minh",
+      "lat": 10.7769,
+      "lon": 106.7009
+    },
+    {
+      "branch_id": "SHB-CT-01",
+      "name": "SHB Chi nhánh Cần Thơ",
+      "province": "Cần Thơ",
+      "lat": 10.045,
+      "lon": 105.747
+    },
+    {
+      "branch_id": "SHB-DNAI-01",
+      "name": "SHB PGD Đồng Nai",
+      "province": "Đồng Nai",
+      "lat": 10.957,
+      "lon": 106.843
+    },
+    {
+      "branch_id": "SHB-BDUONG-01",
+      "name": "SHB PGD Bình Dương",
+      "province": "Bình Dương",
+      "lat": 11.325,
+      "lon": 106.477
+    },
+    {
+      "branch_id": "SHB-KG-01",
+      "name": "SHB PGD Kiên Giang",
+      "province": "Kiên Giang",
+      "lat": 10.0125,
+      "lon": 105.0809
+    },
+    {
+      "branch_id": "SHB-CM-01",
+      "name": "SHB PGD Cà Mau",
+      "province": "Cà Mau",
+      "lat": 9.1769,
+      "lon": 105.152
+    },
+    {
+      "branch_id": "SHB-BL-01",
+      "name": "SHB PGD Bạc Liêu",
+      "province": "Bạc Liêu",
+      "lat": 9.294,
+      "lon": 105.7216
+    },
+    {
+      "branch_id": "SHB-AG-01",
+      "name": "SHB PGD An Giang",
+      "province": "An Giang",
+      "lat": 10.5216,
+      "lon": 105.1259
+    },
+    {
+      "branch_id": "SHB-DLK-01",
+      "name": "SHB PGD Đắk Lắk",
+      "province": "Đắk Lắk",
+      "lat": 12.6667,
+      "lon": 108.05
+    }
+  ]
+}

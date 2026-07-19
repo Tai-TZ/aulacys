@@ -92,6 +92,10 @@ export interface DocumentInput {
   tier: 1 | 2 | 3;
   extracted?: Record<string, unknown> | null;
   confirmed_by?: string | null;
+  source?: string | null;
+  evidence_id?: string | null;
+  dataset_version?: string | null;
+  verified_at?: string | null;
 }
 
 export interface AssessApplicationRequest {
@@ -150,7 +154,21 @@ export interface ComplianceVerdict {
   ubo_status: string;
   rationale: string;
   citations: unknown[];
+  rule_evidence: PolicyDecisionEvidence[];
   tool_results: Record<string, unknown>;
+}
+
+export interface PolicyDecisionEvidence {
+  rule_id: string;
+  status: "passed" | "warning" | "blocking" | "missing";
+  metric: string;
+  actual: number | null;
+  threshold: number;
+  source: string;
+  evidence_id: string;
+  dataset_version: string;
+  standard_reference: string;
+  policy_version: string;
 }
 
 export interface Citation {
@@ -402,12 +420,12 @@ export interface LoanProductWriteBody {
   effective_end?: string | null;
 }
 
-async function catalogFetch<T>(path: string, init?: RequestInit): Promise<T> {
+async function catalogFetch<T>(path: string, init?: RequestInit, timeoutMs = 20_000): Promise<T> {
   const bases = apiBases();
   let lastErr: Error | null = null;
   for (const base of bases) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 4000);
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
       const res = await fetch(`${base}/api/v1${path}`, {
         ...init,
@@ -426,7 +444,12 @@ async function catalogFetch<T>(path: string, init?: RequestInit): Promise<T> {
       return (await res.json()) as T;
     } catch (e) {
       clearTimeout(timer);
-      lastErr = e instanceof Error ? e : new Error(String(e));
+      const err = e instanceof Error ? e : new Error(String(e));
+      if (err.name === "AbortError") {
+        lastErr = new Error(`API timeout after ${timeoutMs}ms (${base}/api/v1${path})`);
+      } else {
+        lastErr = err;
+      }
       if (base === bases[bases.length - 1]) break;
     }
   }

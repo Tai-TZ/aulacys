@@ -47,7 +47,12 @@ def _to_assess_response(state: dict) -> AssessResponse:
 
 
 def _resolve_application(request: AssessApplicationRequest) -> LoanApplication:
-    """Body path or application-svc id (consent gate on load)."""
+    """Body path or application-svc id (consent gate on load).
+
+    Prefer application-svc when ``application_id`` is set. If the service times
+    out / is unreachable but the client also sent ``product`` + ``declared``,
+    fall back to the inline body so the demo path keeps working.
+    """
     if request.application_id:
         try:
             loaded = load_loan_application(
@@ -57,12 +62,21 @@ def _resolve_application(request: AssessApplicationRequest) -> LoanApplication:
             )
         except ConsentDeniedError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        if loaded is None:
-            raise HTTPException(
-                status_code=502,
-                detail=(f"application {request.application_id} not found or APPLICATION_SVC_URL unreachable"),
+        if loaded is not None:
+            return loaded
+        if request.product and request.declared is not None:
+            return LoanApplication(
+                product=request.product,
+                declared=request.declared,
+                documents=request.documents,
             )
-        return loaded
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                f"application {request.application_id} not found or APPLICATION_SVC_URL "
+                "unreachable/timed out (application-svc :8360). Retry, or submit product+declared."
+            ),
+        )
 
     assert request.product is not None and request.declared is not None
     return LoanApplication(

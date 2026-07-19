@@ -59,12 +59,16 @@ Groups **3–5** ⇒ `has_bad_debt: true` (typical hard decline).
 
 | CCCD | Group | Name |
 |------|-------|------|
-| `001099000001` | 1 | Nguyen Van An |
-| `001099000002` | 2 | Tran Thi Binh |
-| `001099000003` | 3 | Le Van Cuong |
-| `001099000004` | 4 | Pham Thi Dung |
-| `001099000005` | 5 | Hoang Van Em |
-| anything else | 1 (default) | Khách hàng mặc định |
+| `001099000001` | 1 | NGUYỄN VĂN AN |
+| `001099000002` | 2 | NGUYỄN THỊ BÍCH |
+| `001099000003` | 3 | NGUYỄN MINH CƯỜNG |
+| `001099000004` | 4 | NGUYỄN THỊ DIỆU |
+| `001099000005` | 5 | NGUYỄN QUANG ĐỨC |
+| anything else | 1 (default) | Khách hàng mặc định (dữ liệu tổng hợp) |
+
+Credit History fields (schema 2.0): `customer_id`, `debt_group`, `outstanding_debt`,
+`overdue_history` (`count` / `max_days` / `amount_vnd`), `number_of_institutions`.
+`cic_group` remains an alias of `debt_group` for existing consumers.
 
 Scores are **computed** from seed fields (not hard-coded). Expect ~650+ for group 1, lower as risk rises.
 

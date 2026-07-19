@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { Button, Card, Input } from "@/components/ui";
 import {
-  assess,
   assessApplication,
   listApplications,
   type AssessResponse,
@@ -45,253 +44,40 @@ import {
 /** Dashboard always edits a full body (id path is API-only for now). */
 type AssessFormState = MappedAssessForm;
 
-const MORTGAGE_DEMO: AssessFormState = {
-  product: "retail_mortgage",
-  declared: {
-    customer_name: "TRẦN THỊ BÌNH",
-    amount: 2_500_000_000,
-    term_months: 240,
-    annual_rate: 0.105,
-    monthly_income: 85_000_000,
-    existing_monthly_debt: 8_000_000,
-    declared_purpose: "Mua nhà để ở",
-    collateral_value_declared: 4_000_000_000,
-    dob: "15/08/1988",
-    gender: "Nữ",
-    national_id: "001088012345",
-    national_id_issue_date: "10/05/2021",
-    national_id_issue_place: "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-    old_national_id: "001088001122",
-    phone: "0901234567",
-    phone_2: "0911223344",
-    zalo_phone: "0901234567",
-    permanent_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-    current_address: "Số 45, Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-    email: "binh.tran@email.com",
-    occupation: "Cán bộ quản lý",
-    company_name: "Công ty Cổ phần Thương mại và Dịch vụ SHB",
-    position: "Trưởng phòng Kinh doanh",
-    company_address: "Tòa nhà Gelex, 52 Lê Đại Hành, Quận Hai Bà Trưng, Hà Nội",
-    salary_payday: "Ngày 10 hàng tháng",
-    personal_expense: 25_000_000,
-    disbursement_method: "Giải ngân cho Bên thụ hưởng",
-    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-    disbursement_branch: "Chi nhánh Hà Nội",
-    disbursement_account: "101123456789",
-    disbursement_account_name: "NGUYỄN VĂN BÁN",
-    spouse_name: "NGUYỄN VĂN AN",
-    spouse_phone: "0902345678",
-    spouse_national_id: "001085054321",
-    spouse_income: 35_000_000,
-    spouse_company: "Công ty Cổ phần Đầu tư SHB",
-    spouse_workplace_phone: "0243123456",
-    consent_data_processing: true,
-    consent_advertising: false,
-    ref1_name: "Trần Thị Mai",
-    ref1_relationship: "Chị gái",
-    ref1_phone: "0903456789",
-    ref1_same_address: false,
-    ref2_name: "Nguyễn Văn Cường",
-    ref2_relationship: "Bạn thân",
-    ref2_phone: "0904567890",
-    ref2_same_address: false,
-    id_number: "001088012345",
-    cic_consent: true,
-  },
-  documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "001088012345" } },
-    { kind: "sao_ke_tai_khoan", tier: 1, extracted: { monthly_income: 85_000_000 } },
-    { kind: "so_do", tier: 2, extracted: { parcel: "DEMO-001" } },
-    { kind: "hop_dong_mua_ban", tier: 2, extracted: { seller: "Demo Seller" } },
-    { kind: "cic", tier: 1, extracted: { score_band: "A" } },
-    {
-      kind: "purpose_evidence",
-      tier: 2,
-      extracted: { actual_purpose: "Mua nhà để ở" },
-    },
-  ],
-};
-
-/** Mortgage veto — cùng hồ sơ nhưng purpose_evidence mâu thuẫn (wow path) */
-const MORTGAGE_VETO_DEMO: AssessFormState = {
-  ...MORTGAGE_DEMO,
-  documents: MORTGAGE_DEMO.documents.map((doc) =>
-    doc.kind === "purpose_evidence"
-      ? {
-          ...doc,
-          extracted: { actual_purpose: "tất toán khoản vay ở TCTD khác" },
-        }
-      : doc,
-  ),
-};
-
 // ---------------------------------------------------------------------------
-// Ba kịch bản demo — Vay tiêu dùng tín chấp (retail_unsecured_salary)
+// Form placeholder — list luôn lấy từ database (application-svc via orchestrator)
 // ---------------------------------------------------------------------------
 
-/** Happy path — NGUYỄN THỊ BÉ HOA (CCCD 074300004128) */
-const HAPPY_DEMO: AssessFormState = {
+const EMPTY_FORM: AssessFormState = {
   product: "retail_unsecured_salary",
   declared: {
-    customer_name: "NGUYỄN THỊ BÉ HOA",
-    amount: 150_000_000,
-    term_months: 36,
+    customer_name: "",
+    amount: 0,
+    term_months: 12,
     annual_rate: 0.13,
-    monthly_income: 22_000_000,
+    monthly_income: 0,
     existing_monthly_debt: 0,
-    declared_purpose: "Mua sắm nội thất, tiêu dùng cá nhân",
-    dob: "10/06/2000",
-    gender: "Nữ",
-    national_id: "074300004128",
-    national_id_issue_date: "21/05/2025",
-    national_id_issue_place: "Bộ Công an",
-    old_national_id: "074300001234",
-    phone: "0912300004",
-    phone_2: "0987654321",
-    zalo_phone: "0912300004",
-    permanent_address: "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
-    current_address: "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
-    email: "behoa.nguyen@email.com",
-    occupation: "Nhân viên văn phòng",
-    company_name: "Công ty TNHH SX TM Phúc Thịnh",
-    position: "Nhân viên kinh doanh",
-    company_address: "Khu công nghiệp VSIP II, Bình Dương",
-    salary_payday: "Ngày 5 hàng tháng",
-    personal_expense: 8_000_000,
-    disbursement_method: "Giải ngân cho Bên vay",
-    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-    disbursement_branch: "Chi nhánh Bình Dương",
-    disbursement_account: "104074300004",
-    disbursement_account_name: "NGUYỄN THỊ BÉ HOA",
-    ref1_name: "Nguyễn Thị Kim Loan",
-    ref1_relationship: "Mẹ",
-    ref1_phone: "0912300001",
-    ref1_same_address: true,
-    ref2_name: "Trần Văn Minh",
-    ref2_relationship: "Đồng nghiệp",
-    ref2_phone: "0912300002",
-    ref2_same_address: false,
-    consent_data_processing: true,
-    consent_advertising: true,
-    id_number: "001099000001",
-    cic_consent: true,
-  },
-  documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "074300004128" } },
-    { kind: "sao_ke_luong", tier: 1, extracted: { monthly_income: 22_000_000 } },
-    { kind: "cic", tier: 1, extracted: { score_band: "A" } },
-  ],
-};
-
-/** Veto path — TRẦN THỊ VUI (CCCD 091185013867) — mục đích thực là tất toán nợ */
-const VETO_DEMO: AssessFormState = {
-  product: "retail_unsecured_salary",
-  declared: {
-    customer_name: "TRẦN THỊ VUI",
-    amount: 300_000_000,
-    term_months: 24,
-    annual_rate: 0.13,
-    monthly_income: 18_000_000,
-    existing_monthly_debt: 8_500_000,
-    declared_purpose: "Tiêu dùng cá nhân",
-    dob: "10/05/1985",
-    gender: "Nữ",
-    national_id: "091185013867",
-    national_id_issue_date: "02/06/2023",
-    national_id_issue_place: "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-    old_national_id: "091185002233",
-    phone: "0913000091",
-    phone_2: "0922334455",
-    zalo_phone: "0913000091",
-    permanent_address: "Mong Thá, Châu Thành, Kiên Giang",
-    current_address: "Thổ Sơn, Hòn Đất, Kiên Giang",
-    email: "vui.tran@email.com",
-    occupation: "Buôn bán tự do",
-    company_name: "Hộ kinh doanh cá thể",
-    position: "Chủ hộ",
-    company_address: "Chợ Thổ Sơn, Hòn Đất, Kiên Giang",
-    salary_payday: "Không cố định",
-    personal_expense: 10_000_000,
-    disbursement_method: "Giải ngân cho Bên vay",
-    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-    disbursement_branch: "Chi nhánh Kiên Giang",
-    disbursement_account: "109091185013",
-    disbursement_account_name: "TRẦN THỊ VUI",
-    ref1_name: "Trần Văn Thanh",
-    ref1_relationship: "Anh trai",
-    ref1_phone: "0913000092",
-    ref1_same_address: true,
-    ref2_name: "Lê Thị Hồng",
-    ref2_relationship: "Hàng xóm",
-    ref2_phone: "0913000093",
-    ref2_same_address: false,
-    consent_data_processing: true,
-    consent_advertising: true,
-    id_number: "091185013867",
-    cic_consent: true,
-  },
-  documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "091185013867" } },
-    { kind: "sao_ke_luong", tier: 1, extracted: { monthly_income: 18_000_000 } },
-    { kind: "cic", tier: 1, extracted: { score_band: "B" } },
-    // purpose_evidence mâu thuẫn → VETO
-    { kind: "purpose_evidence", tier: 2, extracted: { actual_purpose: "tất toán khoản vay ở TCTD khác" } },
-  ],
-};
-
-/** HITL / biên giới — NGUYỄN THỊ HUYỀN TRẦN (CCCD 054301008970) */
-const HITL_DEMO: AssessFormState = {
-  product: "retail_unsecured_salary",
-  declared: {
-    customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
-    amount: 200_000_000,
-    term_months: 48,
-    annual_rate: 0.135,
-    monthly_income: 15_000_000,
-    existing_monthly_debt: 5_000_000,
-    declared_purpose: "Tiêu dùng cá nhân (sửa chữa nhà)",
-    dob: "19/03/2001",
-    gender: "Nữ",
-    national_id: "054301008970",
-    national_id_issue_date: "05/07/2022",
-    national_id_issue_place: "Cục Trưởng Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
-    old_national_id: "054301001111",
-    phone: "0905400054",
-    phone_2: "0933445566",
-    zalo_phone: "0905400054",
-    permanent_address: "Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
-    current_address: "Khu Phổ Phú Hòa, Hòa Hiệp Trung, Thị xã Đồng Hòa, Phú Yên",
-    email: "huyentran.nguyen@email.com",
-    occupation: "Giáo viên",
-    company_name: "Trường THCS Hòa Hiệp Trung",
-    position: "Giáo viên",
-    company_address: "Thị xã Đông Hòa, Phú Yên",
-    salary_payday: "Ngày 15 hàng tháng",
-    personal_expense: 7_000_000,
-    disbursement_method: "Giải ngân cho Bên vay",
-    disbursement_bank: "Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)",
-    disbursement_branch: "Chi nhánh Phú Yên",
-    disbursement_account: "105054301008",
-    disbursement_account_name: "NGUYỄN THỊ HUYỀN TRẦN",
-    ref1_name: "Nguyễn Thị Lan",
-    ref1_relationship: "Mẹ",
-    ref1_phone: "0905400055",
-    ref1_same_address: true,
-    ref2_name: "Trần Văn Phúc",
-    ref2_relationship: "Đồng nghiệp",
-    ref2_phone: "0905400056",
-    ref2_same_address: false,
+    declared_purpose: "",
+    dob: "",
+    gender: "",
+    national_id: "",
+    national_id_issue_date: "",
+    national_id_issue_place: "",
+    phone: "",
+    permanent_address: "",
+    current_address: "",
+    email: "",
+    occupation: "",
+    company_name: "",
+    position: "",
+    company_address: "",
+    personal_expense: 0,
     consent_data_processing: true,
     consent_advertising: false,
-    id_number: "054301008970",
+    id_number: "",
     cic_consent: true,
   },
-  documents: [
-    { kind: "cccd", tier: 1, extracted: { verified: true, id_number: "054301008970" } },
-    // tier-2: sao kê chưa verify chính thức → HITL
-    { kind: "sao_ke_luong", tier: 2, extracted: { monthly_income: 15_000_000 } },
-    { kind: "cic", tier: 1, extracted: { score_band: "B" } },
-  ],
+  documents: [],
 };
 
 function StatusBadge({ tone, children }: { tone: string; children: React.ReactNode }) {
@@ -1055,7 +841,8 @@ function DossierSummaryCard({
         </div>
 
         <p className="text-left text-xs text-muted-foreground">
-          Sau khi chạy thẩm định multi-agent, kết quả graph hiện bên dưới.
+          Đây là tóm tắt hồ sơ. Bấm <strong>Chạy thẩm định</strong> phía trên để multi-agent chạy
+          — báo cáo nhận định + chỉ số + timeline sẽ hiện bên dưới (không nằm trong khung này).
         </p>
 
       </div>
@@ -1094,16 +881,17 @@ export function AssessDashboard() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const [form, setForm] = useState<AssessFormState>(HAPPY_DEMO);
+  const [form, setForm] = useState<AssessFormState>(EMPTY_FORM);
   const [dossier, setDossier] = useState<{
     data: AssessFormState;
     scenario: string;
     applicationId?: string | null;
-  } | null>({ data: HAPPY_DEMO, scenario: "happy" });
+  } | null>(null);
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
   const [result, setResult] = useState<AssessResponse | null>(null);
   const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
   const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /** Step 1 only completes after user clicks Tiếp nhận */
@@ -1138,89 +926,26 @@ export function AssessDashboard() {
     setTier3Confirmed(false);
   }
 
-  const mockDossiers: DossierListItem[] = [
-    {
-      id: "happy",
-      application_id: "happy",
-      customer_name: "NGUYỄN THỊ BÉ HOA",
-      product: "retail_unsecured_salary",
-      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
-      amount: 150_000_000,
-      db_status: "submitted",
-      scenario: "happy",
-      data: HAPPY_DEMO,
-      fromDb: false,
-    },
-    {
-      id: "veto",
-      application_id: "veto",
-      customer_name: "TRẦN THỊ VUI",
-      product: "retail_unsecured_salary",
-      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
-      amount: 150_000_000,
-      db_status: "submitted",
-      scenario: "veto",
-      data: VETO_DEMO,
-      fromDb: false,
-    },
-    {
-      id: "hitl",
-      application_id: "hitl",
-      customer_name: "NGUYỄN THỊ HUYỀN TRẦN",
-      product: "retail_unsecured_salary",
-      product_label: "Vay tiêu dùng theo lương (Salary Loan)",
-      amount: 200_000_000,
-      db_status: "submitted",
-      scenario: "hitl",
-      data: HITL_DEMO,
-      fromDb: false,
-    },
-    {
-      id: "mortgage",
-      application_id: "mortgage",
-      customer_name: "TRẦN THỊ BÌNH",
-      product: "retail_mortgage",
-      product_label: "Vay thế chấp mua nhà (Mortgage Loan)",
-      amount: 2_500_000_000,
-      db_status: "submitted",
-      scenario: "mortgage",
-      data: MORTGAGE_DEMO,
-      fromDb: false,
-    },
-    {
-      id: "mortgage-veto",
-      application_id: "mortgage-veto",
-      customer_name: "TRẦN THỊ BÌNH",
-      product: "retail_mortgage",
-      product_label: "Vay thế chấp mua nhà (Mortgage Loan)",
-      amount: 2_500_000_000,
-      db_status: "submitted",
-      scenario: "mortgage-veto",
-      data: MORTGAGE_VETO_DEMO,
-      fromDb: false,
-    },
-  ];
-
   const refreshDossiers = useCallback(async () => {
     setListLoading(true);
+    setListError(null);
     try {
       const rows = await listApplications(100);
-      if (rows.length > 0) {
-        setDossiers(
-          rows.map((r) => ({
-            ...applicationToListRow(r as unknown as ApplicationSectionA),
-            fromDb: true,
-          })),
-        );
-      } else {
-        setDossiers(mockDossiers);
+      setDossiers(
+        rows.map((r) => ({
+          ...applicationToListRow(r as unknown as ApplicationSectionA),
+          fromDb: true,
+        })),
+      );
+      if (rows.length === 0) {
+        setListError("Database chưa có hồ sơ nào. Seed application-svc rồi thử lại.");
       }
-    } catch {
-      setDossiers(mockDossiers);
+    } catch (err) {
+      setDossiers([]);
+      setListError(err instanceof Error ? err.message : "Không tải được hồ sơ từ API");
     } finally {
       setListLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mock is stable for fallback
   }, []);
 
   useEffect(() => {
@@ -1310,26 +1035,6 @@ export function AssessDashboard() {
           ? err.message
           : "Không gọi được API. Kiểm tra backend :8000 (NEXT_PUBLIC_API_URL).",
       );
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function runSeedDemo(keyword: string, fallbackForm: AssessFormState) {
-    setIngested(true);
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    startAgentProgress();
-    try {
-      const next = await assess(keyword);
-      clearAgentTimer();
-      setAgentStepIndex(PIPELINE_RUN_STEPS.length - 1);
-      setResult(next);
-      rememberResult(next, fallbackForm, dossier?.applicationId);
-    } catch (err) {
-      clearAgentTimer();
-      setError(err instanceof Error ? err.message : "Không gọi được API seed.");
     } finally {
       setLoading(false);
     }
@@ -1466,7 +1171,7 @@ export function AssessDashboard() {
     return laneLabelVi(run?.lane ?? 3);
   })();
 
-  if (viewMode === "list") {
+  if (viewMode === "list" || !dossier) {
     const filteredDossiers = dossiers.filter((d) => {
       const statusInfo = getDossierStatusInfo(d);
       if (filterStatus !== "all" && statusInfo.key !== filterStatus) return false;
@@ -1492,9 +1197,32 @@ export function AssessDashboard() {
             <h1 className="text-xl font-bold tracking-tight text-navy uppercase">Yêu cầu vay từ khách hàng</h1>
             <p className="text-xs text-muted-foreground">
               Xem chi tiết hồ sơ, đối chiếu chứng từ gốc và thực thi quy trình phê duyệt tự động.
+              {listLoading ? " · Đang tải…" : ` · Nguồn: database (${dossiers.length} hồ sơ)`}
             </p>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={() => void refreshDossiers()}
+            disabled={listLoading}
+          >
+            {listLoading ? "Đang tải…" : "Tải lại"}
+          </Button>
         </div>
+
+        {listError ? (
+          <div
+            role="alert"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
+            <span>Không tải được hồ sơ: {listError}</span>
+            <Button type="button" variant="outline" size="sm" onClick={() => void refreshDossiers()}>
+              Thử lại
+            </Button>
+          </div>
+        ) : null}
 
         {/* Filter & Search Bar */}
         <Card className="border border-border/70 p-4 shadow-sm bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1563,7 +1291,11 @@ export function AssessDashboard() {
                 ) : filteredDossiers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-12 text-xs text-muted-foreground italic bg-secondary/5">
-                      Không tìm thấy hồ sơ nào phù hợp với bộ lọc.
+                      {listError
+                        ? "Không có dữ liệu vì API lỗi — bấm Thử lại phía trên."
+                        : dossiers.length === 0
+                          ? "Database chưa có hồ sơ yêu cầu vay."
+                          : "Không tìm thấy hồ sơ nào phù hợp với bộ lọc."}
                     </td>
                   </tr>
                 ) : (
@@ -2021,6 +1753,64 @@ export function AssessDashboard() {
               />
             </Card>
           </div>
+
+          {/* Agent narrative reports — Critic owns the full textual report */}
+          <Card className="border border-border/70 p-4 shadow-card text-left">
+            <h3 className="text-sm font-semibold text-navy">Báo cáo nhận định agent</h3>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Báo cáo tổng hợp văn bản do <strong>Critic</strong> (tuyến 3) chịu trách nhiệm.
+              Credit / Operations / Compliance chỉ đóng góp nhận định chuyên môn; số liệu vẫn từ tool.
+            </p>
+            <div className="mt-3 space-y-3">
+              {result.critic?.memo ? (
+                <div className="rounded-lg border border-brand/25 bg-accent/40 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-brand">
+                    Critic — báo cáo tổng hợp
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.critic.memo}</p>
+                  {result.critic.remediation_plan?.length ? (
+                    <div className="mt-3 border-t border-border/50 pt-2">
+                      <p className="text-[11px] font-semibold text-muted-foreground">Việc cần làm tiếp</p>
+                      <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+                        {result.critic.remediation_plan.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="rounded-lg border border-dashed border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
+                  Critic chưa chạy trên lane này (thường chỉ lane HITL / sau veto). Case STP sạch có thể
+                  không có báo cáo Critic — xem chỉ số Credit/Compliance bên trên.
+                </p>
+              )}
+              {result.credit?.rationale ? (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Credit — nhận định chuyên môn
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.credit.rationale}</p>
+                </div>
+              ) : null}
+              {result.operations?.rationale ? (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Operations — nhận định chuyên môn
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.operations.rationale}</p>
+                </div>
+              ) : null}
+              {result.compliance?.rationale ? (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Compliance — nhận định chuyên môn
+                  </p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.compliance.rationale}</p>
+                </div>
+              ) : null}
+            </div>
+          </Card>
 
           {/* Hồ sơ data — summary only, not full form dump */}
           {dossier && (

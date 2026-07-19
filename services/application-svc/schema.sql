@@ -19,6 +19,7 @@ CREATE INDEX IF NOT EXISTS ix_loan_application_status ON loan_application (statu
 
 CREATE TABLE IF NOT EXISTS applicant (
     application_id uuid PRIMARY KEY REFERENCES loan_application(id),
+    customer_id    text,
     full_name      text NOT NULL,
     dob            date,
     gender         text,
@@ -29,6 +30,7 @@ CREATE TABLE IF NOT EXISTS applicant (
     email          text
 );
 CREATE INDEX IF NOT EXISTS ix_applicant_id_number ON applicant (id_number);
+CREATE INDEX IF NOT EXISTS ix_applicant_customer_id ON applicant (customer_id);
 
 CREATE TABLE IF NOT EXISTS applicant_phone (
     application_id uuid PRIMARY KEY REFERENCES loan_application(id),

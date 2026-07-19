@@ -1,0 +1,817 @@
+{
+  "_meta": {
+    "dataset_id": "aulacys-synthetic-customer-geo",
+    "version": "2026.3",
+    "classification": "SYNTHETIC_TEST_DATA",
+    "contains_real_personal_data": false,
+    "schema_version": "1.0",
+    "record_count": 100,
+    "max_radius_km": 50,
+    "description": "Tọa độ khách hàng giả lập để kiểm tra bán kính CN/PGD"
+  },
+  "_default": {
+    "lat": null,
+    "lon": null,
+    "province": null
+  },
+  "001099000001": {
+    "customer_id": "CUST-000001",
+    "id_number": "001099000001",
+    "province": "Hà Nội",
+    "address": "Số 11, Phường 2, Hà Nội",
+    "lat": 21.07407,
+    "lon": 105.859452
+  },
+  "001099000002": {
+    "customer_id": "CUST-000002",
+    "id_number": "001099000002",
+    "province": "Hải Phòng",
+    "address": "Số 12, Phường 3, Hải Phòng",
+    "lat": 20.811736,
+    "lon": 106.711365
+  },
+  "001099000003": {
+    "customer_id": "CUST-000003",
+    "id_number": "001099000003",
+    "province": "Đà Nẵng",
+    "address": "Số 13, Phường 4, Đà Nẵng",
+    "lat": 16.018425,
+    "lon": 108.199379
+  },
+  "001099000004": {
+    "customer_id": "CUST-000004",
+    "id_number": "001099000004",
+    "province": "Thừa Thiên Huế",
+    "address": "Số 14, Phường 5, Thừa Thiên Huế",
+    "lat": 16.428204,
+    "lon": 107.56985
+  },
+  "001099000005": {
+    "customer_id": "CUST-000005",
+    "id_number": "001099000005",
+    "province": "Khánh Hòa",
+    "address": "Số 15, Phường 6, Khánh Hòa",
+    "lat": 12.223462,
+    "lon": 109.192304
+  },
+  "001099000006": {
+    "customer_id": "CUST-000006",
+    "id_number": "001099000006",
+    "province": "Bình Định",
+    "address": "Số 16, Phường 7, Bình Định",
+    "lat": 13.736323,
+    "lon": 109.261443
+  },
+  "001099000007": {
+    "customer_id": "CUST-000007",
+    "id_number": "001099000007",
+    "province": "Phú Yên",
+    "address": "Số 17, Phường 8, Phú Yên",
+    "lat": 13.073734,
+    "lon": 109.280386
+  },
+  "001099000008": {
+    "customer_id": "CUST-000008",
+    "id_number": "001099000008",
+    "province": "TP. Hồ Chí Minh",
+    "address": "Số 18, Phường 9, TP. Hồ Chí Minh",
+    "lat": 10.842624,
+    "lon": 106.649666
+  },
+  "001099000009": {
+    "customer_id": "CUST-000009",
+    "id_number": "001099000009",
+    "province": "Cần Thơ",
+    "address": "Số 19, Phường 10, Cần Thơ",
+    "lat": 10.078264,
+    "lon": 105.793264
+  },
+  "001099000010": {
+    "customer_id": "CUST-000010",
+    "id_number": "001099000010",
+    "province": "Đồng Nai",
+    "address": "Số 20, Phường 11, Đồng Nai",
+    "lat": 10.993826,
+    "lon": 106.803318
+  },
+  "001099000011": {
+    "customer_id": "CUST-000011",
+    "id_number": "001099000011",
+    "province": "Hà Nội",
+    "address": "Số 21, Phường 12, Hà Nội",
+    "lat": 21.02251,
+    "lon": 105.83324
+  },
+  "001099000012": {
+    "customer_id": "CUST-000012",
+    "id_number": "001099000012",
+    "province": "Hải Phòng",
+    "address": "Số 22, Phường 1, Hải Phòng",
+    "lat": 20.80107,
+    "lon": 106.706412
+  },
+  "001099000013": {
+    "customer_id": "CUST-000013",
+    "id_number": "001099000013",
+    "province": "Đà Nẵng",
+    "address": "Số 23, Phường 2, Đà Nẵng",
+    "lat": 16.01783,
+    "lon": 108.208346
+  },
+  "001099000014": {
+    "customer_id": "CUST-000014",
+    "id_number": "001099000014",
+    "province": "Thừa Thiên Huế",
+    "address": "Số 24, Phường 3, Thừa Thiên Huế",
+    "lat": 16.441949,
+    "lon": 107.63135
+  },
+  "001099000015": {
+    "customer_id": "CUST-000015",
+    "id_number": "001099000015",
+    "province": "Khánh Hòa",
+    "address": "Số 25, Phường 4, Khánh Hòa",
+    "lat": 12.245191,
+    "lon": 109.183416
+  },
+  "001099000016": {
+    "customer_id": "CUST-000016",
+    "id_number": "001099000016",
+    "province": "Bình Định",
+    "address": "Số 26, Phường 5, Bình Định",
+    "lat": 13.743066,
+    "lon": 109.175039
+  },
+  "001099000017": {
+    "customer_id": "CUST-000017",
+    "id_number": "001099000017",
+    "province": "Phú Yên",
+    "address": "Số 27, Phường 6, Phú Yên",
+    "lat": 13.064408,
+    "lon": 109.336712
+  },
+  "001099000018": {
+    "customer_id": "CUST-000018",
+    "id_number": "001099000018",
+    "province": "TP. Hồ Chí Minh",
+    "address": "Số 28, Phường 7, TP. Hồ Chí Minh",
+    "lat": 10.790958,
+    "lon": 106.622272
+  },
+  "001099000019": {
+    "customer_id": "CUST-000019",
+    "id_number": "001099000019",
+    "province": "Cần Thơ",
+    "address": "Số 29, Phường 8, Cần Thơ",
+    "lat": 10.008292,
+    "lon": 105.752249
+  },
+  "001099000020": {
+    "customer_id": "CUST-000020",
+    "id_number": "001099000020",
+    "province": "Đồng Nai",
+    "address": "Số 30, Phường 9, Đồng Nai",
+    "lat": 10.969493,
+    "lon": 106.853867
+  },
+  "001099000021": {
+    "customer_id": "CUST-000021",
+    "id_number": "001099000021",
+    "province": "Hà Nội",
+    "address": "Số 31, Phường 10, Hà Nội",
+    "lat": 21.012223,
+    "lon": 105.901718
+  },
+  "001099000022": {
+    "customer_id": "CUST-000022",
+    "id_number": "001099000022",
+    "province": "Hải Phòng",
+    "address": "Số 32, Phường 11, Hải Phòng",
+    "lat": 20.835586,
+    "lon": 106.6748
+  },
+  "001099000023": {
+    "customer_id": "CUST-000023",
+    "id_number": "001099000023",
+    "province": "Đà Nẵng",
+    "address": "Số 33, Phường 12, Đà Nẵng",
+    "lat": 16.029157,
+    "lon": 108.1678
+  },
+  "001099000024": {
+    "customer_id": "CUST-000024",
+    "id_number": "001099000024",
+    "province": "Thừa Thiên Huế",
+    "address": "Số 34, Phường 1, Thừa Thiên Huế",
+    "lat": 16.441019,
+    "lon": 107.639034
+  },
+  "001099000025": {
+    "customer_id": "CUST-000025",
+    "id_number": "001099000025",
+    "province": "Khánh Hòa",
+    "address": "Số 35, Phường 2, Khánh Hòa",
+    "lat": 12.219371,
+    "lon": 109.220919
+  },
+  "001099000026": {
+    "customer_id": "CUST-000026",
+    "id_number": "001099000026",
+    "province": "Bình Định",
+    "address": "Số 36, Phường 3, Bình Định",
+    "lat": 13.777942,
+    "lon": 109.220188
+  },
+  "001099000027": {
+    "customer_id": "CUST-000027",
+    "id_number": "001099000027",
+    "province": "Phú Yên",
+    "address": "Số 37, Phường 4, Phú Yên",
+    "lat": 13.092003,
+    "lon": 109.34402
+  },
+  "001099000028": {
+    "customer_id": "CUST-000028",
+    "id_number": "001099000028",
+    "province": "TP. Hồ Chí Minh",
+    "address": "Số 38, Phường 5, TP. Hồ Chí Minh",
+    "lat": 10.814734,
+    "lon": 106.636141
+  },
+  "001099000029": {
+    "customer_id": "CUST-000029",
+    "id_number": "001099000029",
+    "province": "Cần Thơ",
+    "address": "Số 39, Phường 6, Cần Thơ",
+    "lat": 10.018044,
+    "lon": 105.753174
+  },
+  "001099000030": {
+    "customer_id": "CUST-000030",
+    "id_number": "001099000030",
+    "province": "Đồng Nai",
+    "address": "Số 40, Phường 7, Đồng Nai",
+    "lat": 10.976154,
+    "lon": 106.820693
+  },
+  "001099000031": {
+    "customer_id": "CUST-000031",
+    "id_number": "001099000031",
+    "province": "Hà Nội",
+    "address": "Số 41, Phường 8, Hà Nội",
+    "lat": 21.044161,
+    "lon": 105.900514
+  },
+  "001099000032": {
+    "customer_id": "CUST-000032",
+    "id_number": "001099000032",
+    "province": "Hải Phòng",
+    "address": "Số 42, Phường 9, Hải Phòng",
+    "lat": 20.798733,
+    "lon": 106.64036
+  },
+  "001099000033": {
+    "customer_id": "CUST-000033",
+    "id_number": "001099000033",
+    "province": "Đà Nẵng",
+    "address": "Số 43, Phường 10, Đà Nẵng",
+    "lat": 16.036824,
+    "lon": 108.208701
+  },
+  "001099000034": {
+    "customer_id": "CUST-000034",
+    "id_number": "001099000034",
+    "province": "Thừa Thiên Huế",
+    "address": "Số 44, Phường 11, Thừa Thiên Huế",
+    "lat": 16.438822,
+    "lon": 107.56396
+  },
+  "001099000035": {
+    "customer_id": "CUST-000035",
+    "id_number": "001099000035",
+    "province": "Khánh Hòa",
+    "address": "Số 45, Phường 12, Khánh Hòa",
+    "lat": 12.188999,
+    "lon": 109.187006
+  },
+  "001099000036": {
+    "customer_id": "CUST-000036",
+    "id_number": "001099000036",
+    "province": "Bình Định",
+    "address": "Số 46, Phường 1, Bình Định",
+    "lat": 13.793483,
+    "lon": 109.192632
+  },
+  "001099000037": {
+    "customer_id": "CUST-000037",
+    "id_number": "001099000037",
+    "province": "Phú Yên",
+    "address": "Số 47, Phường 2, Phú Yên",
+    "lat": 13.041123,
+    "lon": 109.311834
+  },
+  "001099000038": {
+    "customer_id": "CUST-000038",
+    "id_number": "001099000038",
+    "province": "TP. Hồ Chí Minh",
+    "address": "Số 48, Phường 3, TP. Hồ Chí Minh",
+    "lat": 10.780104,
+    "lon": 106.651155
+  },
+  "001099000039": {
+    "customer_id": "CUST-000039",
+    "id_number": "001099000039",
+    "province": "Cần Thơ",
+    "address": "Số 49, Phường 4, Cần Thơ",
+    "lat": 10.072919,
+    "lon": 105.743152
+  },
+  "001099000040": {
+    "customer_id": "CUST-000040",
+    "id_number": "001099000040",
+    "province": "Đồng Nai",
+    "address": "Số 50, Phường 5, Đồng Nai",
+    "lat": 10.927721,
+    "lon": 106.827817
+  },
+  "001099000041": {
+    "customer_id": "CUST-000041",
+    "id_number": "001099000041",
+    "province": "Hà Nội",
+    "address": "Số 51, Phường 6, Hà Nội",
+    "lat": 21.056046,
+    "lon": 105.836963
+  },
+  "001099000042": {
+    "customer_id": "CUST-000042",
+    "id_number": "001099000042",
+    "province": "Hải Phòng",
+    "address": "Số 52, Phường 7, Hải Phòng",
+    "lat": 20.874454,
+    "lon": 106.675429
+  },
+  "001099000043": {
+    "customer_id": "CUST-000043",
+    "id_number": "001099000043",
+    "province": "Đà Nẵng",
+    "address": "Số 53, Phường 8, Đà Nẵng",
+    "lat": 16.044901,
+    "lon": 108.168498
+  },
+  "001099000044": {
+    "customer_id": "CUST-000044",
+    "id_number": "001099000044",
+    "province": "Thừa Thiên Huế",
+    "address": "Số 54, Phường 9, Thừa Thiên Huế",
+    "lat": 16.460332,
+    "lon": 107.564081
+  },
+  "001099000045": {
+    "customer_id": "CUST-000045",
+    "id_number": "001099000045",
+    "province": "Khánh Hòa",
+    "address": "Số 55, Phường 10, Khánh Hòa",
+    "lat": 12.223885,
+    "lon": 109.222413
+  },
+  "001099000046": {
+    "customer_id": "CUST-000046",
+    "id_number": "001099000046",
+    "province": "Bình Định",
+    "address": "Số 56, Phường 11, Bình Định",
+    "lat": 13.757984,
+    "lon": 109.194807
+  },
+  "001099000047": {
+    "customer_id": "CUST-000047",
+    "id_number": "001099000047",
+    "province": "Phú Yên",
+    "address": "Số 57, Phường 12, Phú Yên",
+    "lat": 13.060709,
+    "lon": 109.272595
+  },
+  "001099000048": {
+    "customer_id": "CUST-000048",
+    "id_number": "001099000048",
+    "province": "TP. Hồ Chí Minh",
+    "address": "Số 58, Phường 1, TP. Hồ Chí Minh",
+    "lat": 10.85904,
+    "lon": 106.587471
+  },
+  "001099000049": {
+    "customer_id": "CUST-000049",
+    "id_number": "001099000049",
+    "province": "Cần Thơ",
+    "address": "Số 59, Phường 2, Cần Thơ",
+    "lat": 9.99579,
+    "lon": 105.709008
+  },
+  "001099000050": {
+    "customer_id": "CUST-000050",
+    "id_number": "001099000050",
+    "province": "Đồng Nai",
+    "address": "Số 60, Phường 3, Đồng Nai",
+    "lat": 10.932367,
+    "lon": 106.875456
+  },
+  "001099000051": {
+    "customer_id": "CUST-000051",
+    "id_number": "001099000051",
+    "province": "Hà Nội",
+    "address": "Số 61, Phường 4, Hà Nội",
+    "lat": 21.073533,
+    "lon": 105.80886
+  },
+  "001099000052": {
+    "customer_id": "CUST-000052",
+    "id_number": "001099000052",
+    "province": "Hải Phòng",
+    "address": "Số 62, Phường 5, Hải Phòng",
+    "lat": 20.822561,
+    "lon": 106.736203
+  },
+  "001099000053": {
+    "customer_id": "CUST-000053",
+    "id_number": "001099000053",
+    "province": "Đà Nẵng",
+    "address": "Số 63, Phường 6, Đà Nẵng",
+    "lat": 16.02553,
+    "lon": 108.183006
+  },
+  "001099000054": {
+    "customer_id": "CUST-000054",
+    "id_number": "001099000054",
+    "province": "Thừa Thiên Huế",
+    "address": "Số 64, Phường 7, Thừa Thiên Huế",
+    "lat": 16.462343,
+    "lon": 107.548323
+  },
+  "001099000055": {
+    "customer_id": "CUST-000055",
+    "id_number": "001099000055",
+    "province": "Khánh Hòa",
+    "address": "Số 65, Phường 8, Khánh Hòa",
+    "lat": 12.200922,
+    "lon": 109.183278
+  },
+  "001099000056": {
+    "customer_id": "CUST-000056",
+    "id_number": "001099000056",
+    "province": "Bình Định",
+    "address": "Số 66, Phường 9, Bình Định",
+    "lat": 13.738314,
+    "lon": 109.264478
+  },
+  "001099000057": {
+    "customer_id": "CUST-000057",
+    "id_number": "001099000057",
+    "province": "Phú Yên",
+    "address": "Số 67, Phường 10, Phú Yên",
+    "lat": 13.109127,
+    "lon": 109.315331
+  },
+  "001099000058": {
+    "customer_id": "CUST-000058",
+    "id_number": "001099000058",
+    "province": "TP. Hồ Chí Minh",
+    "address": "Số 68, Phường 11, TP. Hồ Chí Minh",
+    "lat": 10.7733,
+    "lon": 106.653202
+  },
+  "001099000059": {
+    "customer_id": "CUST-000059",
+    "id_number": "001099000059",
+    "province": "Cần Thơ",
+    "address": "Số 69, Phường 12, Cần Thơ",
+    "lat": 10.039084,
+    "lon": 105.711187
+  },
+  "001099000060": {
+    "customer_id": "CUST-000060",
+    "id_number": "001099000060",
+    "province": "Đồng Nai",
+    "address": "Số 70, Phường 1, Đồng Nai",
+    "lat": 11.000032,
+    "lon": 106.872473
+  },
+  "001099000061": {
+    "customer_id": "CUST-000061",
+    "id_number": "001099000061",
+    "province": "Hà Nội",
+    "address": "Số 71, Phường 2, Hà Nội",
+    "lat": 21.031029,
+    "lon": 105.861337
+  },
+  "001099000062": {
+    "customer_id": "CUST-000062",
+    "id_number": "001099000062",
+    "province": "Hải Phòng",
+    "address": "Số 72, Phường 3, Hải Phòng",
+    "lat": 20.807244,
+    "lon": 106.727756
+  },
+  "001099000063": {
+    "customer_id": "CUST-000063",
+    "id_number": "001099000063",
+    "province": "Đà Nẵng",
+    "address": "Số 73, Phường 4, Đà Nẵng",
+    "lat": 16.01175,
+    "lon": 108.159558
+  },
+  "001099000064": {
+    "customer_id": "CUST-000064",
+    "id_number": "001099000064",
+    "province": "Thừa Thiên Huế",
+    "address": "Số 74, Phường 5, Thừa Thiên Huế",
+    "lat": 16.467524,
+    "lon": 107.618463
+  },
+  "001099000065": {
+    "customer_id": "CUST-000065",
+    "id_number": "001099000065",
+    "province": "Khánh Hòa",
+    "address": "Số 75, Phường 6, Khánh Hòa",
+    "lat": 12.242584,
+    "lon": 109.164835
+  },
+  "001099000066": {
+    "customer_id": "CUST-000066",
+    "id_number": "001099000066",
+    "province": "Bình Định",
+    "address": "Số 76, Phường 7, Bình Định",
+    "lat": 13.806406,
+    "lon": 109.180441
+  },
+  "001099000067": {
+    "customer_id": "CUST-000067",
+    "id_number": "001099000067",
+    "province": "Phú Yên",
+    "address": "Số 77, Phường 8, Phú Yên",
+    "lat": 13.089628,
+    "lon": 109.307955
+  },
+  "001099000068": {
+    "customer_id": "CUST-000068",
+    "id_number": "001099000068",
+    "province": "TP. Hồ Chí Minh",
+    "address": "Số 78, Phường 9, TP. Hồ Chí Minh",
+    "lat": 10.810316,
+    "lon": 106.624713
+  },
+  "001099000069": {
+    "customer_id": "CUST-000069",
+    "id_number": "001099000069",
+    "province": "Cần Thơ",
+    "address": "Số 79, Phường 10, Cần Thơ",
+    "lat": 10.070373,
+    "lon": 105.713467
+  },
+  "001099000070": {
+    "customer_id": "CUST-000070",
+    "id_number": "001099000070",
+    "province": "Đồng Nai",
+    "address": "Số 80, Phường 11, Đồng Nai",
+    "lat": 10.932608,
+    "lon": 106.876363
+  },
+  "001099000071": {
+    "customer_id": "CUST-000071",
+    "id_number": "001099000071",
+    "province": "Hà Nội",
+    "address": "Số 81, Phường 12, Hà Nội",
+    "lat": 21.031264,
+    "lon": 105.890975
+  },
+  "001099000072": {
+    "customer_id": "CUST-000072",
+    "id_number": "001099000072",
+    "province": "Hải Phòng",
+    "address": "Số 82, Phường 1, Hải Phòng",
+    "lat": 20.874961,
+    "lon": 106.64795
+  },
+  "001099000073": {
+    "customer_id": "CUST-000073",
+    "id_number": "001099000073",
+    "province": "Đà Nẵng",
+    "address": "Số 83, Phường 2, Đà Nẵng",
+    "lat": 16.089528,
+    "lon": 108.206752
+  },
+  "001099000074": {
+    "customer_id": "CUST-000074",
+    "id_number": "001099000074",
+    "province": "Thừa Thiên Huế",
+    "address": "Số 84, Phường 3, Thừa Thiên Huế",
+    "lat": 16.503751,
+    "lon": 107.560468
+  },
+  "001099000075": {
+    "customer_id": "CUST-000075",
+    "id_number": "001099000075",
+    "province": "Khánh Hòa",
+    "address": "Số 85, Phường 4, Khánh Hòa",
+    "lat": 12.253907,
+    "lon": 109.232017
+  },
+  "001099000076": {
+    "customer_id": "CUST-000076",
+    "id_number": "001099000076",
+    "province": "Bình Định",
+    "address": "Số 86, Phường 5, Bình Định",
+    "lat": 13.82782,
+    "lon": 109.213813
+  },
+  "001099000077": {
+    "customer_id": "CUST-000077",
+    "id_number": "001099000077",
+    "province": "Phú Yên",
+    "address": "Số 87, Phường 6, Phú Yên",
+    "lat": 13.058299,
+    "lon": 109.341496
+  },
+  "001099000078": {
+    "customer_id": "CUST-000078",
+    "id_number": "001099000078",
+    "province": "TP. Hồ Chí Minh",
+    "address": "Số 88, Phường 7, TP. Hồ Chí Minh",
+    "lat": 10.804755,
+    "lon": 106.651281
+  },
+  "001099000079": {
+    "customer_id": "CUST-000079",
+    "id_number": "001099000079",
+    "province": "Cần Thơ",
+    "address": "Số 89, Phường 8, Cần Thơ",
+    "lat": 10.044415,
+    "lon": 105.73555
+  },
+  "001099000080": {
+    "customer_id": "CUST-000080",
+    "id_number": "001099000080",
+    "province": "Đồng Nai",
+    "address": "Số 90, Phường 9, Đồng Nai",
+    "lat": 10.924815,
+    "lon": 106.82637
+  },
+  "001099000081": {
+    "customer_id": "CUST-000081",
+    "id_number": "001099000081",
+    "province": "Hà Nội",
+    "address": "Số 91, Phường 10, Hà Nội",
+    "lat": 21.039096,
+    "lon": 105.87537
+  },
+  "001099000082": {
+    "customer_id": "CUST-000082",
+    "id_number": "001099000082",
+    "province": "Hải Phòng",
+    "address": "Số 92, Phường 11, Hải Phòng",
+    "lat": 20.861048,
+    "lon": 106.734926
+  },
+  "001099000083": {
+    "customer_id": "CUST-000083",
+    "id_number": "001099000083",
+    "province": "Đà Nẵng",
+    "address": "Số 93, Phường 12, Đà Nẵng",
+    "lat": 16.004651,
+    "lon": 108.211015
+  },
+  "001099000084": {
+    "customer_id": "CUST-000084",
+    "id_number": "001099000084",
+    "province": "Thừa Thiên Huế",
+    "address": "Số 94, Phường 1, Thừa Thiên Huế",
+    "lat": 16.492934,
+    "lon": 107.572072
+  },
+  "001099000085": {
+    "customer_id": "CUST-000085",
+    "id_number": "001099000085",
+    "province": "Khánh Hòa",
+    "address": "Số 95, Phường 2, Khánh Hòa",
+    "lat": 12.191555,
+    "lon": 109.202274
+  },
+  "001099000086": {
+    "customer_id": "CUST-000086",
+    "id_number": "001099000086",
+    "province": "Bình Định",
+    "address": "Số 96, Phường 3, Bình Định",
+    "lat": 13.751755,
+    "lon": 109.226503
+  },
+  "001099000087": {
+    "customer_id": "CUST-000087",
+    "id_number": "001099000087",
+    "province": "Phú Yên",
+    "address": "Số 97, Phường 4, Phú Yên",
+    "lat": 13.071222,
+    "lon": 109.294511
+  },
+  "001099000088": {
+    "customer_id": "CUST-000088",
+    "id_number": "001099000088",
+    "province": "TP. Hồ Chí Minh",
+    "address": "Số 98, Phường 5, TP. Hồ Chí Minh",
+    "lat": 10.816286,
+    "lon": 106.610351
+  },
+  "001099000089": {
+    "customer_id": "CUST-000089",
+    "id_number": "001099000089",
+    "province": "Cần Thơ",
+    "address": "Số 99, Phường 6, Cần Thơ",
+    "lat": 10.046505,
+    "lon": 105.752859
+  },
+  "001099000090": {
+    "customer_id": "CUST-000090",
+    "id_number": "001099000090",
+    "province": "Đồng Nai",
+    "address": "Số 100, Phường 7, Đồng Nai",
+    "lat": 10.950419,
+    "lon": 106.860069
+  },
+  "001099000091": {
+    "customer_id": "CUST-000091",
+    "id_number": "001099000091",
+    "province": "Hà Nội",
+    "address": "Số 101, Phường 8, Hà Nội",
+    "lat": 20.981326,
+    "lon": 105.872517
+  },
+  "001099000092": {
+    "customer_id": "CUST-000092",
+    "id_number": "001099000092",
+    "province": "Hải Phòng",
+    "address": "Số 102, Phường 9, Hải Phòng",
+    "lat": 20.822531,
+    "lon": 106.681457
+  },
+  "001099000093": {
+    "customer_id": "CUST-000093",
+    "id_number": "001099000093",
+    "province": "Đà Nẵng",
+    "address": "Số 103, Phường 10, Đà Nẵng",
+    "lat": 16.101076,
+    "lon": 108.221267
+  },
+  "054301008970": {
+    "customer_id": "CUST-000100",
+    "id_number": "054301008970",
+    "province": "Phú Yên",
+    "address": "Hiệp Trung, Thị xã Đông Hòa, Phú Yên",
+    "lat": 13.0881,
+    "lon": 109.322
+  },
+  "066192009555": {
+    "customer_id": "CUST-000094",
+    "id_number": "066192009555",
+    "province": "Đắk Lắk",
+    "address": "Thôn 2, Ea KPam, Cư M'gar, Đắk Lắk",
+    "lat": 12.6667,
+    "lon": 108.05
+  },
+  "074300004128": {
+    "customer_id": "CUST-000099",
+    "id_number": "074300004128",
+    "province": "Bình Dương",
+    "address": "Tổ 2, Khu Phố Cổng Xanh, Tân Bình, Bắc Tân Uyên, Bình Dương",
+    "lat": 11.3254,
+    "lon": 106.477
+  },
+  "089085006905": {
+    "customer_id": "CUST-000095",
+    "id_number": "089085006905",
+    "province": "An Giang",
+    "address": "Tổ 4, Ấp Hiệp Thuận, Bình Thạnh Đông, An Giang",
+    "lat": 10.5216,
+    "lon": 105.1259
+  },
+  "091185013867": {
+    "customer_id": "CUST-000098",
+    "id_number": "091185013867",
+    "province": "Kiên Giang",
+    "address": "Mong Thá, Châu Thành, Kiên Giang",
+    "lat": 10.0125,
+    "lon": 105.0809
+  },
+  "095081010451": {
+    "customer_id": "CUST-000096",
+    "id_number": "095081010451",
+    "province": "Bạc Liêu",
+    "address": "Ấp Huê I, Vĩnh Phú Tây, Phước Long, Bạc Liêu",
+    "lat": 9.294,
+    "lon": 105.7216
+  },
+  "096193000296": {
+    "customer_id": "CUST-000097",
+    "id_number": "096193000296",
+    "province": "Cà Mau",
+    "address": "Khóm 7, Thị Trấn Năm Căn, Năm Căn, Cà Mau",
+    "lat": 9.1769,
+    "lon": 105.152
+  }
+}
