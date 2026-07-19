@@ -157,6 +157,7 @@ def _fallback_assess(message: str, error: str) -> dict[str, Any]:
         "credit": None,
         "operations": None,
         "compliance": None,
+        "critic": None,
         "trace": [
             {
                 "node": "api-gateway",

@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,13 +9,28 @@ from app.api.routes import router
 from aulacys.config import get_settings
 
 
+def _configure_logging() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s:%(name)s:%(message)s",
+    )
+    logging.getLogger("app").setLevel(logging.INFO)
+    logging.getLogger("aulacys").setLevel(logging.INFO)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+
+_configure_logging()
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
-    print(f"Starting {settings.app_name} in {settings.app_env} mode")
+    logger.info("Starting %s in %s mode", settings.app_name, settings.app_env)
     yield
     await db.dispose()
-    print("Shutting down...")
+    logger.info("Shutting down...")
 
 
 app = FastAPI(
