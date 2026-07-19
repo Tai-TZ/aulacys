@@ -1,5 +1,5 @@
 # Microservice split — added incrementally alongside the monolith.
-# The monolith (apps/api) keeps working; each extracted service is one block here.
+# Orchestrator (services/orchestrator-svc) is the composition root; each extracted service is one block here.
 # Run: docker compose -f docker-compose.services.yml up --build
 #
 # Phase 1: policy-svc (done). Phases 2-6 (audit, tool/external, gateway, agents,

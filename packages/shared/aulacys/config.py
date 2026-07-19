@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
 
     openai_api_key: str = ""
+    # Custom OpenAI-compatible endpoint (empty ⇒ real OpenAI). Set for FPT AI Factory
+    # or any gateway that speaks the OpenAI Chat Completions API.
+    openai_base_url: str = ""
     model_name: str = "gpt-4o-mini"  # used when llm_provider=openai
     strong_model: str = "gpt-4o-mini"
     mini_model: str = "gpt-4o-mini"
