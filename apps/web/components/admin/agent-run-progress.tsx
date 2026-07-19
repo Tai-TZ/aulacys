@@ -15,6 +15,29 @@ export const PIPELINE_RUN_STEPS = [
   { id: "gate", label: "Kết luận thẩm định", hint: "Chuẩn bị phê duyệt STP / HITL" },
 ] as const;
 
+const RUN_LOGS: Record<(typeof PIPELINE_RUN_STEPS)[number]["id"], string[]> = {
+  planner: [
+    "Planner đọc product config và dựng DAG",
+    "Tách nhánh Credit / Operations / Compliance theo điều kiện phụ thuộc",
+  ],
+  credit: [
+    "Credit gọi CIC, income và calculator DTI",
+    "Không để LLM tự sinh số liệu; mọi chỉ số lấy từ tool",
+  ],
+  compliance: [
+    "Compliance kiểm KYC, AML và policy hard-limit",
+    "Nếu có purpose contradiction, graph kích hoạt veto và replan",
+  ],
+  critic: [
+    "Critic đối chiếu tool call, citation và số liệu cuối",
+    "Sinh review độc lập nhưng không tự thay đổi outcome",
+  ],
+  gate: [
+    "Tổng hợp outcome: STP, HITL hoặc veto",
+    "Ghi ticket/audit theo best-effort fallback",
+  ],
+};
+
 export function AgentRunProgress({
   activeIndex,
   customerName,
@@ -100,6 +123,42 @@ export function AgentRunProgress({
           );
         })}
       </ol>
+
+      <div className="mt-4 rounded-lg border border-border/70 bg-secondary/30 p-3 text-left">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Agent logs
+          </p>
+          <p className="text-[10px] font-medium text-brand">
+            step {safeIndex + 1}/{PIPELINE_RUN_STEPS.length}
+          </p>
+        </div>
+        <div className="max-h-44 space-y-2 overflow-y-auto pr-1">
+          {PIPELINE_RUN_STEPS.slice(0, safeIndex + 1).flatMap((step, stepIndex) =>
+            RUN_LOGS[step.id].map((line, lineIndex) => {
+              const current = stepIndex === safeIndex;
+              return (
+                <div
+                  key={`${step.id}-${lineIndex}`}
+                  className="grid grid-cols-[4.5rem_1fr] gap-2 text-[11px]"
+                >
+                  <span
+                    className={cn(
+                      "font-mono",
+                      current ? "text-brand" : "text-muted-foreground",
+                    )}
+                  >
+                    {current ? "running" : "done"}
+                  </span>
+                  <span className={current ? "text-foreground" : "text-muted-foreground"}>
+                    {line}
+                  </span>
+                </div>
+              );
+            }),
+          )}
+        </div>
+      </div>
     </div>
   );
 }

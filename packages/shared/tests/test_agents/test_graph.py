@@ -49,7 +49,7 @@ async def test_mortgage_purpose_contradiction_vetoes_and_replans():
 @pytest.mark.asyncio
 async def test_mortgage_clean_seed_ready_for_human_approval():
     """Clean mortgage: purpose matches → no purpose veto; gate never STP → HITL."""
-    result = await agent.ainvoke({"query": "retail mortgage"})
+    result = await agent.ainvoke({"query": "retail mortgage clean"})
 
     assert result["application"].product == "retail_mortgage"
     assert result["compliance"].veto is False

@@ -348,14 +348,19 @@ def _agent_execution_order(state: AgentState, config: dict[str, Any]) -> list[st
 
 
 def _run_configured_agents(state: AgentState, config: dict[str, Any]) -> None:
-    for agent_name in _agent_execution_order(state, config):
+    request_id = str(state.get("metadata", {}).get("request_id", ""))
+    order = _agent_execution_order(state, config)
+    logger.info("agent-run request_id=%s dag_order=%s", request_id, " -> ".join(order))
+    for agent_name in order:
         spec = AGENT_SPECS.get(agent_name)
         if spec is None:
             continue
+        logger.info("agent-run request_id=%s node=%s status=start", request_id, agent_name)
         result = run_agent(spec, state)
         state[agent_name] = result
         if agent_name == "credit" and getattr(result, "proposal", None) is not None:
             state["proposal"] = result.proposal
+        logger.info("agent-run request_id=%s node=%s status=done", request_id, agent_name)
 
 
 def _has_veto(state: AgentState) -> bool:
@@ -481,28 +486,63 @@ async def process_application(state: AgentState) -> dict[str, Any]:
     next_state["metadata"]["agent_contracts"] = _agent_contracts()
     next_state["metadata"].setdefault("application_id", "retail-demo")
     next_state["metadata"].setdefault("request_id", str(uuid4()))
+    request_id = str(next_state["metadata"]["request_id"])
+    app = next_state["application"]
+
+    logger.info(
+        "agent-run request_id=%s status=start application_id=%s product=%s customer=%s amount=%s",
+        request_id,
+        next_state["metadata"].get("application_id"),
+        app.product,
+        app.declared.customer_name,
+        app.declared.amount,
+    )
 
     # Plan -> execute -> (veto -> replan -> RE-EXECUTE)* up to the cap.
     # This loop IS the demo: the veto is an edge back to the planner, and the
     # cap is what stops an infinite veto/replan cycle mid-demo (BUILD-GUIDE §5.2).
+    logger.info("agent-run request_id=%s node=planner status=start pass=1", request_id)
     next_state["plan"] = run_agent(PlannerSpec, next_state)
+    logger.info("agent-run request_id=%s node=planner status=done pass=1", request_id)
     _run_configured_agents(next_state, config)
     veto_fired = _has_veto(next_state)
 
     while _has_veto(next_state) and next_state["replan_count"] < REPLAN_CAP:
         next_state["replan_count"] += 1
+        logger.info(
+            "agent-run request_id=%s status=replan count=%s reason=compliance_veto",
+            request_id,
+            next_state["replan_count"],
+        )
+        logger.info(
+            "agent-run request_id=%s node=planner status=start pass=%s",
+            request_id,
+            next_state["replan_count"] + 1,
+        )
         next_state["plan"] = run_agent(PlannerSpec, next_state)  # planner reads replan_count
+        logger.info(
+            "agent-run request_id=%s node=planner status=done pass=%s",
+            request_id,
+            next_state["replan_count"] + 1,
+        )
         _run_configured_agents(next_state, config)
 
     escalated = _has_veto(next_state)  # still vetoed after the cap -> human
 
     lane = 3 if veto_fired else _base_lane(config)
     if lane == 3:  # Critic (tuyến 3) only runs on lane 3 (BUILD-GUIDE §8)
+        logger.info("agent-run request_id=%s node=critic status=start lane=%s", request_id, lane)
         next_state["critic"] = run_agent(CriticSpec, next_state)
+        logger.info(
+            "agent-run request_id=%s node=critic status=done passed=%s",
+            request_id,
+            next_state["critic"].passed,
+        )
         if not next_state["critic"].passed:
             escalated = True
 
     outcome = _decide_outcome(next_state, config, escalated)
+    logger.info("agent-run request_id=%s node=gate status=start outcome=%s", request_id, outcome)
     next_state["outcome"] = outcome
     next_state["ticket"] = _write_ticket(next_state, outcome)
     next_state["run_trace"] = RunTrace(
@@ -514,6 +554,12 @@ async def process_application(state: AgentState) -> dict[str, Any]:
     # Best-effort append to audit-svc (no-op unless AUDIT_SVC_URL is set).
     next_state["audit"] = post_audit(next_state)
     next_state["response"] = _summarize(next_state, outcome, escalated)
+    logger.info(
+        "agent-run request_id=%s node=gate status=done ticket=%s audit=%s",
+        request_id,
+        (next_state.get("ticket") or {}).get("ticket_id"),
+        bool(next_state.get("audit")),
+    )
     agents_ran = [name for name in AGENT_SPECS if next_state.get(name) is not None]
     logger.info(
         "run done: product=%s outcome=%s lane=%s replans=%s veto=%s agents=%s",
