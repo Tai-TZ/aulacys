@@ -38,7 +38,7 @@ unless a future requirement proves that a separate agent is necessary.
 | Planner coordinates, not underwrites | Planner creates DAG, routes work, receives veto, and replans. |
 | Tool whitelist is enforced by harness | Permission lives in code (`dispatch` / facade map), not prompt text. |
 | Flow lives in config | Product differences are YAML/config, not `if product == ...` branches. |
-| Critic verifies, not mutates | Critic checks evidence and writes memo/remediation; it does not edit agent outputs. |
+| Critic verifies, not mutates | Critic reviews |
 
 ## 2. The Five Agents
 
@@ -48,7 +48,7 @@ unless a future requirement proves that a separate agent is necessary.
 | Credit | mini | Check whether the proposed loan plan is financially reasonable: CIC, income, DTI, payment, limit, rate, term, pricing risk. | `core_banking_read`, `loan_calculator` | Credit KB | no |
 | Operations | mini | Check operational readiness: documents, missing items, valuation scheduling, collateral/registry checks, workflow ticket. | `core_banking_read`, `workflow_write` | Ops KB | no |
 | Compliance | mini | Check KYC/UBO, AML, legal/policy limits, prohibited purpose, LTV/ceiling policy metrics. | `core_banking_read`, `aml_screening` | Compliance KB | yes |
-| Critic | strong | Verify every number/finding has evidence, synthesize memo, list remediation actions. | none | read-all KB | no |
+| Critic | strong | Review, list remediation actions. | none | read-all KB | no |
 
 ## 3. Agent Inputs And Outputs
 

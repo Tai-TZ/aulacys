@@ -68,9 +68,9 @@ def test_operations_secured_path_passes(monkeypatch) -> None:
     assert result.legal_flags == []
     assert tool_calls == ["doc_checklist", "schedule_valuation", "property_valuation", "land_registry"]
     assert result.tool_results["operational_readiness"]["findings"] == []
-    assert "tool_results" in result.rationale
+    assert "kết quả tool" in result.rationale
     assert "4000000000" not in result.rationale.replace(",", "")
-
+    assert "không quyết định khả năng trả nợ" in result.rationale
 
 def test_operations_reads_dispute_flag_from_so_do(monkeypatch) -> None:
     captured: dict = {}

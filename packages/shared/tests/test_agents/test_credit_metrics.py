@@ -197,7 +197,9 @@ def test_credit_supports_reasonable_proposal(monkeypatch) -> None:
         "compute_dti",
         "price_loan",
     ]
-    assert "does not approve, veto, or invent figures" in result.rationale
+    assert "không phê duyệt khoản vay" in result.rationale
+    assert "không veto pháp lý" in result.rationale
+    assert "không tự bịa số liệu" in result.rationale
 
 
 def test_credit_uses_national_id_for_cic_lookup(monkeypatch) -> None:
@@ -396,6 +398,7 @@ def test_credit_spec_stays_inside_role() -> None:
 def test_credit_rationale_stays_qualitative(monkeypatch) -> None:
     _clean_tools(monkeypatch)
     result, _ = credit_fallback(_state(), CreditSpec)
-    assert "tool_results" in result.rationale
+    assert "kết quả tool" in result.rationale
     assert "DTI=" not in result.rationale
     assert "monthly_payment=" not in result.rationale
+    assert "cic_clean" not in result.rationale  # human label, not raw flag

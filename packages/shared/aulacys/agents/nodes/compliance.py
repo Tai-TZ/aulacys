@@ -209,19 +209,41 @@ def _compliance_rationale(
     ubo_status: str,
 ) -> str:
     """Qualitative prose only — thresholds and veto stay in structured fields / policy YAML."""
-    rules = ", ".join(rule_ids) if rule_ids else "none"
+    kyc_vi = {
+        "passed": "đã vượt qua",
+        "failed": "không đạt",
+        "pending": "đang chờ",
+        "not_applicable": "không áp dụng",
+    }.get(kyc_status, kyc_status)
+    ubo_vi = {
+        "passed": "đã vượt qua",
+        "failed": "không đạt",
+        "pending": "đang chờ",
+        "not_applicable": "không áp dụng",
+    }.get(ubo_status, ubo_status)
+
     if veto:
+        rules = ", ".join(rule_ids) if rule_ids else "không xác định"
         return (
-            "Compliance issued a blocking veto from versioned policy rules only "
-            f"(rule_ids={rules}). KYC={kyc_status}; UBO={ubo_status}. "
-            "Do not restate numeric thresholds here — they live in policy YAML and tool_results. "
-            "Compliance does not invent limits or approve loans."
+            "Compliance đã phát hiện vi phạm chính sách mang tính chặn (veto). "
+            f"Các rule liên quan: {rules}. "
+            f"KYC: {kyc_vi}; UBO: {ubo_vi}. "
+            "Ngưỡng số liệu nằm trong policy YAML và kết quả tool — không nhắc lại con số ở đây. "
+            "Compliance không tự đặt hạn mức và không phê duyệt khoản vay."
+        )
+    if rule_ids:
+        return (
+            "Compliance không phát hiện vi phạm chặn giải ngân, nhưng có cảnh báo/rule cần lưu ý: "
+            f"{', '.join(rule_ids)}. "
+            f"KYC: {kyc_vi}; UBO: {ubo_vi}. "
+            "Chỉ số đã được đối chiếu với policy YAML từ kết quả tool Credit/Operations. "
+            "Compliance không tự đặt hạn mức và không phê duyệt khoản vay."
         )
     return (
-        "Compliance found no blocking policy violations. "
-        f"rule_ids={rules}; KYC={kyc_status}; UBO={ubo_status}. "
-        "Metrics came from Credit/Operations tools and were evaluated against policy YAML. "
-        "Compliance does not invent limits or approve loans."
+        "Compliance không phát hiện vi phạm chính sách nào cản trở hồ sơ. "
+        f"KYC: {kyc_vi}; UBO: {ubo_vi}. "
+        "Các chỉ số đã được lấy từ công cụ Credit/Operations và đối chiếu theo chính sách YAML. "
+        "Compliance không tự đặt hạn mức và không phê duyệt khoản vay."
     )
 
 
@@ -237,8 +259,9 @@ ComplianceSpec = AgentSpec(
     model_tier="mini",
     max_tool_calls=7,
     prompt=(
-        "Evaluate hard legal and policy limits from YAML only. Veto with rule IDs. "
-        "If refining rationale, keep it qualitative; never change veto, rule_ids, or invent thresholds."
+        "Đánh giá hạn mức cứng/policy từ YAML. Veto kèm rule_id. "
+        "Nếu chỉnh rationale: viết tiếng Việt rõ ràng, định tính; không đổi veto/rule_ids, "
+        "không bịa ngưỡng số."
     ),
     fallback=compliance_fallback,
     llm_prose=True,
