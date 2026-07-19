@@ -75,6 +75,19 @@ class AssessResponse(BaseModel):
     audit: dict[str, Any] | None = None
 
 
+class CreditProposalResponse(BaseModel):
+    """Stage-2 RM đề xuất: Credit-only (FLOW-BUSINESS-CONFIRMED §2).
+
+    No Compliance veto / Critic / ticket — those belong to stage-3 thẩm định.
+    """
+
+    response: str = Field(..., description="Human-readable Credit summary")
+    stage: Literal["rm_proposal"] = "rm_proposal"
+    proposal: LoanProposal | None = None
+    credit: CreditAssessment
+    trace: list[NodeTrace] = Field(default_factory=list)
+
+
 class ApprovalRequest(BaseModel):
     """Human decision after graph outcome (HITL tail of the wow flow)."""
 

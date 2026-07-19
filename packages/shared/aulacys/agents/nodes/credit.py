@@ -317,6 +317,30 @@ def _recommendation(reasonableness: dict[str, Any]) -> str:
     return "review"
 
 
+_CHECK_LABEL_VI: dict[str, str] = {
+    "term_within_product_max": "kỳ hạn trong giới hạn sản phẩm",
+    "amount_ceiling_configured": "đã cấu hình trần số tiền",
+    "amount_within_ceiling": "số tiền xin vay trong trần sản phẩm",
+    "amount_within_proposed_limit": "số tiền xin vay trong hạn mức định giá",
+    "rate_within_product_band": "lãi suất khai báo trong khung sản phẩm",
+    "proposed_rate_available": "đã có lãi suất đề xuất từ tool định giá",
+    "proposed_rate_within_band": "lãi suất đề xuất trong khung sản phẩm",
+    "max_dti_configured": "đã cấu hình DTI tối đa",
+    "dti_within_max": "DTI trong hạn mức cho phép",
+    "cic_consent_ok": "đã có đồng ý tra CIC",
+    "cic_clean": "lịch sử tín dụng CIC đạt (không nợ xấu / quá hạn / nhóm nợ vượt ngưỡng)",
+    "pricing_full_support": "tool định giá hỗ trợ đủ phương án",
+    "monthly_payment_computed": "đã tính được khoản trả hàng tháng",
+}
+
+_REC_LABEL_VI: dict[str, str] = {
+    "support": "ủng hộ phương án",
+    "manual_review": "cần thẩm định tay / HITL",
+    "review": "cần xem xét thêm",
+    "reject": "không hỗ trợ phương án",
+}
+
+
 def _rationale(
     *,
     recommendation: str,
@@ -325,17 +349,33 @@ def _rationale(
     """Qualitative prose only — figures stay in tool_results so LLM polish cannot rewrite them."""
     checks = reasonableness.get("checks") or {}
     failed = [name for name, ok in checks.items() if not ok]
-    decision = reasonableness.get("pricing_decision") or "unknown"
-    base = (
-        "Credit validated proposal reasonableness from whitelisted tools only. "
-        f"recommendation={recommendation}; price_loan_decision={decision}. "
-        "Numeric DTI, payment, limit and rate live in tool_results — do not restate them here. "
-        "Credit does not approve, veto, or invent figures."
-    )
-    if failed:
-        return base + f" Failed checks: {', '.join(failed)}."
-    return base + " All proposal checks passed."
+    decision = str(reasonableness.get("pricing_decision") or "unknown")
+    rec_vi = _REC_LABEL_VI.get(recommendation, recommendation)
+    price_vi = {
+        "priceable": "có thể định giá",
+        "decline_or_manual_review": "không định giá được / cần xem xét thủ công",
+    }.get(decision, decision)
 
+    lines = [
+        "Credit đã kiểm tính hợp lý của phương án vay chỉ bằng các công cụ được phép "
+        "(CIC, thu nhập, DTI, định giá).",
+        f"Khuyến nghị: {rec_vi}. Kết quả định giá: {price_vi}.",
+        "Các số liệu DTI, khoản trả, hạn mức và lãi suất nằm trong kết quả tool — "
+        "không nêu lại con số trong nhận định này.",
+        "Credit không phê duyệt khoản vay, không veto pháp lý và không tự bịa số liệu.",
+    ]
+    if failed:
+        labels = [_CHECK_LABEL_VI.get(name, name) for name in failed]
+        lines.append("Các điểm chưa đạt cần lưu ý: " + "; ".join(labels) + ".")
+        if "cic_clean" in failed:
+            lines.append(
+                "Đặc biệt về CIC: lịch sử tín dụng chưa đạt điều kiện sạch "
+                "(có dấu hiệu quá hạn, nhóm nợ cần chú ý, hoặc nợ xấu). "
+                "Cần đối chiếu báo cáo CIC đầy đủ trước khi đề xuất phương án cuối."
+            )
+    else:
+        lines.append("Mọi kiểm tra hợp lý của phương án đều đạt.")
+    return " ".join(lines)
 
 def credit_fallback(state: AgentState, spec: AgentSpec) -> tuple[CreditAssessment, list[str]]:
     app = state["application"]
@@ -497,10 +537,9 @@ CreditSpec = AgentSpec(
     model_tier="mini",
     max_tool_calls=7,
     prompt=(
-        "Validate whether the proposed loan plan is financially reasonable. "
-        "Use tool-backed CIC, income, DTI, payment, limit and rate only. "
-        "Do not approve, veto, or invent numbers. "
-        "If refining rationale, keep it qualitative and never restate numeric metrics."
+        "Kiểm phương án vay có hợp lý về tài chính. Chỉ dùng số từ tool (CIC, thu nhập, DTI, "
+        "khoản trả, hạn mức, lãi). Không phê duyệt, không veto, không bịa số. "
+        "Nếu chỉnh rationale: viết tiếng Việt rõ ràng, định tính; không nhắc lại con số cụ thể."
     ),
     fallback=credit_fallback,
     llm_prose=True,

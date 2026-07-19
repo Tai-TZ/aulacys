@@ -104,6 +104,44 @@ async def test_assess_application_purpose_veto(client):
 
 
 @pytest.mark.asyncio
+async def test_assess_proposal_credit_only_no_compliance(client):
+    """Stage-2 RM đề xuất: Credit + LoanProposal, no Compliance/Critic/ticket."""
+    payload = {
+        "product": "retail_unsecured_salary",
+        "declared": {
+            "customer_name": "NGUYEN VAN A",
+            "amount": 100_000_000,
+            "term_months": 24,
+            "annual_rate": 0.13,
+            "monthly_income": 20_000_000,
+            "existing_monthly_debt": 0,
+            "declared_purpose": "tieu dung",
+            "id_number": "001099000001",
+            "national_id": "001099000001",
+            "cic_consent": True,
+            "consent_data_processing": True,
+        },
+        "documents": [
+            {"kind": "cccd", "tier": 1, "extracted": {"verified": True}},
+            {"kind": "sao_ke_luong", "tier": 1, "extracted": {"monthly_income": 20_000_000}},
+            {"kind": "cic", "tier": 1, "extracted": {"score_band": "A"}},
+        ],
+    }
+    response = await client.post("/api/v1/assess/proposal", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["stage"] == "rm_proposal"
+    assert data["credit"] is not None
+    assert data["credit"]["recommendation"] in {"support", "manual_review", "reject"}
+    assert data["proposal"] is not None
+    assert data["proposal"]["requested_amount"] == 100_000_000
+    assert data["proposal"]["status"] in {"accepted", "revised", "rejected"}
+    assert all(item["node"] != "compliance" for item in data["trace"])
+    assert all(item["node"] != "critic" for item in data["trace"])
+    assert "credit" in {item["node"] for item in data["trace"]} or data["credit"]["tool_results"]
+
+
+@pytest.mark.asyncio
 async def test_assess_application_unknown_product(client):
     response = await client.post(
         "/api/v1/assess/application",

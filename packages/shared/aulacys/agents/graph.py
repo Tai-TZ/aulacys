@@ -422,6 +422,46 @@ def _summarize(state: AgentState, outcome: str, escalated: bool) -> str:
     )
 
 
+def run_credit_proposal(
+    application: LoanApplication,
+    *,
+    application_id: str | None = None,
+) -> dict[str, Any]:
+    """Stage-2 only: run Credit → LoanProposal (no Ops/Compliance/Critic/ticket).
+
+    Matches FLOW-BUSINESS-CONFIRMED §2 — RM đề xuất is the editable input for
+    stage-3 thẩm định. Demo-proof: harness fallback inside ``run_agent``.
+    """
+    config = load_product_config(application.product)
+    state: AgentState = {
+        "query": f"propose {application.product}",
+        "application": application,
+        "metadata": {
+            "product_config": config,
+            "agent_contracts": _agent_contracts(),
+            "application_id": application_id or f"inline-{application.product}",
+            "request_id": str(uuid4()),
+            "stage": "rm_proposal",
+        },
+        "trace": [],
+        "replan_count": 0,
+        "run_trace": RunTrace(),
+    }
+    credit = run_agent(CreditSpec, state)
+    state["credit"] = credit
+    proposal = getattr(credit, "proposal", None)
+    if proposal is not None:
+        state["proposal"] = proposal
+    rec = getattr(credit, "recommendation", "") or ""
+    status = getattr(proposal, "status", None) if proposal is not None else None
+    state["response"] = (
+        f"{application.product}: Credit đề xuất xong — recommendation={rec}"
+        + (f", proposal.status={status}" if status else "")
+        + ". Chỉnh phương án rồi gửi thẩm định (stage 3)."
+    )
+    return dict(state)
+
+
 async def process_application(state: AgentState) -> dict[str, Any]:
     next_state: AgentState = dict(state)
     next_state.setdefault("query", "")

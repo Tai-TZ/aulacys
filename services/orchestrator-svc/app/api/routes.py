@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from aulacys.agents.application_client import ConsentDeniedError, load_loan_application
-from aulacys.agents.graph import agent, load_product_config
+from aulacys.agents.graph import agent, load_product_config, run_credit_proposal
 from aulacys.agents.state import LoanApplication, RunTrace
 from aulacys.agents.tools.workflow import write_approval_ticket
 from aulacys.models.schemas import (
@@ -13,6 +13,7 @@ from aulacys.models.schemas import (
     CatalogSeedResponse,
     ChatRequest,
     ChatResponse,
+    CreditProposalResponse,
     LoanProductIn,
     LoanProductOut,
     PolicyRuleOut,
@@ -138,6 +139,40 @@ async def assess_application(request: AssessApplicationRequest) -> AssessRespons
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
     return _to_assess_response(state)
+
+
+@router.post("/assess/proposal", response_model=CreditProposalResponse)
+async def assess_credit_proposal(request: AssessApplicationRequest) -> CreditProposalResponse:
+    """Stage 2 — RM đề xuất: Credit only (CIC / DTI / price_loan / LoanProposal)."""
+    try:
+        application = _resolve_application(request)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    try:
+        load_product_config(application.product)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+
+    try:
+        state = run_credit_proposal(
+            application,
+            application_id=request.application_id or f"inline-{application.product}",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    credit = state.get("credit")
+    if credit is None:
+        raise HTTPException(status_code=500, detail="Credit produced no assessment")
+    return CreditProposalResponse(
+        response=state.get("response", ""),
+        proposal=state.get("proposal"),
+        credit=credit,
+        trace=state.get("trace", []),
+    )
 
 
 @router.post("/approvals", response_model=ApprovalResponse)
