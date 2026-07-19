@@ -11,8 +11,10 @@ import {
 import { Button, Card, Input } from "@/components/ui";
 import {
   assessApplication,
+  assessCreditProposal,
   listApplications,
   type AssessResponse,
+  type CreditProposalResponse,
   type DeclaredForm,
   type DocumentInput,
 } from "@/lib/api";
@@ -27,8 +29,11 @@ import {
   AgentRunProgress,
   PIPELINE_RUN_STEPS,
 } from "@/components/admin/agent-run-progress";
+import { AppraisalCriteriaPanel } from "@/components/admin/appraisal-criteria-panel";
+import { CreditProposalDashboard } from "@/components/admin/credit-proposal-dashboard";
 import { NodeTimeline } from "@/components/admin/node-timeline";
 import { cn } from "@/lib/cn";
+import { useRouter } from "next/navigation";
 import {
   docKindLabelVi,
   fieldSlugLabelVi,
@@ -643,7 +648,9 @@ function DossierPreviewCard({
         {/* === D === */}
         <SBanner>D. HỒ SƠ TÀI LIỆU KÈM THEO (CHỨNG TỪ MINH CHỨNG)</SBanner>
         <div className="col-span-2 flex flex-wrap gap-2">
-          {data.documents.map((doc, i) => {
+          {data.documents
+            .filter((doc) => doc.kind !== "cic")
+            .map((doc, i) => {
             const cls = doc.tier >= 2
               ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
               : "border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100";
@@ -819,7 +826,9 @@ function DossierSummaryCard({
             3. Hồ sơ tài liệu kèm theo (Nhấp để xem bản gốc)
           </h4>
           <div className="flex flex-wrap gap-2">
-            {data.documents.map((doc, i) => {
+            {data.documents
+              .filter((doc) => doc.kind !== "cic")
+              .map((doc, i) => {
               const cls = doc.tier >= 2
                 ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
                 : "border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100";
@@ -841,8 +850,8 @@ function DossierSummaryCard({
         </div>
 
         <p className="text-left text-xs text-muted-foreground">
-          Đây là tóm tắt hồ sơ. Bấm <strong>Chạy thẩm định</strong> phía trên để multi-agent chạy
-          — báo cáo nhận định + chỉ số + timeline sẽ hiện bên dưới (không nằm trong khung này).
+          Đây là tóm tắt hồ sơ tiếp nhận. Bấm <strong>Tiếp nhận hồ sơ</strong> rồi Credit lập phương án
+          (có báo cáo CIC) trước khi chạy thẩm định.
         </p>
 
       </div>
@@ -889,14 +898,20 @@ export function AssessDashboard() {
   } | null>(null);
   const [tier3Confirmed, setTier3Confirmed] = useState(false);
   const [result, setResult] = useState<AssessResponse | null>(null);
+  const [creditProposal, setCreditProposal] = useState<CreditProposalResponse | null>(null);
   const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [proposing, setProposing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /** Step 1 only completes after user clicks Tiếp nhận */
   const [ingested, setIngested] = useState(false);
   const [agentStepIndex, setAgentStepIndex] = useState(0);
+  const [creditDashboardOpen, setCreditDashboardOpen] = useState(false);
+  /** Sau thẩm định, officer bấm Duyệt → chuyển bước Phê duyệt. */
+  const [handedToApproval, setHandedToApproval] = useState(false);
+  const router = useRouter();
   const agentTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function clearAgentTimer() {
@@ -920,10 +935,14 @@ export function AssessDashboard() {
     clearAgentTimer();
     setIngested(false);
     setResult(null);
+    setCreditProposal(null);
     setError(null);
     setLoading(false);
+    setProposing(false);
     setAgentStepIndex(0);
     setTier3Confirmed(false);
+    setCreditDashboardOpen(false);
+    setHandedToApproval(false);
   }
 
   const refreshDossiers = useCallback(async () => {
@@ -941,7 +960,7 @@ export function AssessDashboard() {
         setListError("Database chưa có hồ sơ nào. Seed application-svc rồi thử lại.");
       }
     } catch (err) {
-      setDossiers([]);
+      // Keep last good list on transient 503 / cold DB — don't wipe the table.
       setListError(err instanceof Error ? err.message : "Không tải được hồ sơ từ API");
     } finally {
       setListLoading(false);
@@ -985,19 +1004,69 @@ export function AssessDashboard() {
     return { key: "ingested", label: "Tiếp nhận hồ sơ", tone: "active" as const };
   };
 
-  /** Stage 1 only — tiếp nhận; RM proposal panel appears after this. */
+  /** Stage 1 only — tiếp nhận; rồi tự gọi Credit lập phương án (stage 2). */
   function acceptIntake() {
     setIngested(true);
     setError(null);
     setResult(null);
-    // Demo: agent RM “đề xuất” = giữ số liệu hồ sơ; điền LS mặc định nếu trống
-    setForm((prev) => {
-      if (prev.declared.annual_rate != null) return prev;
-      return {
-        ...prev,
-        declared: { ...prev.declared, annual_rate: 0.13 },
+    setCreditProposal(null);
+    const nextForm: AssessFormState =
+      form.declared.annual_rate != null
+        ? form
+        : { ...form, declared: { ...form.declared, annual_rate: 0.13 } };
+    if (nextForm !== form) setForm(nextForm);
+    void runCreditProposal(nextForm);
+  }
+
+  function applyProposalToForm(proposal: CreditProposalResponse) {
+    const p = proposal.proposal;
+    if (!p) return;
+    setForm((prev) => ({
+      ...prev,
+      declared: {
+        ...prev.declared,
+        amount: p.proposed_limit ?? p.requested_amount ?? prev.declared.amount,
+        term_months: p.term_months || prev.declared.term_months,
+        annual_rate: p.proposed_rate ?? prev.declared.annual_rate,
+      },
+    }));
+  }
+
+  /** Stage 2 — Credit only → LoanProposal (FLOW-BUSINESS-CONFIRMED §2). */
+  async function runCreditProposal(sourceForm?: AssessFormState) {
+    setProposing(true);
+    setError(null);
+    setCreditProposal(null);
+    try {
+      const base = sourceForm ?? form;
+      const body: AssessFormState = {
+        ...base,
+        declared: {
+          ...base.declared,
+          annual_rate: base.declared.annual_rate ?? 0.13,
+        },
+        documents: base.documents.map((doc) =>
+          doc.tier === 3
+            ? { ...doc, confirmed_by: tier3Confirmed ? "officer-demo" : doc.confirmed_by }
+            : doc,
+        ),
       };
-    });
+      const appId = dossier?.applicationId;
+      const next = await assessCreditProposal(
+        toAssessRequest(body, appId && appId.length > 20 ? appId : null),
+      );
+      setCreditProposal(next);
+      applyProposalToForm(next);
+      setCreditDashboardOpen(true);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Credit không lập được phương án. Kiểm tra API :8000 / application-svc :8360.",
+      );
+    } finally {
+      setProposing(false);
+    }
   }
 
   /** Stage 3 — gửi phương án RM (JSON form) vào multi-agent thẩm định. */
@@ -1007,9 +1076,14 @@ export function AssessDashboard() {
       setError("Cần tiếp nhận hồ sơ trước khi chạy thẩm định.");
       return;
     }
+    if (!creditProposal) {
+      setError("Cần Credit lập phương án (bước RM đề xuất) trước khi thẩm định.");
+      return;
+    }
     setLoading(true);
     setError(null);
     setResult(null);
+    setHandedToApproval(false);
     startAgentProgress();
     try {
       const body: AssessFormState = {
@@ -1055,6 +1129,9 @@ export function AssessDashboard() {
 
   if (!ingested) {
     step1Status = "active";
+  } else if (proposing) {
+    step1Status = "complete";
+    step2Status = "active";
   } else if (loading) {
     // Thẩm định đang chạy — panel agent chỉ thuộc stage 3
     step1Status = "complete";
@@ -1081,11 +1158,20 @@ export function AssessDashboard() {
           form.product === "retail_unsecured_salary" || form.product.includes("unsecured")
             ? "complete"
             : "active";
-      } else {
+      } else if (handedToApproval) {
         step4Status = "active";
+        step5Status = "pending";
+      } else {
+        // Giữ ở bước thẩm định cho đến khi officer bấm Duyệt
+        step3Status = "complete";
+        step4Status = "pending";
         step5Status = "pending";
       }
     }
+  } else if (ingested && creditProposal) {
+    step1Status = "complete";
+    step2Status = "complete";
+    step3Status = "active";
   } else if (ingested) {
     step1Status = "complete";
     step2Status = "active";
@@ -1099,11 +1185,12 @@ export function AssessDashboard() {
     },
     {
       title: "RM đề xuất",
-      desc:
-        step2Status === "active"
-          ? "Xem / chỉnh phương án agent"
-          : step2Status === "complete"
-            ? productLabelVi(dossier?.data.product)
+      desc: proposing
+        ? "Credit đang lập phương án…"
+        : creditProposal
+          ? `${recommendationLabelVi(creditProposal.credit.recommendation)} · chỉnh rồi gửi thẩm định`
+          : step2Status === "active"
+            ? "Credit lập LoanProposal"
             : "Sau tiếp nhận",
       status: step2Status,
     },
@@ -1113,9 +1200,11 @@ export function AssessDashboard() {
         step3Status === "failed"
           ? "Compliance veto"
           : step3Status === "complete"
-            ? "Credit · Compliance · Critic"
+            ? "Đã đối chiếu tiêu chí"
             : step3Status === "active"
-              ? "Multi-agent đang thẩm định…"
+              ? creditProposal
+                ? "Đối chiếu tiêu chí / policy"
+                : "Chờ phương án Credit"
               : "Chờ phương án RM",
       status: step3Status,
     },
@@ -1128,7 +1217,11 @@ export function AssessDashboard() {
             : "Người đã duyệt"
           : step4Status === "active"
             ? "Chờ người (HITL)"
-            : "STP hoặc HITL",
+            : result &&
+                !handedToApproval &&
+                !(veto || result.outcome === "vetoed")
+              ? "Sau khi bấm Duyệt"
+              : "STP hoặc HITL",
       status: step4Status,
     },
     {
@@ -1369,19 +1462,24 @@ export function AssessDashboard() {
             type="button"
             variant="primary"
             size="sm"
-            disabled={loading}
+            disabled={loading || proposing}
             onClick={() => {
               if (!ingested) acceptIntake();
+              else if (!creditProposal) void runCreditProposal();
               else void runAppraisal();
             }}
           >
             {loading
               ? "Đang thẩm định…"
-              : result
-                ? "Chạy lại thẩm định"
-                : !ingested
-                  ? "Tiếp nhận hồ sơ"
-                  : "Chạy thẩm định"}
+              : proposing
+                ? "Credit đang lập phương án…"
+                : result
+                  ? "Chạy lại thẩm định"
+                  : !ingested
+                    ? "Tiếp nhận hồ sơ"
+                    : !creditProposal
+                      ? "Credit lập phương án"
+                      : "Chạy thẩm định"}
             <ArrowRight size={14} />
           </Button>
         )}
@@ -1437,6 +1535,20 @@ export function AssessDashboard() {
         <p className="rounded-lg bg-warning-soft p-2.5 text-xs text-warning-foreground">{error}</p>
       )}
 
+      {proposing && (
+        <Card className="border border-brand/20 bg-card p-4 shadow-card text-left">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin text-brand" aria-hidden />
+            <div>
+              <p className="text-sm font-semibold text-navy">Credit đang lập phương án vay</p>
+              <p className="text-[11px] text-muted-foreground">
+                CIC · thu nhập · DTI · định giá — chưa chạy Compliance / Critic
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {loading && (
         <AgentRunProgress
           activeIndex={agentStepIndex}
@@ -1444,14 +1556,57 @@ export function AssessDashboard() {
         />
       )}
 
-      {/* RM đề xuất — chỉ sau tiếp nhận; agent lập PA, user chỉnh rồi gửi thẩm định */}
+      {/* RM đề xuất — sau tiếp nhận; Credit lập PA, user chỉnh rồi gửi thẩm định */}
       {ingested && !result && !loading && (
         <Card className="border border-border/70 bg-card p-4 shadow-card">
-          <h3 className="mb-1 text-left text-sm font-semibold text-navy">Phương án đề xuất (RM)</h3>
-          <p className="mb-3 text-left text-[11px] text-muted-foreground">
-            Agent đã lập phương án từ hồ sơ. Chỉnh nếu cần, rồi bấm <strong>Chạy thẩm định</strong> —
-            JSON phương án này là input cho multi-agent.
-          </p>
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h3 className="text-left text-sm font-semibold text-navy">Phương án đề xuất (RM / Credit)</h3>
+              <p className="mt-1 text-left text-[11px] text-muted-foreground">
+                {creditProposal
+                  ? "Credit đã trả LoanProposal. Chỉnh nếu cần, rồi bấm Chạy thẩm định để đối chiếu tiêu chí."
+                  : proposing
+                    ? "Đang chờ Credit…"
+                    : "Bấm Credit lập phương án để agent chạy CIC / DTI / định giá."}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {creditProposal ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCreditDashboardOpen(true)}
+                >
+                  Đề xuất phương án vay
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={proposing}
+                onClick={() => void runCreditProposal()}
+              >
+                {creditProposal ? "Chạy lại Credit" : "Credit lập phương án"}
+              </Button>
+            </div>
+          </div>
+          {creditProposal ? (
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+              <StatusBadge tone="active">
+                {recommendationLabelVi(creditProposal.credit.recommendation)}
+              </StatusBadge>
+              {creditProposal.proposal ? (
+                <StatusBadge tone={proposalStatusTone(creditProposal.proposal.status)}>
+                  {proposalStatusLabelVi(creditProposal.proposal.status)}
+                </StatusBadge>
+              ) : null}
+              <span className="text-muted-foreground">
+                DTI {formatRatio(creditProposal.credit.dti)}
+              </span>
+            </div>
+          ) : null}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-left text-[11px] text-muted-foreground">
               Số tiền đề nghị (₫)
@@ -1504,7 +1659,7 @@ export function AssessDashboard() {
         </Card>
       )}
 
-      {/* Kết quả — gọn: outcome + values + agent process + hồ sơ */}
+      {/* Kết quả — gọn: outcome + tiêu chí thẩm định + values + agent process */}
       {result && (
         <div className="space-y-4">
           {/* Outcome banner — nghiệp vụ: đã giải ngân | từ chối + lý do | chờ HITL */}
@@ -1522,7 +1677,7 @@ export function AssessDashboard() {
             <div className="flex flex-wrap items-start justify-between gap-3 text-left">
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Kết quả
+                  Kết quả thẩm định
                 </p>
                 <p
                   className={cn(
@@ -1550,14 +1705,6 @@ export function AssessDashboard() {
                     bởi hạn mức cứng — không giải ngân.
                   </p>
                 )}
-                {!isRejected && result.outcome === "ready_for_human_approval" && (
-                  <Link
-                    href="/admin/approvals"
-                    className="mt-3 inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-on-primary"
-                  >
-                    Mở phê duyệt <ArrowRight size={14} />
-                  </Link>
-                )}
               </div>
               <StatusBadge
                 tone={isRejected ? "warning" : isDisbursed ? "success" : "pending"}
@@ -1566,6 +1713,14 @@ export function AssessDashboard() {
               </StatusBadge>
             </div>
           </Card>
+
+          <AppraisalCriteriaPanel
+            result={result}
+            onApprove={() => {
+              setHandedToApproval(true);
+              router.push("/admin/approvals");
+            }}
+          />
 
           {proposal && (
             <Card className="border border-border/70 p-4 shadow-card text-left">
@@ -1576,9 +1731,21 @@ export function AssessDashboard() {
                     Credit kiểm phương án vay, không phê duyệt và không veto.
                   </p>
                 </div>
-                <StatusBadge tone={proposalStatusTone(proposal.status)}>
-                  {proposalStatusLabelVi(proposal.status)}
-                </StatusBadge>
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge tone={proposalStatusTone(proposal.status)}>
+                    {proposalStatusLabelVi(proposal.status)}
+                  </StatusBadge>
+                  {result.credit ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCreditDashboardOpen(true)}
+                    >
+                      Đề xuất phương án vay
+                    </Button>
+                  ) : null}
+                </div>
               </div>
               <dl className="mt-3 grid grid-cols-2 gap-3 text-sm md:grid-cols-6">
                 <div>
@@ -1615,6 +1782,19 @@ export function AssessDashboard() {
               )}
             </Card>
           )}
+
+          {result.credit && !proposal ? (
+            <div className="flex justify-start">
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => setCreditDashboardOpen(true)}
+              >
+                Đề xuất phương án vay
+              </Button>
+            </div>
+          ) : null}
 
           {(result.credit?.rationale ||
             result.operations?.rationale ||
@@ -1758,8 +1938,8 @@ export function AssessDashboard() {
           <Card className="border border-border/70 p-4 shadow-card text-left">
             <h3 className="text-sm font-semibold text-navy">Báo cáo nhận định agent</h3>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              Báo cáo tổng hợp văn bản do <strong>Critic</strong> (tuyến 3) chịu trách nhiệm.
-              Credit / Operations / Compliance chỉ đóng góp nhận định chuyên môn; số liệu vẫn từ tool.
+              Nhận định bằng văn bản của Credit / Operations / Compliance. Số liệu chi tiết vẫn lấy từ
+              tool (CIC, DTI, policy…).
             </p>
             <div className="mt-3 space-y-3">
               {result.critic?.memo ? (
@@ -1767,7 +1947,9 @@ export function AssessDashboard() {
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-brand">
                     Critic — báo cáo tổng hợp
                   </p>
-                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.critic.memo}</p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                    {result.critic.memo}
+                  </p>
                   {result.critic.remediation_plan?.length ? (
                     <div className="mt-3 border-t border-border/50 pt-2">
                       <p className="text-[11px] font-semibold text-muted-foreground">Việc cần làm tiếp</p>
@@ -1779,18 +1961,15 @@ export function AssessDashboard() {
                     </div>
                   ) : null}
                 </div>
-              ) : (
-                <p className="rounded-lg border border-dashed border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
-                  Critic chưa chạy trên lane này (thường chỉ lane HITL / sau veto). Case STP sạch có thể
-                  không có báo cáo Critic — xem chỉ số Credit/Compliance bên trên.
-                </p>
-              )}
+              ) : null}
               {result.credit?.rationale ? (
                 <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Credit — nhận định chuyên môn
                   </p>
-                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.credit.rationale}</p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                    {result.credit.rationale}
+                  </p>
                 </div>
               ) : null}
               {result.operations?.rationale ? (
@@ -1798,7 +1977,9 @@ export function AssessDashboard() {
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Operations — nhận định chuyên môn
                   </p>
-                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.operations.rationale}</p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                    {result.operations.rationale}
+                  </p>
                 </div>
               ) : null}
               {result.compliance?.rationale ? (
@@ -1806,7 +1987,9 @@ export function AssessDashboard() {
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Compliance — nhận định chuyên môn
                   </p>
-                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap">{result.compliance.rationale}</p>
+                  <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
+                    {result.compliance.rationale}
+                  </p>
                 </div>
               ) : null}
             </div>
@@ -1841,6 +2024,24 @@ export function AssessDashboard() {
           }
         />
       )}
+
+      {creditProposal?.credit ? (
+        <CreditProposalDashboard
+          open={creditDashboardOpen}
+          onOpenChange={setCreditDashboardOpen}
+          credit={creditProposal.credit}
+          proposal={creditProposal.proposal}
+          customerName={form.declared.customer_name || undefined}
+        />
+      ) : result?.credit ? (
+        <CreditProposalDashboard
+          open={creditDashboardOpen}
+          onOpenChange={setCreditDashboardOpen}
+          credit={result.credit}
+          proposal={proposal}
+          customerName={form.declared.customer_name || undefined}
+        />
+      ) : null}
     </div>
   );
 }

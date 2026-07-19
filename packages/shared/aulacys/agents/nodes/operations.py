@@ -86,22 +86,39 @@ def _assess_readiness(
     }
 
 
+_OPS_CHECK_LABEL_VI: dict[str, str] = {
+    "docs_complete": "đủ chứng từ bắt buộc",
+    "collateral_valued": "đã định giá TSBĐ",
+    "land_clear": "pháp lý đất sạch",
+    "valuation_scheduled": "đã lên lịch định giá",
+}
+
+
 def _rationale(*, readiness: dict[str, Any]) -> str:
     """Qualitative prose only — valuation amounts stay in tool_results."""
     checks = readiness.get("checks") or {}
     failed = [name for name, ok in checks.items() if not ok]
     requires = readiness.get("requires_collateral")
     status = readiness.get("doc_status") or "unknown"
-    base = (
-        "Operations checked document readiness and collateral workflow from tools only. "
-        f"docs_status={status}; collateral_path={'required' if requires else 'not_required'}. "
-        "Numeric valuation lives in tool_results — do not restate it here. "
-        "Operations does not decide repayment capacity or issue legal veto."
-    )
-    if failed:
-        return base + f" Failed checks: {', '.join(failed)}."
-    return base + " All operational readiness checks passed."
+    status_vi = {
+        "complete": "đầy đủ",
+        "incomplete": "thiếu chứng từ",
+        "unknown": "chưa xác định",
+    }.get(str(status), str(status))
+    collateral_vi = "có đường TSBĐ" if requires else "không yêu cầu TSBĐ (tín chấp)"
 
+    lines = [
+        "Operations đã kiểm mức độ sẵn sàng hồ sơ và quy trình TSBĐ chỉ bằng tool được phép.",
+        f"Trạng thái chứng từ: {status_vi}. {collateral_vi.capitalize()}.",
+        "Giá trị định giá (nếu có) nằm trong kết quả tool — không nêu lại con số ở đây.",
+        "Operations không quyết định khả năng trả nợ và không đưa ra veto pháp lý.",
+    ]
+    if failed:
+        labels = [_OPS_CHECK_LABEL_VI.get(name, name) for name in failed]
+        lines.append("Các điểm chưa đạt: " + "; ".join(labels) + ".")
+    else:
+        lines.append("Mọi kiểm tra sẵn sàng vận hành đều đạt.")
+    return " ".join(lines)
 
 def operations_fallback(state: AgentState, spec: AgentSpec) -> tuple[OperationsReport, list[str]]:
     app = state["application"]
@@ -220,8 +237,8 @@ OperationsSpec = AgentSpec(
     model_tier="mini",
     max_tool_calls=6,
     prompt=(
-        "Check documents and collateral. Valuation must come from tools only. "
-        "If refining rationale, keep it qualitative; never invent valuation amounts or legal flags."
+        "Kiểm chứng từ và TSBĐ. Định giá chỉ từ tool. "
+        "Nếu chỉnh rationale: viết tiếng Việt rõ ràng, định tính; không bịa số định giá hay cờ pháp lý."
     ),
     fallback=operations_fallback,
     llm_prose=True,

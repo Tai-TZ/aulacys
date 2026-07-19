@@ -3,13 +3,16 @@
 // Types here MIRROR the contract in apps/api/src/models/schemas.py.
 // If the backend schema changes, update these to match (see AGENTS.md §1 "One contract").
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8001";
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:8080";
-/** Healthy API with Rule Engineer + fast catalog (stale :8000 often hangs on Supabase). */
+/** Healthy orchestrator — stale :8000 often returns 503 for application-svc. */
 const API_FALLBACK = process.env.NEXT_PUBLIC_API_FALLBACK ?? "http://127.0.0.1:8001";
 
 function apiBases(): string[] {
-  return [API_URL, API_FALLBACK].filter((b, i, arr) => Boolean(b) && arr.indexOf(b) === i);
+  // Always keep a working orchestrator as last resort — stale :8000 returns 503 for dossiers.
+  return [API_URL, API_FALLBACK, "http://127.0.0.1:8001"].filter(
+    (b, i, arr) => Boolean(b) && arr.indexOf(b) === i,
+  );
 }
 
 export interface ChatRequest {
@@ -230,6 +233,15 @@ export interface AssessResponse {
   audit: Record<string, unknown> | null; // { record_id, seq, content_hash, prev_hash, decided_at } when AUDIT_SVC_URL set
 }
 
+/** Stage-2 RM đề xuất — Credit only (POST /assess/proposal). */
+export interface CreditProposalResponse {
+  response: string;
+  stage: "rm_proposal";
+  proposal: LoanProposal | null;
+  credit: CreditAssessment;
+  trace: NodeTrace[];
+}
+
 // --- Service monitor (GET api-gateway /status) ---
 
 export interface ServiceStatusItem {
@@ -278,6 +290,22 @@ export async function assessApplication(
     throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
   }
   return (await res.json()) as AssessResponse;
+}
+
+/** Stage 2 — Credit lập LoanProposal (không chạy Compliance/Critic). */
+export async function assessCreditProposal(
+  body: AssessApplicationRequest,
+): Promise<CreditProposalResponse> {
+  const res = await fetch(`${API_URL}/api/v1/assess/proposal`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
+  }
+  return (await res.json()) as CreditProposalResponse;
 }
 
 export async function assess(message: string): Promise<AssessResponse> {
@@ -436,8 +464,13 @@ async function catalogFetch<T>(path: string, init?: RequestInit, timeoutMs = 20_
       if (!res.ok) {
         const detail = await res.text().catch(() => "");
         lastErr = new Error(`API error ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`);
-        // 404 on stale process → try next base
-        if (res.status === 404 && base !== bases[bases.length - 1]) continue;
+        // Stale/broken primary (:8000 503/404) → try fallback base
+        if (
+          (res.status === 404 || res.status === 502 || res.status === 503) &&
+          base !== bases[bases.length - 1]
+        ) {
+          continue;
+        }
         throw lastErr;
       }
       if (res.status === 204) return undefined as T;
@@ -628,7 +661,12 @@ export type ApplicationSectionADto = Record<string, unknown> & {
 
 export async function listApplications(limit = 100): Promise<ApplicationSectionADto[]> {
   // Browser talks only to apps/api. Do NOT fetch application-svc (:8360) from the client.
-  const fromApi = await catalogFetch<ApplicationSectionADto[]>(`/applications?limit=${limit}`);
+  // Match orchestrator→application-svc budget (cold Supabase can exceed 20s).
+  const fromApi = await catalogFetch<ApplicationSectionADto[]>(
+    `/applications?limit=${limit}`,
+    undefined,
+    45_000,
+  );
   return Array.isArray(fromApi) ? fromApi : [];
 }
 

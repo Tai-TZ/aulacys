@@ -23,14 +23,20 @@ def list_applications(*, limit: int = 100) -> list[dict[str, Any]] | None:
     base = _base_url()
     if not base:
         return None
-    try:
-        req = urllib.request.Request(f"{base}/applications?limit={limit}")
-        with urllib.request.urlopen(req, timeout=40) as resp:  # noqa: S310
-            data = json.loads(resp.read().decode("utf-8"))
-            return data if isinstance(data, list) else []
-    except Exception:
-        logger.exception("list_applications: application-svc unreachable")
-        return None
+    url = f"{base}/applications?limit={limit}"
+    last_exc: Exception | None = None
+    # Cold Supabase / local wake can flake once — one retry keeps the demo path alive.
+    for attempt in range(2):
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=40) as resp:  # noqa: S310
+                data = json.loads(resp.read().decode("utf-8"))
+                return data if isinstance(data, list) else []
+        except Exception as exc:
+            last_exc = exc
+            logger.warning("list_applications attempt %s failed: %s", attempt + 1, exc)
+    logger.exception("list_applications: application-svc unreachable", exc_info=last_exc)
+    return None
 
 
 def fetch_application(application_id: str) -> dict[str, Any] | None:
