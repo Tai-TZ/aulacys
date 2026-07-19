@@ -1021,15 +1021,23 @@ export function AssessDashboard() {
   function applyProposalToForm(proposal: CreditProposalResponse) {
     const p = proposal.proposal;
     if (!p) return;
-    setForm((prev) => ({
-      ...prev,
-      declared: {
-        ...prev.declared,
-        amount: p.proposed_limit ?? p.requested_amount ?? prev.declared.amount,
-        term_months: p.term_months || prev.declared.term_months,
-        annual_rate: p.proposed_rate ?? prev.declared.annual_rate,
-      },
-    }));
+    setForm((prev) => {
+      const nextAmount =
+        p.proposed_limit && p.proposed_limit > 0
+          ? p.proposed_limit
+          : p.requested_amount && p.requested_amount > 0
+            ? p.requested_amount
+            : prev.declared.amount;
+      return {
+        ...prev,
+        declared: {
+          ...prev.declared,
+          amount: nextAmount,
+          term_months: p.term_months || prev.declared.term_months,
+          annual_rate: p.proposed_rate ?? prev.declared.annual_rate ?? 0.13,
+        },
+      };
+    });
   }
 
   /** Stage 2 — Credit only → LoanProposal (FLOW-BUSINESS-CONFIRMED §2). */
