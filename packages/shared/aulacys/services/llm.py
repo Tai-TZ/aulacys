@@ -37,5 +37,6 @@ def get_llm(tier: str | None = None) -> ChatOpenAI:
     return ChatOpenAI(
         model=model_name_for_tier(tier),
         api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url or None,
         temperature=settings.llm_temperature,
     )

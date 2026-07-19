@@ -203,10 +203,37 @@ def critic_fallback(state: AgentState, spec: AgentSpec) -> tuple[CriticVerdict, 
             passed=not rejections,
             rejections=rejections,
             memo="\n".join(lines),
+            review=_deterministic_review(credit, operations, compliance, rejections),
             remediation_plan=remediation,
         ),
         [],
     )
+
+
+def _deterministic_review(credit, operations, compliance, rejections: list[str]) -> str:
+    """Base independent critique — demo-proof text the LLM enriches into real adversarial review.
+
+    Uses only values already in state (no invented numbers). This is the floor when no LLM
+    is configured; the harness overwrites `review` with the model's prose when it is.
+    """
+    notes: list[str] = []
+    if compliance and compliance.veto and credit and credit.recommendation == "support":
+        notes.append(
+            "Mâu thuẫn cần soi: Credit khuyến nghị 'support' trong khi Compliance veto — "
+            "kỳ vọng Planner đã replan; kiểm tra outcome không phải STP."
+        )
+    if credit and credit.dti is not None and credit.dti >= 0.5:
+        notes.append(f"DTI {_pct(credit.dti)} ở ngưỡng cao — soát lại khả năng trả nợ và premium rủi ro.")
+    if operations and operations.missing:
+        notes.append(f"Operations báo thiếu chứng từ: {', '.join(operations.missing)} — ảnh hưởng độ tin cậy hồ sơ.")
+    if rejections:
+        notes.append("Có lỗ hổng bằng chứng (xem rejections) — không nên phê duyệt trước khi vá.")
+    if not notes:
+        notes.append(
+            "Kiểm tra chéo độc lập: khuyến nghị Credit, cờ Operations và verdict Compliance "
+            "nhất quán với bằng chứng tool/policy; không phát hiện mâu thuẫn logic."
+        )
+    return " ".join(notes)
 
 
 CriticSpec = AgentSpec(
@@ -219,12 +246,17 @@ CriticSpec = AgentSpec(
     model_tier="strong",
     max_tool_calls=0,
     prompt=(
-        "Bạn là Critic (tuyến phòng thủ 3). Nhiệm vụ: kiểm chứng bằng chứng. "
-        "Memo giữ nguyên số liệu từ base — chỉ polish remediation_plan nếu cần, "
-        "không bịa số, không đổi recommendation/veto, không sửa output agent khác."
+        "Vai: Critic tuyến phòng thủ 3, phản biện độc lập. "
+        "Trong `memo` là báo cáo tổng hợp của hồ sơ CỤ THỂ này (số liệu Credit/Operations/Compliance). "
+        "Nhiệm vụ `review`: đọc memo đó và nêu 2–3 quan ngại CỤ THỂ về CHÍNH hồ sơ này — "
+        "trích con số/rule thật xuất hiện trong memo (DTI, hạn mức, rule_id, veto), chỉ ra chỗ lập luận "
+        "các agent chưa khớp bằng chứng hoặc rủi ro bị bỏ sót. Cấm viết chung chung, cấm lặp lại đề bài. "
+        "`remediation_plan`: việc cụ thể người phê duyệt phải làm tiếp. "
+        "Không bịa số ngoài memo, không đổi passed/veto/recommendation, chỉ được nêu quan ngại (chặt hơn)."
     ),
     fallback=critic_fallback,
     llm_prose=True,
-    # Memo keeps tool-backed figures for audit; only remediation prose may be polished.
-    prose_fields=["remediation_plan"],
+    # `review` = independent LLM critique; `remediation_plan` = actionable prose.
+    # passed/rejections/memo stay deterministic (tool/policy-backed) for audit.
+    prose_fields=["review", "remediation_plan"],
 )

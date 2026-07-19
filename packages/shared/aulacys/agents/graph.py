@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -18,6 +19,8 @@ from aulacys.agents.worker_client import run_agent
 
 PRODUCTS_DIR = Path(__file__).parent / "products"
 REPLAN_CAP = 2
+
+logger = logging.getLogger(__name__)
 
 AGENT_SPECS = {
     "credit": CreditSpec,
@@ -245,7 +248,7 @@ _MORTGAGE_HITL: dict = {
         "collateral_value_declared": 4_000_000_000,
         "dob": "15/08/1988",
         "gender": "Nữ",
-        "national_id": "001088012345",
+        "national_id": "001099000001",
         "national_id_issue_date": "10/05/2021",
         "national_id_issue_place": "Cục Cảnh sát Quản lý hành chính về trật tự xã hội",
         "old_national_id": "001088001122",
@@ -270,11 +273,11 @@ _MORTGAGE_HITL: dict = {
         "spouse_workplace_phone": "0243123456",
         "consent_data_processing": True,
         "consent_advertising": False,
-        "id_number": "001088012345",
+        "id_number": "001099000001",
         "cic_consent": True,
     },
     "documents": [
-        Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": "001088012345"}),
+        Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": "001099000001"}),
         Document(kind="sao_ke_tai_khoan", tier=1, extracted={"monthly_income": 85_000_000}),
         Document(kind="so_do", tier=2, extracted={"parcel": "DEMO-001"}),
         Document(kind="hop_dong_mua_ban", tier=2, extracted={"seller": "Demo Seller"}),
@@ -290,7 +293,7 @@ _MORTGAGE_HITL: dict = {
 _MORTGAGE_VETO: dict = {
     "declared": dict(_MORTGAGE_HITL["declared"]),
     "documents": [
-        Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": "001088012345"}),
+        Document(kind="cccd", tier=1, extracted={"verified": True, "id_number": "001099000001"}),
         Document(kind="sao_ke_tai_khoan", tier=1, extracted={"monthly_income": 85_000_000}),
         Document(kind="so_do", tier=2, extracted={"parcel": "DEMO-001"}),
         Document(kind="hop_dong_mua_ban", tier=2, extracted={"seller": "Demo Seller"}),
@@ -317,7 +320,7 @@ def seed_application(query: str) -> LoanApplication:
     lowered = query.lower()
     if "mortgage" in lowered or "nhà" in lowered:
         product = "retail_mortgage"
-        seed = _MORTGAGE_VETO if ("veto" in lowered or "bad" in lowered) else _MORTGAGE_HITL
+        seed = _MORTGAGE_HITL if ("clean" in lowered or "hitl" in lowered) else _MORTGAGE_VETO
     else:
         product = "retail_unsecured_salary"
         if "veto" in lowered or "bad" in lowered:
@@ -511,6 +514,16 @@ async def process_application(state: AgentState) -> dict[str, Any]:
     # Best-effort append to audit-svc (no-op unless AUDIT_SVC_URL is set).
     next_state["audit"] = post_audit(next_state)
     next_state["response"] = _summarize(next_state, outcome, escalated)
+    agents_ran = [name for name in AGENT_SPECS if next_state.get(name) is not None]
+    logger.info(
+        "run done: product=%s outcome=%s lane=%s replans=%s veto=%s agents=%s",
+        next_state["application"].product,
+        outcome,
+        lane,
+        next_state["replan_count"],
+        veto_fired,
+        agents_ran,
+    )
     return dict(next_state)
 
 
