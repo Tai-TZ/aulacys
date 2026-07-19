@@ -423,6 +423,79 @@ def patch_appetite_threshold(
     return rule.with_threshold(float(threshold))
 
 
+def delete_appetite_override(
+    profile: PolicyProfile,
+    rule_id: str,
+    *,
+    product_code: str | None = None,
+) -> PolicyRule:
+    """Delete/revert an appetite threshold override back to default."""
+    from datetime import datetime
+
+    by_id = {r.id: r for r in load_rules()}
+    rule = by_id.get(rule_id)
+    if rule is None:
+        raise AppetitePatchError(f"Unknown rule '{rule_id}'")
+    if rule_id not in PROFILE_RULE_IDS[profile]:
+        raise AppetitePatchError(f"Rule '{rule_id}' is not on profile '{profile}'")
+    if rule.kind != "appetite":
+        raise AppetitePatchError(f"Rule '{rule_id}' is legal — threshold is not editable")
+    if rule.unit in {"boolean_flag"}:
+        raise AppetitePatchError(
+            f"Rule '{rule_id}' is gated by product limits — cannot edit or delete"
+        )
+
+    store = load_appetite_store()
+    overrides = dict(store.get("overrides") or {})
+    products = dict(store.get("products") or {})
+    change_log = list(store.get("change_log") or [])
+
+    removed = False
+    if product_code:
+        if product_code in products and rule_id in products[product_code]:
+            del products[product_code][rule_id]
+            if not products[product_code]:
+                del products[product_code]
+            removed = True
+    else:
+        if profile in overrides and rule_id in overrides[profile]:
+            del overrides[profile][rule_id]
+            if not overrides[profile]:
+                del overrides[profile]
+            removed = True
+
+    if not removed:
+        # No override to remove, just return default rule
+        updated_rules = {r.id: r for r in rules_for_profile(profile, product_code=product_code)}
+        return updated_rules[rule_id]
+
+    change_log.append(
+        {
+            "at": datetime.now(UTC).isoformat(),
+            "profile": profile,
+            "product_code": product_code or "",
+            "rule_id": rule_id,
+            "action": "delete_override",
+        }
+    )
+    change_log = change_log[-50:]
+
+    content = yaml.safe_dump(
+        {"overrides": overrides, "products": products, "change_log": change_log},
+        allow_unicode=True,
+        sort_keys=True,
+    )
+    with _OVERRIDE_WRITE_LOCK:
+        OVERRIDES_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = OVERRIDES_PATH.with_suffix(f"{OVERRIDES_PATH.suffix}.tmp")
+        tmp_path.write_text(content, encoding="utf-8")
+        os.replace(tmp_path, OVERRIDES_PATH)
+    _clear_override_cache()
+
+    updated_rules = {r.id: r for r in rules_for_profile(profile, product_code=product_code)}
+    return updated_rules[rule_id]
+
+
 # Re-export helpers used by routes.
 __all__ = [
     "AppetitePatchError",
@@ -430,6 +503,7 @@ __all__ = [
     "PolicyRule",
     "PolicyViolation",
     "covered_metrics",
+    "delete_appetite_override",
     "evaluate",
     "label_vi",
     "list_rules_for_profile",

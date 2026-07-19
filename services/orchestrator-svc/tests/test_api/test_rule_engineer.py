@@ -191,3 +191,41 @@ def test_rejects_out_of_range_ratio_threshold(tmp_path, monkeypatch) -> None:
         raise AssertionError("expected AppetitePatchError")
     except AppetitePatchError as exc:
         assert "between 0 and 1" in str(exc)
+
+
+def test_delete_appetite_override(tmp_path, monkeypatch) -> None:
+    from aulacys.policy.loader import delete_appetite_override
+
+    overrides = tmp_path / "appetite_overrides.yaml"
+    overrides.write_text("overrides: {}\nproducts: {}\n", encoding="utf-8")
+    monkeypatch.setattr(loader_mod, "OVERRIDES_PATH", overrides)
+    _clear_override_cache()
+
+    # Apply override
+    patch_appetite_threshold("secured", "max_retail_dti", 0.4)
+    assert load_appetite_overrides()["secured"]["max_retail_dti"] == 0.4
+
+    # Delete override
+    delete_appetite_override("secured", "max_retail_dti")
+    assert "secured" not in load_appetite_overrides() or "max_retail_dti" not in load_appetite_overrides().get("secured", {})
+
+
+def test_delete_route(tmp_path, monkeypatch) -> None:
+    # Setup custom override file
+    overrides = tmp_path / "appetite_overrides.yaml"
+    overrides.write_text("overrides: {}\nproducts: {}\n", encoding="utf-8")
+    monkeypatch.setattr(loader_mod, "OVERRIDES_PATH", overrides)
+    _clear_override_cache()
+
+    # Patch first
+    patch_appetite_threshold("secured", "max_retail_dti", 0.4)
+
+    # Delete via API
+    resp = client.delete(
+        "/api/v1/policy/rules/max_retail_dti",
+        params={"secured_type": "SECURED"}
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["threshold"] == 0.5  # Reverted back to default 0.5
+

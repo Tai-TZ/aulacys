@@ -6,10 +6,13 @@ import {
   ArrowRight,
   CheckCircle2,
   ClipboardList,
+  FileText,
   ShieldAlert,
   XCircle,
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { AppraisalReportDialog } from "@/components/admin/appraisal-official-report";
+import { CreditContractDialog } from "@/components/admin/credit-loan-contract";
 import {
   Alert,
   AlertDescription,
@@ -24,11 +27,21 @@ import {
   Textarea,
 } from "@/components/ui";
 import { submitApproval } from "@/lib/api";
+import { buildCreditContractData, type CreditContractData } from "@/lib/credit-contract";
 import { listHitlCases, markHitlDecision, type HitlCase } from "@/lib/hitl-queue";
+import { outcomeLabelVi, productLabelVi, ruleLabelVi } from "@/lib/labels";
 import { cn } from "@/lib/cn";
 
 function formatVnd(n: number) {
   return `${new Intl.NumberFormat("vi-VN").format(n)} VNĐ`;
+}
+
+function sanitizeSummary(text: string): string {
+  return text
+    .replace(/\bretail_unsecured_salary\b/gi, "Vay tiêu dùng theo lương")
+    .replace(/\bretail_mortgage\b/gi, "Vay thế chấp mua nhà")
+    .replace(/\btool\b/gi, "công cụ")
+    .replace(/\bHITL\b/g, "phê duyệt người");
 }
 
 export default function ApprovalsPage() {
@@ -40,6 +53,9 @@ export default function ApprovalsPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastTicket, setLastTicket] = useState<Record<string, unknown> | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [contractOpen, setContractOpen] = useState(false);
+  const [contractData, setContractData] = useState<CreditContractData | null>(null);
 
   function refresh() {
     const items = listHitlCases();
@@ -85,13 +101,13 @@ export default function ApprovalsPage() {
     <AdminShell activeHref="/admin/approvals" eyebrow="Aulacys · HITL" title="Người phê duyệt">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-          Phê duyệt hoặc từ chối hồ sơ sau khi Digital Expert Agents hoàn tất thẩm định.
+          Xem báo cáo thẩm định chuẩn, rồi phê duyệt hoặc từ chối hồ sơ.
         </p>
         <Link
-          href="/admin"
+          href="/admin/bo-ho-so"
           className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3.5 text-sm font-medium text-foreground shadow-sm transition hover:bg-secondary"
         >
-          Về thẩm định <ArrowRight size={16} />
+          Về yêu cầu vay <ArrowRight size={16} />
         </Link>
       </div>
 
@@ -113,14 +129,14 @@ export default function ApprovalsPage() {
             Chưa có hồ sơ chờ duyệt
           </h2>
           <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-            Chạy thẩm định trên Tổng quan — hồ sơ cần người phê duyệt sẽ xuất hiện tại đây
+            Chạy thẩm định trên Yêu cầu vay — hồ sơ cần người phê duyệt sẽ xuất hiện tại đây
             (sessionStorage, theo tab trình duyệt).
           </p>
           <Link
-            href="/admin"
+            href="/admin/bo-ho-so"
             className="mt-6 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-on-primary shadow-brand transition hover:opacity-90"
           >
-            Mở form thẩm định <ArrowRight size={16} />
+            Mở yêu cầu vay <ArrowRight size={16} />
           </Link>
         </Card>
       ) : (
@@ -160,11 +176,11 @@ export default function ApprovalsPage() {
                       </Badge>
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      {item.product} · {formatVnd(item.amount)}
+                      {productLabelVi(item.product)} · {formatVnd(item.amount)}
                     </span>
                     {item.veto && (
                       <Badge variant="warning" className="w-fit font-normal">
-                        veto · {item.rule_ids[0] ?? "rule"}
+                        Chặn cứng · {ruleLabelVi(item.rule_ids[0] ?? "")}
                       </Badge>
                     )}
                   </button>
@@ -180,17 +196,23 @@ export default function ApprovalsPage() {
                   <h2 className="text-base font-semibold tracking-tight text-navy">
                     {selected.customer_name}
                   </h2>
-                  <Badge variant="outline">lane {selected.lane}</Badge>
+                  <Badge variant="outline">Tuyến {selected.lane}</Badge>
                 </div>
-                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{selected.summary}</p>
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                  {sanitizeSummary(selected.summary)}
+                </p>
               </div>
               <div className="grid gap-3 text-sm sm:grid-cols-3">
                 <div className="rounded-xl bg-secondary/60 px-3.5 py-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Outcome</p>
-                  <p className="mt-1 font-semibold text-navy">{selected.outcome}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Kết quả</p>
+                  <p className="mt-1 font-semibold text-navy">
+                    {outcomeLabelVi(selected.outcome)}
+                  </p>
                 </div>
                 <div className="rounded-xl bg-secondary/60 px-3.5 py-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Replan</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Số lần điều chỉnh
+                  </p>
                   <p className="mt-1 font-semibold text-navy">{selected.replan_count}</p>
                 </div>
                 <div className="rounded-xl bg-secondary/60 px-3.5 py-3">
@@ -200,15 +222,70 @@ export default function ApprovalsPage() {
                   </p>
                 </div>
               </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2"
+                  disabled={!selected.report}
+                  onClick={() => setReportOpen(true)}
+                  title={
+                    !selected.report
+                      ? "Hồ sơ cũ chưa có báo cáo — chạy lại thẩm định để tạo báo cáo chuẩn"
+                      : undefined
+                  }
+                >
+                  <FileText size={16} aria-hidden />
+                  Xem báo cáo thẩm định
+                </Button>
+                {selected.decision === "approved" ? (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    className="gap-2"
+                    onClick={() => {
+                      const report = selected.report;
+                      const data = buildCreditContractData(null, {
+                        customer_name: selected.customer_name,
+                        product: selected.product,
+                        amount: selected.amount,
+                        application_id: selected.application_id,
+                        national_id: report?.national_id,
+                        phone: report?.phone,
+                        dob: report?.dob,
+                        address: report?.address,
+                        term_months: report?.term_months,
+                        annual_rate: report?.annual_rate ?? report?.proposed_rate ?? null,
+                        purpose: report?.purpose,
+                      });
+                      // Prefer numbers from stored appraisal report when available
+                      if (report) {
+                        data.monthly_payment = report.monthly_payment;
+                        data.proposed_limit = report.proposed_limit;
+                        data.ticket_id = selected.decided_ticket_id ?? selected.ticket_id;
+                      }
+                      setContractData(data);
+                      setContractOpen(true);
+                    }}
+                  >
+                    <FileText size={16} aria-hidden />
+                    Xem hợp đồng tín dụng
+                  </Button>
+                ) : null}
+              </div>
+
               {selected.veto && (
                 <Alert variant="warning">
                   <AlertTitle className="flex items-center gap-2">
-                    <ShieldAlert size={16} /> Veto: {selected.rule_ids.join(", ") || "—"}
+                    <ShieldAlert size={16} /> Chặn cứng:{" "}
+                    {selected.rule_ids.map((id) => ruleLabelVi(id)).join(", ") || "—"}
                   </AlertTitle>
                   {selected.unverified_rules.length > 0 && (
                     <AlertDescription>
-                      Unverified: {selected.unverified_rules.join(", ")} — không trích số này ra
-                      ngoài.
+                      Tiêu chí chưa verify:{" "}
+                      {selected.unverified_rules.map((id) => ruleLabelVi(id)).join(", ")} — không
+                      trích số này ra ngoài.
                     </AlertDescription>
                   )}
                 </Alert>
@@ -248,7 +325,7 @@ export default function ApprovalsPage() {
                     <DialogContent title="Xác nhận từ chối">
                       <p className="text-sm leading-relaxed text-muted-foreground">
                         Từ chối hồ sơ <strong className="text-navy">{selected.customer_name}</strong>
-                        ? Ticket reject sẽ được ghi qua API.
+                        ? Ticket từ chối sẽ được ghi qua API.
                       </p>
                       <DialogFooter>
                         <Button
@@ -276,7 +353,7 @@ export default function ApprovalsPage() {
                     Đã {selected.decision === "approved" ? "phê duyệt" : "từ chối"}
                   </AlertTitle>
                   <AlertDescription>
-                    Lúc {selected.decided_at}. Ticket: {selected.decided_ticket_id ?? "—"}
+                    {selected.decided_ticket_id ?? "—"} · {selected.decided_at}
                   </AlertDescription>
                 </Alert>
               )}
@@ -284,6 +361,17 @@ export default function ApprovalsPage() {
           )}
         </div>
       )}
+
+      <AppraisalReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        data={selected?.report ?? null}
+      />
+      <CreditContractDialog
+        open={contractOpen}
+        onOpenChange={setContractOpen}
+        data={contractData}
+      />
     </AdminShell>
   );
 }

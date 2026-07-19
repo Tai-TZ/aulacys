@@ -626,6 +626,22 @@ export function patchPolicyAppetite(
   );
 }
 
+export function deletePolicyAppetite(
+  ruleId: string,
+  securedType: "SECURED" | "UNSECURED",
+  productCode?: string,
+): Promise<PolicyRuleDto> {
+  const q = new URLSearchParams({ secured_type: securedType });
+  if (productCode?.trim()) q.set("product_code", productCode.trim());
+  return policyFetch(
+    `/policy/rules/${encodeURIComponent(ruleId)}?${q.toString()}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
+
 export function validatePolicyRules(
   securedType: "SECURED" | "UNSECURED",
   metrics: Record<string, number>,
