@@ -1,4 +1,4 @@
-# Render Blueprint — deploys the FastAPI backend (apps/api).
+# Render Blueprint — deploys the orchestrator API (services/orchestrator-svc).
 # The Next.js frontend (apps/web) deploys to Vercel — see docs/DEPLOY.md.
 #
 # Usage: Render Dashboard → New → Blueprint → pick this repo → apply.
@@ -8,8 +8,9 @@ services:
   - type: web
     name: app-api
     runtime: docker
-    rootDir: apps/api
-    dockerfilePath: ./Dockerfile
+    # Orchestrator Dockerfile COPYs packages/shared + services/orchestrator-svc → context = repo root.
+    dockerfilePath: services/orchestrator-svc/Dockerfile
+    dockerContext: .
     plan: free
     region: singapore
     healthCheckPath: /health
@@ -19,6 +20,18 @@ services:
         value: production
       - key: APP_HOST
         value: 0.0.0.0
+      # LLM prose layer — FPT AI Factory (OpenAI-compatible). All 5 agents run
+      # in-process in this single container; numbers/veto stay deterministic.
+      - key: LLM_PROVIDER
+        value: openai
+      - key: OPENAI_BASE_URL
+        value: https://mkp-api.fptcloud.com/v1
+      - key: MODEL_NAME
+        value: SaoLa3.1-medium
+      - key: STRONG_MODEL
+        value: SaoLa3.1-medium
+      - key: MINI_MODEL
+        value: SaoLa3.1-medium
       # Secrets — set these in the Render dashboard (sync:false = not in git):
       - key: OPENAI_API_KEY
         sync: false

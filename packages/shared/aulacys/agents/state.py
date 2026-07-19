@@ -182,6 +182,9 @@ class CriticVerdict(BaseModel):
     passed: bool
     rejections: list[str]
     memo: str = ""
+    # Independent adversarial critique (LLM-written when configured; deterministic base
+    # otherwise). Does NOT gate the outcome — `passed`/`rejections` stay deterministic.
+    review: str = ""
     remediation_plan: list[str] = Field(default_factory=list)
 
 

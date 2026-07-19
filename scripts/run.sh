@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Run the project on macOS/Linux/Git Bash: preflight-check first, then start API + Web.
+# Backend = orchestrator-svc (composition root) importing aulacys from packages/shared.
 # If a check fails, it reports what's wrong and stops (starts nothing).
 #   bash scripts/run.sh            # check + run
 #   bash scripts/run.sh --setup    # bootstrap venv/deps/.env then run
@@ -7,9 +8,11 @@ set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(dirname "$here")"
-api="$root/apps/api"
+api="$root/services/orchestrator-svc"
+shared="$root/packages/shared"
 web="$root/apps/web"
 venv_py="$api/.venv/bin/python"
+export PYTHONPATH="$api:$shared"
 
 echo ""
 echo "=== Preflight ==="
@@ -27,7 +30,10 @@ setup=0
 if [ "$setup" = "1" ]; then
   echo ""
   echo "=== Setup (bootstrap) ==="
-  [ -x "$venv_py" ] || bash "$api/scripts/setup.sh"
+  if [ ! -x "$venv_py" ]; then
+    python3 -m venv "$api/.venv"
+    "$venv_py" -m pip install -r "$shared/requirements.txt" -r "$api/requirements.txt"
+  fi
   [ -d "$web/node_modules" ] || ( cd "$web" && npm install --no-audit --no-fund )
 fi
 
@@ -35,15 +41,13 @@ fi
 problems=()
 
 if [ ! -x "$venv_py" ]; then
-  problems+=("Backend venv missing. Fix: cd apps/api && bash scripts/setup.sh   (or run with --setup)")
+  problems+=("Backend venv missing. Fix: run with --setup   (creates services/orchestrator-svc/.venv)")
 elif ! "$venv_py" -c "import fastapi, uvicorn, langgraph" 2>/dev/null; then
-  problems+=("Backend deps not installed. Fix: cd apps/api && ./.venv/bin/python -m pip install -r requirements.txt   (or --setup)")
+  problems+=("Backend deps not installed. Fix: run with --setup   (installs shared + orchestrator requirements)")
 fi
 
 if [ ! -f "$api/.env" ]; then
-  problems+=("apps/api/.env missing. Fix: cd apps/api && cp .env.example .env   then set OPENAI_API_KEY")
-elif grep -q "OPENAI_API_KEY=sk-your-key-here" "$api/.env" || ! grep -qE "OPENAI_API_KEY=.+" "$api/.env"; then
-  problems+=("OPENAI_API_KEY not set in apps/api/.env (placeholder/empty). Edit it with your real key.")
+  problems+=("services/orchestrator-svc/.env missing. Fix: cd services/orchestrator-svc && cp .env.example .env")
 fi
 
 [ -d "$web/node_modules" ] || problems+=("Frontend deps missing. Fix: cd apps/web && npm install   (or run with --setup)")
@@ -64,7 +68,7 @@ echo "  Web -> http://localhost:3000"
 echo ""
 
 # Start API in the background; web in the foreground. Ctrl-C stops both.
-"$venv_py" -m uvicorn src.main:app --reload --host 127.0.0.1 --port 8000 --app-dir "$api" &
+( cd "$api" && "$venv_py" -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000 ) &
 api_pid=$!
 trap 'kill "$api_pid" 2>/dev/null' EXIT INT TERM
 

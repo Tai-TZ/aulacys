@@ -13,10 +13,9 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 def _env_files() -> tuple[str, ...]:
-    """Load cwd .env first, then apps/api/.env so orchestrator-svc still sees LLM keys."""
+    """Load cwd .env first, then the orchestrator-svc .env so any CWD still sees LLM keys."""
     candidates = [
         Path.cwd() / ".env",
-        _REPO_ROOT / "apps" / "api" / ".env",
         _REPO_ROOT / "services" / "orchestrator-svc" / ".env",
     ]
     seen: set[str] = set()
@@ -50,6 +49,9 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
 
     openai_api_key: str = ""
+    # Custom OpenAI-compatible endpoint (empty ⇒ real OpenAI). Set for FPT AI Factory
+    # or any gateway that speaks the OpenAI Chat Completions API.
+    openai_base_url: str = ""
     model_name: str = "gpt-4o-mini"  # used when llm_provider=openai
     strong_model: str = "gpt-4o-mini"
     mini_model: str = "gpt-4o-mini"

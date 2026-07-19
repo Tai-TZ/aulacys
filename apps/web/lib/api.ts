@@ -226,6 +226,7 @@ export interface AssessResponse {
     passed: boolean;
     rejections: string[];
     memo: string;
+    review?: string; // independent LLM critique (does not gate outcome)
     remediation_plan: string[];
   } | null;
   trace: NodeTrace[];

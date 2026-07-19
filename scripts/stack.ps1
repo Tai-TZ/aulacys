@@ -2,8 +2,8 @@
 # stack.ps1 - one command to run / stop / check the local SHB stack (Windows)
 # =============================================================================
 #
-#   .\scripts\stack.ps1 up                 # start + stream logs (Ctrl+C detach)
-#   .\scripts\stack.ps1 up -Profile full
+#   .\scripts\stack.ps1 up                 # start full stack + stream logs (Ctrl+C detach)
+#   .\scripts\stack.ps1 up -Profile demo
 #   .\scripts\stack.ps1 up -Detach         # start, no log follow
 #   .\scripts\stack.ps1 up -Force          # free ports then start
 #   .\scripts\stack.ps1 logs               # attach realtime logs again
@@ -20,7 +20,7 @@ param(
     [string]$Command = "help",
 
     [ValidateSet("demo", "full")]
-    [string]$Profile = "demo",
+    [string]$Profile = "full",
 
     [switch]$Setup,
 
@@ -112,7 +112,7 @@ function Clear-StackPorts {
             $p = Get-Process -Id $pidVal -ErrorAction SilentlyContinue
             if ($p) { $procName = $p.ProcessName }
             Write-Host "  port $port -> kill pid $pidVal ($procName)" -ForegroundColor Yellow
-            & taskkill.exe /PID $pidVal /T /F 2>$null | Out-Null
+            try { & taskkill.exe /PID $pidVal /T /F 2>$null | Out-Null } catch {}
             try { Stop-Process -Id $pidVal -Force -ErrorAction SilentlyContinue } catch {}
         }
     }
@@ -446,6 +446,9 @@ function Invoke-Up([string]$Mode) {
         }
     }
 
+    Ensure-RunDirs
+    Get-ChildItem $LogDir -Filter "*.log" -ErrorAction SilentlyContinue | Remove-Item -Force
+
     Write-Host "=== Starting profile=$Mode ===" -ForegroundColor Cyan
     $catalog = Get-ServiceCatalog -Mode $Mode
     $map = @{}
@@ -504,8 +507,8 @@ function Invoke-Up([string]$Mode) {
 function Show-Help {
     Write-Host "stack.ps1 - manage local API / Web / microservices"
     Write-Host ""
-    Write-Host "  .\scripts\stack.ps1 up                 # start + live logs (Ctrl+C detach)"
-    Write-Host "  .\scripts\stack.ps1 up -Profile full"
+    Write-Host "  .\scripts\stack.ps1 up                 # start full stack + live logs (Ctrl+C detach)"
+    Write-Host "  .\scripts\stack.ps1 up -Profile demo   # API + gateway + web only"
     Write-Host "  .\scripts\stack.ps1 up -Detach         # start without following logs"
     Write-Host "  .\scripts\stack.ps1 up -Force          # free ports then start"
     Write-Host "  .\scripts\stack.ps1 logs               # live logs again"

@@ -135,6 +135,16 @@ def test_critic_requires_policy_citation_on_veto() -> None:
 
 def test_critic_spec_locks_memo_from_llm_rewrite() -> None:
     assert CriticSpec.llm_prose is True
-    assert CriticSpec.prose_fields == ["remediation_plan"]
+    # memo, passed, rejections stay deterministic (audit-backed); only review + remediation
+    # prose may be LLM-written.
+    assert CriticSpec.prose_fields == ["review", "remediation_plan"]
+    assert "memo" not in CriticSpec.prose_fields
+    assert "passed" not in CriticSpec.prose_fields
     assert "proposal" in CriticSpec.reads
     assert CriticSpec.tools == []
+
+
+def test_critic_review_is_populated_deterministically() -> None:
+    # Even with no LLM, review carries a non-empty independent critique.
+    verdict, _ = critic_fallback({}, CriticSpec)
+    assert isinstance(verdict.review, str) and verdict.review.strip()

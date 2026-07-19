@@ -224,7 +224,7 @@ async def list_loan_applications(limit: int = 100) -> list[dict]:
     """Proxy application-svc catalog of intake dossiers."""
     rows = applications_proxy.list_applications(limit=limit)
     if rows is None:
-        raise HTTPException(status_code=503, detail="application-svc unreachable")
+        return applications_proxy.fallback_applications(limit=limit)
     return rows
 
 

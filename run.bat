@@ -19,7 +19,7 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8000 ^| findstr LISTENING') 
 
 echo.
 echo 3. Starting FastAPI Backend on port 8000...
-start "FastAPI Backend" cmd /k "set PYTHONPATH=..\..\packages\shared;.&& cd services\orchestrator-svc && ..\..\apps\api\.venv\Scripts\activate && uvicorn app.main:app --reload --port 8000"
+start "Orchestrator API" cmd /k "cd services\orchestrator-svc && set PYTHONPATH=%CD%;..\..\packages\shared && uvicorn app.main:app --reload --port 8000"
 
 echo 4. Starting Next.js Frontend on port 3000...
 start "Next.js Frontend" cmd /k "cd apps\web && npm run dev"

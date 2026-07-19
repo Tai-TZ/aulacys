@@ -1052,15 +1052,23 @@ export function AssessDashboard() {
   function applyProposalToForm(proposal: CreditProposalResponse) {
     const p = proposal.proposal;
     if (!p) return;
-    setForm((prev) => ({
-      ...prev,
-      declared: {
-        ...prev.declared,
-        amount: p.proposed_limit ?? p.requested_amount ?? prev.declared.amount,
-        term_months: p.term_months || prev.declared.term_months,
-        annual_rate: p.proposed_rate ?? prev.declared.annual_rate,
-      },
-    }));
+    setForm((prev) => {
+      const nextAmount =
+        p.proposed_limit && p.proposed_limit > 0
+          ? p.proposed_limit
+          : p.requested_amount && p.requested_amount > 0
+            ? p.requested_amount
+            : prev.declared.amount;
+      return {
+        ...prev,
+        declared: {
+          ...prev.declared,
+          amount: nextAmount,
+          term_months: p.term_months || prev.declared.term_months,
+          annual_rate: p.proposed_rate ?? prev.declared.annual_rate ?? 0.13,
+        },
+      };
+    });
   }
 
   /** Stage 2 — Credit only → LoanProposal (FLOW-BUSINESS-CONFIRMED §2). */
@@ -1977,20 +1985,30 @@ export function AssessDashboard() {
                       {sanitizeBusinessText(result.critic.memo)}
                     </p>
                   )}
-                  {result.critic.rejections.length > 0 && (
+                  {result.critic.review && (
+                    <div className="mt-2 rounded-md border border-border/50 bg-card/70 p-2.5">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Independent review
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
+                        {result.critic.review}
+                      </p>
+                    </div>
+                  )}
+                  {(result.critic.rejections ?? []).length > 0 && (
                     <ul className="mt-2 space-y-1 text-xs text-warning-foreground">
-                      {result.critic.rejections.map((item) => (
+                      {(result.critic.rejections ?? []).map((item) => (
                         <li key={item}>· {sanitizeBusinessText(item)}</li>
                       ))}
                     </ul>
                   )}
-                  {result.critic.remediation_plan.length > 0 && (
+                  {(result.critic.remediation_plan ?? []).length > 0 && (
                     <div className="mt-2">
                       <p className="text-[11px] font-medium text-muted-foreground">
                         Việc cần làm tiếp
                       </p>
                       <ul className="mt-1 space-y-1 text-xs text-foreground">
-                        {result.critic.remediation_plan.map((item) => (
+                        {(result.critic.remediation_plan ?? []).map((item) => (
                           <li key={item}>· {sanitizeBusinessText(item)}</li>
                         ))}
                       </ul>
@@ -2087,6 +2105,16 @@ export function AssessDashboard() {
                   <p className="mt-1 text-sm text-navy whitespace-pre-wrap leading-relaxed">
                     {sanitizeBusinessText(result.critic.memo)}
                   </p>
+                  {result.critic.review ? (
+                    <div className="mt-3 border-t border-border/50 pt-2">
+                      <p className="text-[11px] font-semibold text-muted-foreground">
+                        Independent review
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-navy leading-relaxed">
+                        {result.critic.review}
+                      </p>
+                    </div>
+                  ) : null}
                   {result.critic.remediation_plan?.length ? (
                     <div className="mt-3 border-t border-border/50 pt-2">
                       <p className="text-[11px] font-semibold text-muted-foreground">Việc cần làm tiếp</p>
